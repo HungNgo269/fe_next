@@ -1,26 +1,222 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+  --brand-50: #fffbeb;
+  --brand-100: #fff1c1;
+  --brand-200: #ffe642;
+  --brand-300: #f2cf7e;
+  --brand-400: #ffbf00;
+  --brand-500: #ff9500;
+  --brand-600: #ff7900;
+  --brand-700: #cc5a00;
+  --brand-950: #451a03;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --background: #ffffff;
+  --surface: #f8fafc;
+  --surface-hover: #f1f5f9;
+
+  --foreground: #0f1419;
+  --foreground-muted: #536471;
+
+  --brand: var(--brand-400);
+  --brand-foreground: #0f172a;
+
+  --border: #dbdbdb;
+  --input: #efefef;
+
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --success: #22c55e;
+  --link: #00376b;
+  --like: #ed4956;
+
+  --shadow-soft: 0 4px 12px -2px rgba(0, 0, 0, 0.08);
+  --radius: 0.75rem;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0d1015;
+    --surface: #161b22;
+    --surface-hover: #1f2937;
+
+    --foreground: #f9f9f9;
+    --foreground-muted: #8b949e;
+
+    --brand: var(--brand-400);
+    --brand-foreground: #000000;
+
+    --border: #30363d;
+    --input: #21262d;
+
+    --destructive: #f87171;
+    --destructive-foreground: #000000;
+    --success: #4ade80;
+    --link: #38bdf8;
+    --like: #ff3040;
+
+    --shadow-soft: 0 0 0 1px rgba(255, 255, 255, 0.1);
   }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+
+  --color-foreground: var(--foreground);
+  --color-foreground-muted: var(--foreground-muted);
+
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-hover: var(--brand-600);
+  --color-brand-accent: var(--brand-200);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-link: var(--link);
+  --color-like: var(--like);
+
+  --radius-xl: var(--radius);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes fade-up {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes like-bounce {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@layer utilities {
+  .animate-fade-up {
+    animation: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .animate-like {
+    animation: like-bounce 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  .animate-pulse-soft {
+    animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .animate-delay-80 {
+    animation-delay: 80ms;
+  }
+
+  .animate-delay-120 {
+    animation-delay: 120ms;
+  }
+
+  .animate-delay-200 {
+    animation-delay: 200ms;
+  }
+
+  .animate-delay-280 {
+    animation-delay: 280ms;
+  }
+
+  .animate-delay-360 {
+    animation-delay: 360ms;
+  }
+
+  .animate-delay-440 {
+    animation-delay: 440ms;
+  }
+
+  .avatar-blue {
+    background-color: #2563eb;
+  }
+
+  .avatar-teal {
+    background-color: #0ea5a5;
+  }
+
+  .avatar-orange {
+    background-color: #f97316;
+  }
+
+  .avatar-green {
+    background-color: #22c55e;
+  }
+
+  .avatar-indigo {
+    background-color: #6366f1;
+  }
+
+  .avatar-slate {
+    background-color: #0f172a;
+  }
+
+  .avatar-purple {
+    background-color: #7c3aed;
+  }
+
+  .post-media-gradient-sunrise {
+    background-image: linear-gradient(135deg, #bae6fd, #a7f3d0, #fde68a);
+  }
+
+  .post-media-gradient-mint {
+    background-image: linear-gradient(135deg, #bbf7d0, #d9f99d, #fed7aa);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
