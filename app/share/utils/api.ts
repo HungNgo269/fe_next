@@ -1,93 +1,118 @@
-export type ApiErrorInfo = {
-  status?: number;
-  name?: string;
-  messages: string[];
-};
+import "client-only";
 
-export type ApiResult<T> =
-  | { ok: true; data: T }
-  | { ok: false; error: ApiErrorInfo };
+import axios, { AxiosError, type AxiosRequestConfig } from "axios";
+import type { ApiError, ApiResponse } from "./api-types";
+import {
+  extractErrorName,
+  JSON_HEADERS,
+  normalizeBaseUrl,
+  normalizeMessages,
+} from "./api-helpers";
+
+type ApiRequestConfig = AxiosRequestConfig & {
+  _retry?: boolean;
+  skipAuthRefresh?: boolean;
+};
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
 
-const normalizeBaseUrl = (value: string) => value.replace(/\/+$/, "");
+const apiClient = axios.create({
+  baseURL: normalizeBaseUrl(API_BASE_URL),
+  headers: JSON_HEADERS,
+  withCredentials: true,
+});
 
-const JSON_HEADERS = {
-  "Content-Type": "application/json",
-};
+const refreshClient = axios.create({
+  baseURL: normalizeBaseUrl(API_BASE_URL),
+  headers: JSON_HEADERS,
+  withCredentials: true,
+});
 
-const parseResponseBody = async (response: Response): Promise<unknown> => {
-  const contentType = response.headers.get("content-type") ?? "";
-  if (contentType.includes("application/json")) {
-    return response.json();
-  }
-  return response.text();
-};
+let refreshPromise: Promise<void> | null = null;
 
-const normalizeMessages = (payload: unknown): string[] => {
-  if (Array.isArray(payload)) {
-    return payload.map((item) => String(item));
-  }
-  if (payload && typeof payload === "object") {
-    const maybeMessage = (payload as { message?: unknown }).message;
-    if (Array.isArray(maybeMessage)) {
-      return maybeMessage.map((item) => String(item));
-    }
-    if (typeof maybeMessage === "string" && maybeMessage.trim()) {
-      return [maybeMessage];
-    }
-  }
-  if (typeof payload === "string" && payload.trim()) {
-    return [payload];
-  }
-  return ["An unexpected error occurred."];
-};
+const normalizePath = (path: string) => path.replace(/^\/+/, "");
+const isAbsoluteUrl = (url: string) =>
+  /^[a-z][a-z\d+\-.]*:|^\/\//i.test(url);
 
-const extractErrorName = (payload: unknown): string | undefined => {
-  if (payload && typeof payload === "object") {
-    const maybeError = (payload as { error?: unknown }).error;
-    if (typeof maybeError === "string" && maybeError.trim()) {
-      return maybeError;
-    }
-  }
-  return undefined;
-};
-
-export const postJson = async <T>(
-  path: string,
-  body: unknown,
-): Promise<ApiResult<T>> => {
-  try {
-    const baseUrl = normalizeBaseUrl(API_BASE_URL);
-    const response = await fetch(`${baseUrl}${path}`, {
-      method: "POST",
-      headers: JSON_HEADERS,
-      body: JSON.stringify(body),
-      credentials: "include",
-      cache: "no-store",
-    });
-
-    const payload = await parseResponseBody(response);
-    if (!response.ok) {
-      return {
-        ok: false,
-        error: {
-          status: response.status,
-          name: extractErrorName(payload),
-          messages: normalizeMessages(payload),
-        },
-      };
-    }
-
-    return { ok: true, data: payload as T };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Request failed.";
+const normalizeAxiosError = (error: unknown): ApiError => {
+  if (axios.isAxiosError(error)) {
+    const axiosError = error as AxiosError;
+    const status = axiosError.response?.status;
+    const payload = axiosError.response?.data;
     return {
-      ok: false,
-      error: {
-        messages: ["Unable to reach the server.", message],
-      },
+      status,
+      name: extractErrorName(payload),
+      messages: normalizeMessages(payload),
     };
   }
+  const message = error instanceof Error ? error.message : "Request failed.";
+  return {
+    messages: ["Unable to reach the server.", message],
+  };
 };
+
+export const refreshTokens = async (): Promise<void> => {
+  await refreshClient.post(normalizePath("/auth/refresh"));
+};
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error: AxiosError) => {
+    const status = error.response?.status;
+    const config = error.config as ApiRequestConfig | undefined;
+
+    if (!config || config._retry || config.skipAuthRefresh) {
+      return Promise.reject(error);
+    }
+    if (status !== 401 && status !== 403) {
+      return Promise.reject(error);
+    }
+
+    config._retry = true;
+
+    if (!refreshPromise) {
+      refreshPromise = refreshTokens().finally(() => {
+        refreshPromise = null;
+      });
+    }
+
+    try {
+      await refreshPromise;
+    } catch {
+      return Promise.reject(error);
+    }
+
+    return apiClient.request(config);
+  },
+);
+
+apiClient.interceptors.request.use((config) => {
+  if (config.url && !isAbsoluteUrl(config.url)) {
+    config.url = normalizePath(config.url);
+  }
+  return config;
+});
+
+export const clientPostJson = async <T>(
+  path: string,
+  body: unknown,
+  options?: { skipAuthRefresh?: boolean; config?: AxiosRequestConfig },
+): Promise<ApiResponse<T>> => {
+  try {
+    const requestConfig: ApiRequestConfig = {
+      ...(options?.config ?? {}),
+      skipAuthRefresh: options?.skipAuthRefresh,
+    };
+    const response = await apiClient.post<T>(
+      normalizePath(path),
+      body,
+      requestConfig,
+    );
+    return { ok: true, data: response.data as T };
+  } catch (error) {
+    return { ok: false, error: normalizeAxiosError(error) };
+  }
+};
+
+export { apiClient };

@@ -19,7 +19,7 @@ export default function FeedComposer({
   const canPost = value.trim().length > 0;
 
   return (
-    <div className="rounded-3xl border border-slate-200/70 bg-white/90 p-6 shadow-[var(--shadow-soft)] animate-fade-up">
+    <div className="rounded-3xl border border-slate-200/70 bg-white/90 p-6 shadow-soft animate-fade-up">
       <div className="flex items-start gap-4">
         <Avatar
           initials={currentUser.initials}
@@ -27,7 +27,7 @@ export default function FeedComposer({
         />
         <div className="flex-1">
           <textarea
-            className="min-h-[90px] w-full resize-none rounded-2xl border border-slate-200/70 bg-white/80 px-4 py-3 text-sm text-slate-700 outline-none transition-colors focus:border-slate-400"
+            className="min-h-composer w-full resize-none rounded-2xl border border-slate-200/70 bg-white/80 px-4 py-3 text-sm text-slate-700 outline-none transition-colors focus:border-slate-400"
             placeholder="Share something with your circle..."
             value={value}
             onChange={(event) => onChange(event.target.value)}

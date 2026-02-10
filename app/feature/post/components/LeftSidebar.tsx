@@ -9,7 +9,7 @@ type LeftSidebarProps = {
 export default function LeftSidebar({ currentUser, navItems }: LeftSidebarProps) {
   return (
     <aside className="col-span-12 lg:col-span-3">
-      <div className="rounded-3xl border border-slate-200/70 bg-white/90 p-5 shadow-[var(--shadow-soft)]">
+      <div className="rounded-3xl border border-slate-200/70 bg-white/90 p-5 shadow-soft">
         <div className="flex items-center gap-3">
           <Avatar
             initials={currentUser.initials}

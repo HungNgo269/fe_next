@@ -33,7 +33,7 @@ export const stories: StoryData[] = [
       initials: "MT",
       colorClass: "avatar-teal",
     },
-    theme: "from-[#0ea5a5] via-[#38bdf8] to-[#2563eb]",
+    theme: "gradient-theme-teal",
   },
   {
     id: "story-2",
@@ -44,7 +44,7 @@ export const stories: StoryData[] = [
       initials: "LO",
       colorClass: "avatar-orange",
     },
-    theme: "from-[#f97316] via-[#f59e0b] to-[#facc15]",
+    theme: "gradient-theme-orange",
   },
   {
     id: "story-3",
@@ -55,7 +55,7 @@ export const stories: StoryData[] = [
       initials: "AY",
       colorClass: "avatar-green",
     },
-    theme: "from-[#22c55e] via-[#86efac] to-[#14b8a6]",
+    theme: "gradient-theme-green",
   },
   {
     id: "story-4",
@@ -66,7 +66,7 @@ export const stories: StoryData[] = [
       initials: "JP",
       colorClass: "avatar-indigo",
     },
-    theme: "from-[#6366f1] via-[#818cf8] to-[#38bdf8]",
+    theme: "gradient-theme-indigo",
   },
 ];
 

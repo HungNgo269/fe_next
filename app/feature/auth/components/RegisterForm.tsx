@@ -69,7 +69,7 @@ export default function RegisterForm() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+        <p className="text-xs font-semibold uppercase tracking-widest-xl text-slate-400">
           Sign up
         </p>
         <h2 className="text-2xl font-semibold text-slate-900">

@@ -154,9 +154,9 @@ export default function SocialFeed() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,#e0f2fe_0%,#f8fafc_45%,#fef3c7_100%)] text-slate-900">
-      <div className="pointer-events-none absolute -top-32 right-[-10%] h-80 w-80 rounded-full bg-emerald-200/50 blur-3xl float-slow" />
-      <div className="pointer-events-none absolute bottom-[-15%] left-[-10%] h-96 w-96 rounded-full bg-blue-200/40 blur-3xl float-slow" />
+    <div className="relative min-h-screen overflow-hidden bg-gradient-radial-feed text-slate-900">
+      <div className="pointer-events-none absolute -top-32 -right-10p h-80 w-80 rounded-full bg-emerald-200/50 blur-3xl float-slow" />
+      <div className="pointer-events-none absolute -bottom-15p -left-10p h-96 w-96 rounded-full bg-blue-200/40 blur-3xl float-slow" />
 
       <FeedHeader currentUser={currentUser} />
 

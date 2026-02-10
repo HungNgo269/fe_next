@@ -48,7 +48,7 @@ export default function PostCard({
 
   return (
     <article
-      className={`rounded-3xl border border-slate-200/70 bg-white/90 p-6 shadow-[var(--shadow-soft)] animate-fade-up ${delayClass}`}
+      className={`rounded-3xl border border-slate-200/70 bg-white/90 p-6 shadow-soft animate-fade-up ${delayClass}`}
     >
       <header className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
@@ -90,7 +90,7 @@ export default function PostCard({
         {isEditing ? (
           <div className="space-y-3">
             <textarea
-              className="min-h-[90px] w-full resize-none rounded-2xl border border-slate-200/70 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition-colors focus:border-slate-400"
+              className="min-h-composer w-full resize-none rounded-2xl border border-slate-200/70 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition-colors focus:border-slate-400"
               value={editingText}
               onChange={(event) => onChangeEditingText(event.target.value)}
             />
@@ -133,7 +133,7 @@ export default function PostCard({
           <span>{post.comments.length} comments</span>
           <span>{post.shares} shares</span>
         </div>
-        <span className="text-[11px] uppercase tracking-[0.2em] text-slate-400">
+        <span className="text-2xs uppercase tracking-widest-xl text-slate-400">
           Community
         </span>
       </div>
@@ -162,7 +162,7 @@ export default function PostCard({
             <div className="flex-1">
               <p className="text-xs font-semibold text-slate-900">
                 {comment.author.name}
-                <span className="ml-2 text-[11px] font-normal text-slate-500">
+                <span className="ml-2 text-2xs font-normal text-slate-500">
                   {comment.time}
                 </span>
               </p>

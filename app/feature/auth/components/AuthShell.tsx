@@ -24,11 +24,11 @@ const highlights = [
 
 export default function AuthShell({ title, subtitle, children }: AuthShellProps) {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,#e0f2fe_0%,#f8fafc_40%,#fde68a_100%)] text-slate-900">
-      <div className="pointer-events-none absolute -top-32 right-[-10%] h-80 w-80 rounded-full bg-emerald-200/50 blur-3xl float-slow" />
-      <div className="pointer-events-none absolute bottom-[-20%] left-[-15%] h-96 w-96 rounded-full bg-blue-200/40 blur-3xl float-slow" />
+    <div className="relative min-h-screen overflow-hidden bg-gradient-radial-auth text-slate-900">
+      <div className="pointer-events-none absolute -top-32 -right-10p h-80 w-80 rounded-full bg-emerald-200/50 blur-3xl float-slow" />
+      <div className="pointer-events-none absolute -bottom-20p -left-15p h-96 w-96 rounded-full bg-blue-200/40 blur-3xl float-slow" />
 
-      <main className="relative mx-auto grid w-full max-w-6xl gap-10 px-4 pb-16 pt-12 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+      <main className="relative mx-auto grid w-full max-w-6xl gap-10 px-4 pb-16 pt-12 sm:px-6 lg:grid-cols-auth lg:items-center">
         <section className="space-y-8">
           <div className="inline-flex items-center gap-3 rounded-full border border-white/70 bg-white/70 px-4 py-2 text-sm text-slate-600 shadow-sm">
             <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-slate-900 text-sm font-semibold text-white">
@@ -71,7 +71,7 @@ export default function AuthShell({ title, subtitle, children }: AuthShellProps)
           </p>
         </section>
 
-        <section className="animate-fade-up rounded-3xl border border-white/80 bg-white/85 p-6 shadow-[var(--shadow-soft)] backdrop-blur sm:p-8">
+        <section className="animate-fade-up rounded-3xl border border-white/80 bg-white/85 p-6 shadow-soft backdrop-blur sm:p-8">
           {children}
         </section>
       </main>

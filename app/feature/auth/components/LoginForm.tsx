@@ -66,7 +66,7 @@ export default function LoginForm() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+        <p className="text-xs font-semibold uppercase tracking-widest-xl text-slate-400">
           Sign in
         </p>
         <h2 className="text-2xl font-semibold text-slate-900">Welcome back</h2>

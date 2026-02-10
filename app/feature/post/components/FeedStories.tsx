@@ -7,7 +7,7 @@ type FeedStoriesProps = {
 
 export default function FeedStories({ stories }: FeedStoriesProps) {
   return (
-    <div className="rounded-3xl border border-slate-200/70 bg-white/80 p-5 shadow-[var(--shadow-soft)] animate-fade-up animate-delay-80">
+    <div className="rounded-3xl border border-slate-200/70 bg-white/80 p-5 shadow-soft animate-fade-up animate-delay-80">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-semibold text-slate-900">Stories</p>
@@ -25,7 +25,7 @@ export default function FeedStories({ stories }: FeedStoriesProps) {
       <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
         {stories.map((story) => (
           <button
-            className="relative flex min-w-[150px] cursor-pointer flex-col justify-between rounded-2xl border border-transparent bg-white px-3 py-3 text-left shadow-sm transition-colors hover:border-slate-200/70 hover:bg-white/90"
+            className="relative flex min-w-story cursor-pointer flex-col justify-between rounded-2xl border border-transparent bg-white px-3 py-3 text-left shadow-sm transition-colors hover:border-slate-200/70 hover:bg-white/90"
             key={story.id}
             type="button"
           >
@@ -41,7 +41,7 @@ export default function FeedStories({ stories }: FeedStoriesProps) {
                 <p className="text-xs font-semibold text-slate-900">
                   {story.author.name}
                 </p>
-                <p className="text-[11px] text-slate-500">{story.title}</p>
+                <p className="text-2xs text-slate-500">{story.title}</p>
               </div>
             </div>
           </button>

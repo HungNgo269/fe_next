@@ -12,7 +12,7 @@ export default function RightSidebar({
 }: RightSidebarProps) {
   return (
     <aside className="col-span-12 space-y-6 lg:col-span-3">
-      <div className="rounded-3xl border border-slate-200/70 bg-white/90 p-5 shadow-[var(--shadow-soft)]">
+      <div className="rounded-3xl border border-slate-200/70 bg-white/90 p-5 shadow-soft">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-semibold text-slate-900">Trending</p>
@@ -42,7 +42,7 @@ export default function RightSidebar({
         </div>
       </div>
 
-      <div className="rounded-3xl border border-slate-200/70 bg-white/90 p-5 shadow-[var(--shadow-soft)]">
+      <div className="rounded-3xl border border-slate-200/70 bg-white/90 p-5 shadow-soft">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-semibold text-slate-900">
@@ -88,7 +88,7 @@ export default function RightSidebar({
         </div>
       </div>
 
-      <div className="rounded-3xl border border-slate-200/70 bg-white/90 p-5 shadow-[var(--shadow-soft)]">
+      <div className="rounded-3xl border border-slate-200/70 bg-white/90 p-5 shadow-soft">
         <p className="text-sm font-semibold text-slate-900">Upcoming</p>
         <p className="mt-1 text-xs text-slate-500">
           Community events this week
