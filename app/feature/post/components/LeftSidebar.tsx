@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { AvatarInfo, NavItem } from "../types/feed";
 import Avatar from "./ui/Avatar";
 
@@ -37,12 +38,12 @@ export default function LeftSidebar({ currentUser, navItems }: LeftSidebarProps)
             <p className="text-xs text-slate-500">Events</p>
           </div>
         </div>
-        <button
-          className="mt-4 w-full rounded-full border border-slate-200/70 bg-white py-2 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-300 hover:text-slate-900"
-          type="button"
+        <Link
+          className="mt-4 block w-full rounded-full border border-slate-200/70 bg-white py-2 text-center text-sm font-semibold text-slate-700 transition-colors hover:border-slate-300 hover:text-slate-900"
+          href="/profile"
         >
           View profile
-        </button>
+        </Link>
       </div>
 
       <div className="mt-6 space-y-2">

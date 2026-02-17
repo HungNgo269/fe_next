@@ -303,6 +303,22 @@ body {
   .shadow-soft {
     box-shadow: var(--shadow-soft);
   }
+
+  /* Profile */
+  .profile-avatar-frame {
+    overflow: hidden;
+  }
+
+  .profile-avatar-surface {
+    background-image: linear-gradient(140deg, #dbeafe, #bfdbfe, #e0f2fe);
+  }
+
+  .profile-avatar-image {
+    display: block;
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

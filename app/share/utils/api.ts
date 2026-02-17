@@ -14,6 +14,11 @@ type ApiRequestConfig = AxiosRequestConfig & {
   skipAuthRefresh?: boolean;
 };
 
+type ClientRequestOptions = {
+  skipAuthRefresh?: boolean;
+  config?: AxiosRequestConfig;
+};
+
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
 
@@ -94,25 +99,86 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-export const clientPostJson = async <T>(
-  path: string,
-  body: unknown,
-  options?: { skipAuthRefresh?: boolean; config?: AxiosRequestConfig },
+const buildRequestConfig = (
+  options?: ClientRequestOptions,
+): ApiRequestConfig => ({
+  ...(options?.config ?? {}),
+  skipAuthRefresh: options?.skipAuthRefresh,
+});
+
+const executeClientRequest = async <T>(
+  request: (requestConfig: ApiRequestConfig) => Promise<T>,
+  options?: ClientRequestOptions,
 ): Promise<ApiResponse<T>> => {
   try {
-    const requestConfig: ApiRequestConfig = {
-      ...(options?.config ?? {}),
-      skipAuthRefresh: options?.skipAuthRefresh,
-    };
-    const response = await apiClient.post<T>(
-      normalizePath(path),
-      body,
-      requestConfig,
-    );
-    return { ok: true, data: response.data as T };
+    const response = await request(buildRequestConfig(options));
+    return { ok: true, data: response };
   } catch (error) {
     return { ok: false, error: normalizeAxiosError(error) };
   }
 };
+
+export const clientPostJson = async <T>(
+  path: string,
+  body: unknown,
+  options?: ClientRequestOptions,
+): Promise<ApiResponse<T>> =>
+  executeClientRequest(
+    async (requestConfig) => {
+      const response = await apiClient.post<T>(
+        normalizePath(path),
+        body,
+        requestConfig,
+      );
+      return response.data as T;
+    },
+    options,
+  );
+
+export const clientGetJson = async <T>(
+  path: string,
+  options?: ClientRequestOptions,
+): Promise<ApiResponse<T>> =>
+  executeClientRequest(
+    async (requestConfig) => {
+      const response = await apiClient.get<T>(normalizePath(path), requestConfig);
+      return response.data as T;
+    },
+    options,
+  );
+
+export const clientPatchJson = async <T>(
+  path: string,
+  body: unknown,
+  options?: ClientRequestOptions,
+): Promise<ApiResponse<T>> =>
+  executeClientRequest(
+    async (requestConfig) => {
+      const response = await apiClient.patch<T>(
+        normalizePath(path),
+        body,
+        requestConfig,
+      );
+      return response.data as T;
+    },
+    options,
+  );
+
+export const clientPutJson = async <T>(
+  path: string,
+  body: unknown,
+  options?: ClientRequestOptions,
+): Promise<ApiResponse<T>> =>
+  executeClientRequest(
+    async (requestConfig) => {
+      const response = await apiClient.put<T>(
+        normalizePath(path),
+        body,
+        requestConfig,
+      );
+      return response.data as T;
+    },
+    options,
+  );
 
 export { apiClient };

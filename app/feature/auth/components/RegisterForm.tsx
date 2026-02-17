@@ -6,10 +6,8 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import FormAlert from "@/app/share/components/FormAlert";
 import { register as registerUser } from "../api/authApi";
-import {
-  registerSchema,
-  type RegisterFormValues,
-} from "../schema/authSchema";
+import { registerSchema, type RegisterFormValues } from "../schema/authSchema";
+import { redirect, RedirectType } from "next/navigation";
 
 const buildErrorTitle = (status?: number) => {
   if (status === 400) {
@@ -28,7 +26,6 @@ export default function RegisterForm() {
   const [serverErrors, setServerErrors] = useState<string[]>([]);
   const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-
   const {
     register,
     handleSubmit,
@@ -59,12 +56,15 @@ export default function RegisterForm() {
 
     setSuccessMessage("Account created successfully. You can sign in now.");
     reset();
+    redirect("/", RedirectType.replace);
   };
 
   const nameErrorId = errors.name ? "register-name-error" : undefined;
   const emailErrorId = errors.email ? "register-email-error" : undefined;
   const genderErrorId = errors.gender ? "register-gender-error" : undefined;
-  const passwordErrorId = errors.password ? "register-password-error" : undefined;
+  const passwordErrorId = errors.password
+    ? "register-password-error"
+    : undefined;
 
   return (
     <div className="space-y-6">
@@ -103,10 +103,7 @@ export default function RegisterForm() {
             {...register("name")}
           />
           {errors.name?.message ? (
-            <p
-              className="text-xs font-medium text-rose-600"
-              id={nameErrorId}
-            >
+            <p className="text-xs font-medium text-rose-600" id={nameErrorId}>
               {errors.name.message}
             </p>
           ) : null}
@@ -127,19 +124,14 @@ export default function RegisterForm() {
             {...register("email")}
           />
           {errors.email?.message ? (
-            <p
-              className="text-xs font-medium text-rose-600"
-              id={emailErrorId}
-            >
+            <p className="text-xs font-medium text-rose-600" id={emailErrorId}>
               {errors.email.message}
             </p>
           ) : null}
         </label>
 
         <fieldset className="space-y-3 text-sm font-medium text-slate-700">
-          <legend className="text-sm font-medium text-slate-700">
-            Gender
-          </legend>
+          <legend className="text-sm font-medium text-slate-700">Gender</legend>
           <div className="grid grid-cols-2 gap-3">
             <label className="flex cursor-pointer items-center justify-between rounded-2xl border border-slate-200/70 bg-white/90 px-4 py-3 text-sm text-slate-700 shadow-sm transition hover:border-slate-300">
               Male
@@ -161,10 +153,7 @@ export default function RegisterForm() {
             </label>
           </div>
           {errors.gender?.message ? (
-            <p
-              className="text-xs font-medium text-rose-600"
-              id={genderErrorId}
-            >
+            <p className="text-xs font-medium text-rose-600" id={genderErrorId}>
               {errors.gender.message}
             </p>
           ) : null}
