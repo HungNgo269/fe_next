@@ -7,7 +7,15 @@ const PROFILE_PATH = "/users/me";
 type ProfileResponse =
   | UserProfile
   | { user?: Partial<UserProfile> }
-  | { data?: Partial<UserProfile> };
+  | { data?: Partial<UserProfile> }
+  | {
+      id?: unknown;
+      name?: unknown;
+      email?: unknown;
+      gender?: unknown;
+      avatar?: unknown;
+      avatarUrl?: unknown;
+    };
 
 const toText = (value: unknown): string => {
   if (typeof value === "string") {
@@ -36,7 +44,10 @@ const extractProfile = (payload: ProfileResponse): UserProfile | null => {
     name: toText(record.name),
     email: toText(record.email),
     gender: toText(record.gender),
-    avatar: toText(record.avatar),
+    avatar: toText(
+      (record as { avatar?: unknown; avatarUrl?: unknown }).avatar ??
+        (record as { avatarUrl?: unknown }).avatarUrl,
+    ),
   };
 };
 
@@ -62,8 +73,9 @@ export const updateCurrentUserProfileField = async (
   value: string,
 ): Promise<ApiResponse<UserProfile | null>> => {
   const nextValue = field === "gender" ? value.trim().toUpperCase() : value.trim();
+  const payloadField = field === "avatar" ? "avatarUrl" : field;
   const result = await clientPatchJson<ProfileResponse>(PROFILE_PATH, {
-    [field]: nextValue,
+    [payloadField]: nextValue,
   });
   if (!result.ok) {
     return result;

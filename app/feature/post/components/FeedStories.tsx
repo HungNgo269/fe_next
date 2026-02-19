@@ -7,25 +7,11 @@ type FeedStoriesProps = {
 
 export default function FeedStories({ stories }: FeedStoriesProps) {
   return (
-    <div className="rounded-3xl border border-slate-200/70 bg-white/80 p-5 shadow-soft animate-fade-up animate-delay-80">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-semibold text-slate-900">Stories</p>
-          <p className="text-xs text-slate-500">
-            Quick moments from your people
-          </p>
-        </div>
-        <button
-          className="rounded-full border border-slate-200/70 bg-white px-4 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:border-slate-300 hover:text-slate-900"
-          type="button"
-        >
-          Create story
-        </button>
-      </div>
+    <div className="ui-card rounded-lg p-5">
       <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
         {stories.map((story) => (
           <button
-            className="relative flex min-w-story cursor-pointer flex-col justify-between rounded-2xl border border-transparent bg-white px-3 py-3 text-left shadow-sm transition-colors hover:border-slate-200/70 hover:bg-white/90"
+            className="relative flex min-w-story cursor-pointer flex-col justify-between rounded-2xl border border-border/40 bg-surface-elevated px-3 py-3 text-left shadow-sm transition-colors hover:bg-surface-hover"
             key={story.id}
             type="button"
           >
@@ -38,10 +24,7 @@ export default function FeedStories({ stories }: FeedStoriesProps) {
                 colorClass={story.author.colorClass}
               />
               <div>
-                <p className="text-xs font-semibold text-slate-900">
-                  {story.author.name}
-                </p>
-                <p className="text-2xs text-slate-500">{story.title}</p>
+                <p className="text-xs font-semibold text-foreground">{story.author.name}</p>
               </div>
             </div>
           </button>

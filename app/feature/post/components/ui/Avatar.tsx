@@ -13,7 +13,7 @@ export default function Avatar({ initials, colorClass, online }: AvatarProps) {
         {initials}
       </div>
       {online ? (
-        <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-emerald-400" />
+        <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background bg-success" />
       ) : null}
     </div>
   );

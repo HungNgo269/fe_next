@@ -1,61 +1,88 @@
 @import "tailwindcss";
 
 :root {
-  --brand-50: #fffbeb;
-  --brand-100: #fff1c1;
-  --brand-200: #ffe642;
-  --brand-300: #f2cf7e;
-  --brand-400: #ffbf00;
-  --brand-500: #ff9500;
-  --brand-600: #ff7900;
-  --brand-700: #cc5a00;
-  --brand-950: #451a03;
+  --brand-50: #eef4ff;
+  --brand-100: #dbeafe;
+  --brand-200: #bfdbfe;
+  --brand-300: #93c5fd;
+  --brand-400: #60a5fa;
+  --brand-500: #3b82f6;
+  --brand-600: #2563eb;
+  --brand-700: #1d4ed8;
+  --brand-950: #172554;
 
   --background: #ffffff;
+
   --surface: #f8fafc;
-  --surface-hover: #f1f5f9;
+  --surface-hover: #eef2f7;
+  --surface-elevated: #ffffff;
 
-  --foreground: #0f1419;
-  --foreground-muted: #536471;
+  --foreground: #0f172a;
+  --foreground-muted: #475569;
+  --foreground-soft: #64748b;
 
-  --brand: var(--brand-400);
-  --brand-foreground: #0f172a;
+  --brand: var(--brand-600);
+  --brand-foreground: #ffffff;
 
-  --border: #dbdbdb;
-  --input: #efefef;
+  --border: #d7dee8;
+  --input: #eef2f7;
+  --ring: #3b82f6;
+  --overlay: #0f172a66;
+  --auth-panel: #ffffffd9;
+  --auth-field: #ffffff;
+  --auth-field-hover: #f8fafc;
+  --auth-hero-overlay: #0f172a75;
+  --feed-gradient-start: #f8fafc;
+  --feed-gradient-mid: #eef2ff;
+  --feed-gradient-end: #e2e8f0;
+  --feed-orb-a: #22c55e2e;
+  --feed-orb-b: #3b82f62e;
 
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --success: #22c55e;
-  --link: #00376b;
+  --success: #16a34a;
+  --link: #1d4ed8;
   --like: #ed4956;
 
-  --shadow-soft: 0 4px 12px -2px rgba(0, 0, 0, 0.08);
+  --shadow-soft: 0 8px 28px -16px rgba(15, 23, 42, 0.28);
   --radius: 0.75rem;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0d1015;
-    --surface: #161b22;
+    --background: #0c0f14;
+    --surface: #111827;
     --surface-hover: #1f2937;
+    --surface-elevated: #0f172a;
 
-    --foreground: #f9f9f9;
-    --foreground-muted: #8b949e;
+    --foreground: #e5e7eb;
+    --foreground-muted: #94a3b8;
+    --foreground-soft: #64748b;
 
     --brand: var(--brand-400);
-    --brand-foreground: #000000;
+    --brand-foreground: #0b1220;
 
-    --border: #30363d;
-    --input: #21262d;
+    --border: #293548;
+    --input: #182131;
+    --ring: #60a5fa;
+    --overlay: #02061780;
+    --auth-panel: #0f172ad9;
+    --auth-field: #0f172a;
+    --auth-field-hover: #1e293b;
+    --auth-hero-overlay: #02061799;
+    --feed-gradient-start: #0c0f14;
+    --feed-gradient-mid: #111827;
+    --feed-gradient-end: #0b1324;
+    --feed-orb-a: #22c55e1f;
+    --feed-orb-b: #3b82f61f;
 
     --destructive: #f87171;
     --destructive-foreground: #000000;
     --success: #4ade80;
-    --link: #38bdf8;
+    --link: #60a5fa;
     --like: #ff3040;
 
-    --shadow-soft: 0 0 0 1px rgba(255, 255, 255, 0.1);
+    --shadow-soft: 0 10px 34px -18px rgba(0, 0, 0, 0.6);
   }
 }
 
@@ -66,6 +93,7 @@
 
   --color-foreground: var(--foreground);
   --color-foreground-muted: var(--foreground-muted);
+  --color-foreground-soft: var(--foreground-soft);
 
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
@@ -74,6 +102,18 @@
 
   --color-border: var(--border);
   --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-overlay: var(--overlay);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-auth-panel: var(--auth-panel);
+  --color-auth-field: var(--auth-field);
+  --color-auth-field-hover: var(--auth-field-hover);
+  --color-auth-hero-overlay: var(--auth-hero-overlay);
+  --color-feed-gradient-start: var(--feed-gradient-start);
+  --color-feed-gradient-mid: var(--feed-gradient-mid);
+  --color-feed-gradient-end: var(--feed-gradient-end);
+  --color-feed-orb-a: var(--feed-orb-a);
+  --color-feed-orb-b: var(--feed-orb-b);
 
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
@@ -137,6 +177,85 @@ body {
 }
 
 @layer utilities {
+  .ui-card {
+    border: 1px solid var(--border);
+    background-color: color-mix(in oklab, var(--surface-elevated) 92%, transparent);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .ui-subtle {
+    background-color: color-mix(in oklab, var(--surface) 90%, transparent);
+    border: 1px solid var(--border);
+  }
+
+  .ui-input {
+    border: 1px solid var(--border);
+    background: var(--auth-field);
+    color: var(--foreground);
+  }
+
+  .ui-input::placeholder {
+    color: var(--foreground-soft);
+  }
+
+  .ui-input:focus {
+    border-color: var(--ring);
+  }
+
+  .ui-btn-primary {
+    background: var(--brand);
+    color: var(--brand-foreground);
+  }
+
+  .ui-btn-primary:hover {
+    filter: brightness(0.95);
+  }
+
+  .ui-btn-primary:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  .ui-btn-ghost {
+    border: 1px solid var(--border);
+    color: var(--foreground-muted);
+    background: transparent;
+  }
+
+  .ui-btn-ghost:hover {
+    border-color: var(--foreground-soft);
+    color: var(--foreground);
+    background: var(--surface-hover);
+  }
+
+  .ui-btn-danger {
+    border: 1px solid color-mix(in oklab, var(--destructive) 35%, var(--border));
+    color: var(--destructive);
+    background: transparent;
+  }
+
+  .ui-btn-danger:hover {
+    background: color-mix(in oklab, var(--destructive) 12%, transparent);
+  }
+
+  .ui-text-muted {
+    color: var(--foreground-muted);
+  }
+
+  .ui-text-soft {
+    color: var(--foreground-soft);
+  }
+
+  .ui-overlay {
+    background: var(--overlay);
+  }
+
+  .ui-alert-warning {
+    border: 1px solid color-mix(in oklab, #f59e0b 35%, var(--border));
+    background: color-mix(in oklab, #f59e0b 12%, transparent);
+    color: color-mix(in oklab, #f59e0b 70%, var(--foreground));
+  }
+
   .animate-fade-up {
     animation: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
@@ -213,50 +332,62 @@ body {
   .bg-gradient-radial-feed {
     background-image: radial-gradient(
       circle at top,
-      #e0f2fe 0%,
-      #f8fafc 45%,
-      #fef3c7 100%
+      var(--feed-gradient-start) 0%,
+      var(--feed-gradient-mid) 45%,
+      var(--feed-gradient-end) 100%
     );
+  }
+
+  .bg-feed-orb-a {
+    background: var(--feed-orb-a);
+  }
+
+  .bg-feed-orb-b {
+    background: var(--feed-orb-b);
   }
 
   .bg-gradient-radial-auth {
     background-image: radial-gradient(
       circle at top,
-      #e0f2fe 0%,
-      #f8fafc 40%,
-      #fde68a 100%
+      var(--feed-gradient-start) 0%,
+      var(--feed-gradient-mid) 42%,
+      var(--feed-gradient-end) 100%
     );
   }
 
   .gradient-theme-teal {
     --tw-gradient-from: #0ea5a5 var(--tw-gradient-from-position);
     --tw-gradient-to: rgb(14 165 165 / 0) var(--tw-gradient-to-position);
-    --tw-gradient-stops: var(--tw-gradient-from),
-      #38bdf8 var(--tw-gradient-via-position), var(--tw-gradient-to);
+    --tw-gradient-stops:
+      var(--tw-gradient-from), #38bdf8 var(--tw-gradient-via-position),
+      var(--tw-gradient-to);
     --tw-gradient-to: #2563eb var(--tw-gradient-to-position);
   }
 
   .gradient-theme-orange {
     --tw-gradient-from: #f97316 var(--tw-gradient-from-position);
     --tw-gradient-to: rgb(249 115 22 / 0) var(--tw-gradient-to-position);
-    --tw-gradient-stops: var(--tw-gradient-from),
-      #f59e0b var(--tw-gradient-via-position), var(--tw-gradient-to);
+    --tw-gradient-stops:
+      var(--tw-gradient-from), #f59e0b var(--tw-gradient-via-position),
+      var(--tw-gradient-to);
     --tw-gradient-to: #facc15 var(--tw-gradient-to-position);
   }
 
   .gradient-theme-green {
     --tw-gradient-from: #22c55e var(--tw-gradient-from-position);
     --tw-gradient-to: rgb(34 197 94 / 0) var(--tw-gradient-to-position);
-    --tw-gradient-stops: var(--tw-gradient-from),
-      #86efac var(--tw-gradient-via-position), var(--tw-gradient-to);
+    --tw-gradient-stops:
+      var(--tw-gradient-from), #86efac var(--tw-gradient-via-position),
+      var(--tw-gradient-to);
     --tw-gradient-to: #14b8a6 var(--tw-gradient-to-position);
   }
 
   .gradient-theme-indigo {
     --tw-gradient-from: #6366f1 var(--tw-gradient-from-position);
     --tw-gradient-to: rgb(99 102 241 / 0) var(--tw-gradient-to-position);
-    --tw-gradient-stops: var(--tw-gradient-from),
-      #818cf8 var(--tw-gradient-via-position), var(--tw-gradient-to);
+    --tw-gradient-stops:
+      var(--tw-gradient-from), #818cf8 var(--tw-gradient-via-position),
+      var(--tw-gradient-to);
     --tw-gradient-to: #38bdf8 var(--tw-gradient-to-position);
   }
 

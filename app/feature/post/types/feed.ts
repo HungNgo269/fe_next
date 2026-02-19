@@ -43,6 +43,19 @@ export type NavItem = {
   description: string;
 };
 
+export type SidebarMessagePreview = {
+  id: string;
+  name: string;
+  preview: string;
+  time: string;
+};
+
+export type SidebarNotificationItem = {
+  id: string;
+  title: string;
+  time: string;
+};
+
 export type TrendingTopic = {
   topic: string;
   posts: string;

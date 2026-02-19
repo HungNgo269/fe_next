@@ -47,9 +47,7 @@ export default function PostCard({
   const delayClass = postDelayClasses[index % postDelayClasses.length];
 
   return (
-    <article
-      className={`rounded-3xl border border-slate-200/70 bg-white/90 p-6 shadow-soft animate-fade-up ${delayClass}`}
-    >
+    <article className={`ui-card rounded-lg p-5 ${delayClass}`}>
       <header className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
           <Avatar
@@ -57,27 +55,27 @@ export default function PostCard({
             colorClass={post.author.colorClass}
           />
           <div>
-            <p className="text-sm font-semibold text-slate-900">
+            <p className="text-sm font-semibold text-foreground">
               {post.author.name}
-              <span className="ml-2 text-xs font-medium text-slate-500">
+              <span className="ui-text-muted ml-2 text-xs font-medium">
                 @{post.author.handle}
               </span>
             </p>
-            <p className="text-xs text-slate-500">
+            <p className="ui-text-muted text-xs">
               {post.time} · {post.audience}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <button
-            className="rounded-full border border-slate-200/70 px-3 py-1 text-xs font-semibold text-slate-600 transition-colors hover:border-slate-300 hover:text-slate-900"
+            className="ui-btn-ghost rounded-full px-3 py-1 text-xs font-semibold transition-colors"
             onClick={onStartEdit}
             type="button"
           >
             Edit
           </button>
           <button
-            className="rounded-full border border-slate-200/70 px-3 py-1 text-xs font-semibold text-rose-500 transition-colors hover:border-rose-200 hover:text-rose-600"
+            className="ui-btn-danger rounded-full px-3 py-1 text-xs font-semibold transition-colors"
             onClick={onDelete}
             type="button"
           >
@@ -90,20 +88,20 @@ export default function PostCard({
         {isEditing ? (
           <div className="space-y-3">
             <textarea
-              className="min-h-composer w-full resize-none rounded-2xl border border-slate-200/70 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition-colors focus:border-slate-400"
+              className="ui-input min-h-composer w-full resize-none rounded-2xl px-4 py-3 text-sm outline-none transition-colors"
               value={editingText}
               onChange={(event) => onChangeEditingText(event.target.value)}
             />
             <div className="flex items-center gap-2">
               <button
-                className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-slate-800"
+                className="ui-btn-primary rounded-full px-4 py-2 text-xs font-semibold transition-colors"
                 onClick={onSaveEdit}
                 type="button"
               >
                 Save changes
               </button>
               <button
-                className="rounded-full border border-slate-200/70 px-4 py-2 text-xs font-semibold text-slate-600 transition-colors hover:border-slate-300 hover:text-slate-900"
+                className="ui-btn-ghost rounded-full px-4 py-2 text-xs font-semibold transition-colors"
                 onClick={onCancelEdit}
                 type="button"
               >
@@ -112,33 +110,33 @@ export default function PostCard({
             </div>
           </div>
         ) : (
-          <p className="text-sm leading-6 text-slate-700">{post.content}</p>
+          <p className="ui-text-muted text-sm leading-6">{post.content}</p>
         )}
       </div>
 
       {post.media ? (
-        <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200/70">
+        <div className="mt-4 overflow-hidden rounded-2xl border border-border">
           <div
-            className={`flex h-44 flex-col items-start justify-end bg-cover p-4 text-sm text-slate-900 ${post.media.gradientClass}`}
+            className={`flex h-44 flex-col items-start justify-end bg-cover p-4 text-sm text-foreground ${post.media.gradientClass}`}
           >
             <p className="text-sm font-semibold">{post.media.title}</p>
-            <p className="text-xs text-slate-600">{post.media.subtitle}</p>
+            <p className="ui-text-muted text-xs">{post.media.subtitle}</p>
           </div>
         </div>
       ) : null}
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+      <div className="ui-text-muted mt-4 flex flex-wrap items-center justify-between gap-2 text-xs">
         <div className="flex items-center gap-4">
           <span>{post.likes} likes</span>
           <span>{post.comments.length} comments</span>
           <span>{post.shares} shares</span>
         </div>
-        <span className="text-2xs uppercase tracking-widest-xl text-slate-400">
+        <span className="ui-text-soft text-2xs uppercase tracking-widest-xl">
           Community
         </span>
       </div>
 
-      <div className="mt-3 flex flex-wrap gap-2 border-t border-slate-200/70 pt-3">
+      <div className="mt-3 flex flex-wrap gap-2 border-t border-border pt-3">
         <ActionButton
           active={post.likedByMe}
           icon={<IconLike />}
@@ -151,22 +149,19 @@ export default function PostCard({
 
       <div className="mt-4 space-y-3">
         {post.comments.map((comment) => (
-          <div
-            className="flex items-start gap-3 rounded-2xl bg-slate-50 px-3 py-2.5"
-            key={comment.id}
-          >
+          <div className="ui-subtle flex items-start gap-3 rounded-2xl px-3 py-2.5" key={comment.id}>
             <Avatar
               initials={comment.author.initials}
               colorClass={comment.author.colorClass}
             />
             <div className="flex-1">
-              <p className="text-xs font-semibold text-slate-900">
+              <p className="text-xs font-semibold text-foreground">
                 {comment.author.name}
-                <span className="ml-2 text-2xs font-normal text-slate-500">
+                <span className="ui-text-muted ml-2 text-2xs font-normal">
                   {comment.time}
                 </span>
               </p>
-              <p className="text-xs text-slate-600">{comment.text}</p>
+              <p className="ui-text-muted text-xs">{comment.text}</p>
             </div>
           </div>
         ))}
@@ -174,13 +169,13 @@ export default function PostCard({
 
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <input
-          className="flex-1 rounded-full border border-slate-200/70 bg-white px-4 py-2 text-xs text-slate-700 outline-none transition-colors focus:border-slate-400"
+          className="ui-input flex-1 rounded-full px-4 py-2 text-xs outline-none transition-colors"
           placeholder="Write a comment..."
           value={commentDraft}
           onChange={(event) => onChangeCommentDraft(event.target.value)}
         />
         <button
-          className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+          className="ui-btn-primary rounded-full px-4 py-2 text-xs font-semibold transition-colors"
           disabled={commentDraft.trim().length === 0}
           onClick={onAddComment}
           type="button"

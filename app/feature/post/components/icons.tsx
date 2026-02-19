@@ -45,6 +45,24 @@ export function IconBell({ className }: IconProps) {
   );
 }
 
+export function IconMessage({ className }: IconProps) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M6 7h12a3 3 0 0 1 3 3v4a3 3 0 0 1-3 3H11l-5 3v-3H6a3 3 0 0 1-3-3v-4a3 3 0 0 1 3-3Z"
+        stroke="currentColor"
+        strokeLinejoin="round"
+        strokeWidth="1.7"
+      />
+    </svg>
+  );
+}
+
 export function IconPlus({ className }: IconProps) {
   return (
     <svg

@@ -8,10 +8,10 @@ type ActionChipProps = {
 export default function ActionChip({ label, icon }: ActionChipProps) {
   return (
     <button
-      className="flex items-center gap-2 rounded-full border border-slate-200/70 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:border-slate-300 hover:text-slate-900"
+      className="ui-btn-ghost flex items-center gap-2 rounded-full bg-surface-elevated px-3 py-1.5 text-xs font-semibold transition-colors"
       type="button"
     >
-      <span className="text-slate-500">{icon}</span>
+      <span className="ui-text-muted">{icon}</span>
       {label}
     </button>
   );
