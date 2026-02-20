@@ -1,4 +1,5 @@
 export type AvatarInfo = {
+  id: string;
   name: string;
   handle: string;
   initials: string;

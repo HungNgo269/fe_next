@@ -430,6 +430,26 @@ export const createCommentRequest = async (
     content: content.trim(),
   });
 
+export const updateCommentRequest = async (
+  commentId: string,
+  content: string,
+): Promise<ApiResponse<BackendComment>> =>
+  clientPatchJson<BackendComment>(`/comments/${commentId}`, {
+    content: content.trim(),
+  });
+
+export const deleteCommentRequest = async (
+  commentId: string,
+): Promise<ApiResponse<null>> => {
+  try {
+    await apiClient.delete(`comments/${commentId}`);
+    return { ok: true, data: null };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Delete failed";
+    return { ok: false, error: { messages: [message] } };
+  }
+};
+
 export const createLikeRequest = async (
   postId: string,
   userId: string,

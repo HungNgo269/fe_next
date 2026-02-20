@@ -7,8 +7,8 @@ type FeedStoriesProps = {
 
 export default function FeedStories({ stories }: FeedStoriesProps) {
   return (
-    <div className="ui-card rounded-lg p-5">
-      <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
+    <div className="ui-card min-w-0 rounded-lg p-5">
+      <div className="mt-4 flex min-w-0 gap-3 overflow-x-auto pb-2">
         {stories.map((story) => (
           <button
             className="relative flex min-w-story cursor-pointer flex-col justify-between rounded-2xl border border-border/40 bg-surface-elevated px-3 py-3 text-left shadow-sm transition-colors hover:bg-surface-hover"

@@ -1,35 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import {
-  getCurrentUserProfile,
-  updateCurrentUserProfileField,
-} from "../feature/profile/api/profileApi";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { fetchFeedBootstrap } from "../feature/post/api/feedApi";
+import PostCard from "../feature/post/components/PostCard";
+import type { PostData } from "../feature/post/types/feed";
+import { getCurrentUserProfile } from "../feature/profile/api/profileApi";
 import ProfileAvatarPreview from "../feature/profile/components/ProfileAvatarPreview";
-import ProfileFieldCard from "../feature/profile/components/ProfileFieldCard";
 import ProfileShell from "../feature/profile/components/ProfileShell";
 import ProfileStatusCard from "../feature/profile/components/ProfileStatusCard";
-import type {
-  EditableProfileField,
-  UserProfile,
-} from "../feature/profile/types/profile";
-
-const BASE_GENDER_OPTIONS = ["MALE", "FEMALE"];
+import type { UserProfile } from "../feature/profile/types/profile";
 
 const EMPTY_PROFILE: UserProfile = {
   name: "",
   email: "",
   gender: "",
   avatar: "",
-};
-
-const normalizeFieldValue = (
-  field: EditableProfileField,
-  value: string,
-): string => {
-  const trimmed = value.trim();
-  return field === "gender" ? trimmed.toUpperCase() : trimmed;
 };
 
 const buildInitials = (name: string): string => {
@@ -40,178 +26,235 @@ const buildInitials = (name: string): string => {
   return `${words[0]?.[0] ?? ""}${words[1]?.[0] ?? ""}`.toUpperCase();
 };
 
-const validateField = (
-  field: EditableProfileField,
-  value: string,
-): string | null => {
-  const normalized = normalizeFieldValue(field, value);
-
-  if (
-    (field === "name" || field === "email" || field === "gender") &&
-    !normalized
-  ) {
-    return "This field cannot be empty.";
-  }
-  if (
-    field === "email" &&
-    normalized &&
-    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)
-  ) {
-    return "Email format is invalid.";
-  }
-  if (field === "avatar" && normalized) {
-    const isAbsolute = /^https?:\/\//i.test(normalized);
-    const isRelative = normalized.startsWith("/");
-    if (!isAbsolute && !isRelative) {
-      return "Avatar must start with http://, https://, or /.";
-    }
-  }
-
-  return null;
-};
-
 export default function UserProfilePage() {
   const [profile, setProfile] = useState<UserProfile>(EMPTY_PROFILE);
-  const [form, setForm] = useState<UserProfile>(EMPTY_PROFILE);
-  const [isLoading, setIsLoading] = useState(true);
+  const [myPosts, setMyPosts] = useState<PostData[]>([]);
+  const [currentUserId, setCurrentUserId] = useState("");
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState("");
+  const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
+  const [isProfileLoading, setIsProfileLoading] = useState(true);
+  const [isPostsLoading, setIsPostsLoading] = useState(false);
   const [isUnauthorized, setIsUnauthorized] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [loadError, setLoadError] = useState("");
-  const [savingField, setSavingField] = useState<EditableProfileField | null>(
-    null,
-  );
-  const [fieldErrors, setFieldErrors] = useState<
-    Partial<Record<EditableProfileField, string>>
-  >({});
-  const [fieldSuccess, setFieldSuccess] = useState<
-    Partial<Record<EditableProfileField, string>>
-  >({});
+  const [profileError, setProfileError] = useState("");
+  const [postsError, setPostsError] = useState("");
+  const commentSeqRef = useRef(0);
 
   useEffect(() => {
     let active = true;
 
-    const bootstrap = async () => {
-      const result = await getCurrentUserProfile();
+    const loadProfile = async () => {
+      const profileResult = await getCurrentUserProfile();
       if (!active) {
         return;
       }
 
-      if (!result.ok) {
+      if (!profileResult.ok) {
         setIsUnauthorized(
-          result.error.status === 401 || result.error.status === 403,
+          profileResult.error.status === 401 || profileResult.error.status === 403,
         );
-        setLoadError(
-          result.error.messages[0] ?? "Unable to load your profile.",
-        );
-        setIsLoading(false);
+        setProfileError(profileResult.error.messages[0] ?? "Unable to load profile.");
+        setIsProfileLoading(false);
         return;
       }
 
+      setProfile(profileResult.data);
       setIsUnauthorized(false);
-      setProfile(result.data);
-      setForm(result.data);
-      setIsLoading(false);
+      setProfileError("");
+      setIsProfileLoading(false);
     };
 
-    void bootstrap();
+    void loadProfile();
 
     return () => {
       active = false;
     };
   }, []);
 
-  const refreshProfile = async () => {
-    setIsRefreshing(true);
-    setLoadError("");
+  useEffect(() => {
+    if (isProfileLoading || isUnauthorized) {
+      return;
+    }
 
-    const result = await getCurrentUserProfile();
-    if (!result.ok) {
-      setIsUnauthorized(
-        result.error.status === 401 || result.error.status === 403,
+    let active = true;
+
+    const loadPosts = async () => {
+      setIsPostsLoading(true);
+      setPostsError("");
+
+      const feedResult = await fetchFeedBootstrap();
+      if (!active) {
+        return;
+      }
+
+      if (!feedResult.ok) {
+        setPostsError(feedResult.error.messages[0] ?? "Unable to load your posts.");
+        setMyPosts([]);
+        setIsPostsLoading(false);
+        return;
+      }
+
+      const ownedPosts = feedResult.data.posts.filter(
+        (post) => post.author.id === feedResult.data.currentUser.id,
       );
-      setLoadError(result.error.messages[0] ?? "Unable to load your profile.");
-      setIsRefreshing(false);
-      return;
-    }
+      setCurrentUserId(feedResult.data.currentUser.id);
+      setMyPosts(ownedPosts);
+      setIsPostsLoading(false);
+    };
 
-    setIsUnauthorized(false);
-    setProfile(result.data);
-    setForm(result.data);
-    setFieldErrors({});
-    setFieldSuccess({});
-    setIsRefreshing(false);
+    void loadPosts();
+
+    return () => {
+      active = false;
+    };
+  }, [isProfileLoading, isUnauthorized]);
+
+  const initials = useMemo(() => buildInitials(profile.name), [profile.name]);
+
+  const handleStartEdit = (post: PostData) => {
+    setEditingPostId(post.id);
+    setEditingText(post.content);
   };
 
-  const handleFieldChange = (field: EditableProfileField, value: string) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-    setFieldErrors((prev) => ({ ...prev, [field]: undefined }));
-    setFieldSuccess((prev) => ({ ...prev, [field]: undefined }));
+  const handleCancelEdit = () => {
+    setEditingPostId(null);
+    setEditingText("");
   };
 
-  const hasChanged = (field: EditableProfileField) =>
-    normalizeFieldValue(field, form[field]) !==
-    normalizeFieldValue(field, profile[field]);
-
-  const saveField = async (field: EditableProfileField) => {
-    if (savingField) {
+  const handleSaveEdit = async (postId: string) => {
+    const trimmed = editingText.trim();
+    if (!trimmed) {
       return;
     }
-
-    const nextValue = normalizeFieldValue(field, form[field]);
-    const validationError = validateField(field, nextValue);
-    if (validationError) {
-      setFieldErrors((prev) => ({ ...prev, [field]: validationError }));
-      setFieldSuccess((prev) => ({ ...prev, [field]: undefined }));
-      return;
-    }
-    if (!hasChanged(field)) {
-      return;
-    }
-
-    setSavingField(field);
-    setFieldErrors((prev) => ({ ...prev, [field]: undefined }));
-    setFieldSuccess((prev) => ({ ...prev, [field]: undefined }));
-
-    const result = await updateCurrentUserProfileField(field, nextValue);
-    if (!result.ok) {
-      setFieldErrors((prev) => ({
-        ...prev,
-        [field]: result.error.messages[0] ?? "Update failed.",
-      }));
-      setSavingField(null);
-      return;
-    }
-
-    const optimisticProfile: UserProfile = { ...profile, [field]: nextValue };
-    const mergedProfile = result.data
-      ? { ...optimisticProfile, ...result.data }
-      : optimisticProfile;
-    setProfile(mergedProfile);
-    setForm(mergedProfile);
-    setFieldSuccess((prev) => ({ ...prev, [field]: "Updated successfully." }));
-    setSavingField(null);
+    setMyPosts((prev) =>
+      prev.map((post) => (post.id === postId ? { ...post, content: trimmed } : post)),
+    );
+    setEditingPostId(null);
+    setEditingText("");
   };
 
-  const avatarPreview = normalizeFieldValue("avatar", form.avatar);
-  const initials = buildInitials(form.name);
-  const normalizedGender = normalizeFieldValue("gender", form.gender);
-  const genderOptions =
-    normalizedGender && !BASE_GENDER_OPTIONS.includes(normalizedGender)
-      ? [normalizedGender, ...BASE_GENDER_OPTIONS]
-      : BASE_GENDER_OPTIONS;
-  const hasProfileData = Boolean(
-    profile.name ||
-    profile.email ||
-    profile.gender ||
-    profile.avatar ||
-    profile.id,
-  );
+  const handleDeletePost = async (postId: string) => {
+    setMyPosts((prev) => prev.filter((post) => post.id !== postId));
+    if (editingPostId === postId) {
+      setEditingPostId(null);
+      setEditingText("");
+    }
+  };
+
+  const handleToggleLike = async (postId: string) => {
+    setMyPosts((prev) =>
+      prev.map((post) => {
+        if (post.id !== postId) {
+          return post;
+        }
+        const nextLiked = !post.likedByMe;
+        return {
+          ...post,
+          likedByMe: nextLiked,
+          likes: post.likes + (nextLiked ? 1 : -1),
+        };
+      }),
+    );
+  };
+
+  const handleShare = (postId: string) => {
+    setMyPosts((prev) =>
+      prev.map((post) => (post.id === postId ? { ...post, shares: post.shares + 1 } : post)),
+    );
+  };
+
+  const handleCommentDraft = (postId: string, value: string) => {
+    setCommentDrafts((prev) => ({ ...prev, [postId]: value }));
+  };
+
+  const handleAddComment = async (postId: string) => {
+    const draft = (commentDrafts[postId] ?? "").trim();
+    if (!draft) {
+      return;
+    }
+
+    commentSeqRef.current += 1;
+    const newCommentId = `local-comment-${commentSeqRef.current}`;
+    setMyPosts((prev) =>
+      prev.map((post) =>
+        post.id === postId
+          ? {
+              ...post,
+              comments: [
+                ...post.comments,
+                {
+                  id: newCommentId,
+                  author: {
+                    id: currentUserId,
+                    name: profile.name || "You",
+                    handle: "you",
+                    initials: initials || "U",
+                    colorClass: "avatar-blue",
+                  },
+                  text: draft,
+                  time: "Just now",
+                },
+              ],
+            }
+          : post,
+      ),
+    );
+    setCommentDrafts((prev) => ({ ...prev, [postId]: "" }));
+  };
+
+  const handleSaveCommentEdit = async (
+    postId: string,
+    commentId: string,
+    content: string,
+  ) => {
+    const trimmed = content.trim();
+    if (!trimmed) {
+      return false;
+    }
+
+    setMyPosts((prev) =>
+      prev.map((post) =>
+        post.id === postId
+          ? {
+              ...post,
+              comments: post.comments.map((comment) =>
+                comment.id === commentId
+                  ? { ...comment, text: trimmed, time: "Just now" }
+                  : comment,
+              ),
+            }
+          : post,
+      ),
+    );
+    return true;
+  };
+
+  const handleDeleteComment = async (postId: string, commentId: string) => {
+    setMyPosts((prev) =>
+      prev.map((post) =>
+        post.id === postId
+          ? {
+              ...post,
+              comments: post.comments.filter((comment) => comment.id !== commentId),
+            }
+          : post,
+      ),
+    );
+    return true;
+  };
+
+  const handleReportContent = () => {
+    setPostsError("Report submitted (demo).");
+  };
 
   return (
     <ProfileShell>
-      {isLoading ? (
-        <main className="relative mx-auto w-full max-w-5xl px-4 pb-16 pt-12 sm:px-6">
-          <ProfileStatusCard message="Loading profile..." />
+      {isProfileLoading ? (
+        <main className="relative mx-auto flex w-full max-w-5xl items-center justify-center px-4 pb-16 pt-12 sm:px-6">
+          <div className="flex items-center gap-3">
+            <span className="h-5 w-5 animate-spin rounded-full border-2 border-border border-t-brand" />
+            <span className="ui-text-muted text-sm">Loading profile...</span>
+          </div>
         </main>
       ) : isUnauthorized ? (
         <main className="relative mx-auto w-full max-w-5xl px-4 pb-16 pt-12 sm:px-6">
@@ -237,165 +280,93 @@ export default function UserProfilePage() {
             variant="error"
           />
         </main>
-      ) : !hasProfileData && loadError ? (
-        <main className="relative mx-auto w-full max-w-5xl px-4 pb-16 pt-12 sm:px-6">
-          <ProfileStatusCard
-            action={
-              <button
-                className="ui-btn-primary rounded-full px-5 py-2 text-xs font-semibold transition"
-                onClick={() => void refreshProfile()}
-                type="button"
-              >
-                Try again
-              </button>
-            }
-            message={loadError}
-            title="Unable to load profile"
-            variant="error"
-          />
-        </main>
       ) : (
         <main className="relative mx-auto w-full max-w-5xl space-y-6 px-4 pb-16 pt-12 sm:px-6">
-          <header className="flex flex-wrap items-start justify-between gap-3">
-            <div className="space-y-1">
-              <p className="ui-text-muted text-xs font-semibold uppercase tracking-widest-xl">
-                Account
-              </p>
-              <h1 className="text-3xl font-semibold text-foreground">Your profile</h1>
-              <p className="ui-text-muted text-sm">
-                Update each field separately and keep your account info current.
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                className="ui-btn-ghost rounded-full px-4 py-2 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60"
-                disabled={isRefreshing}
-                onClick={() => void refreshProfile()}
-                type="button"
-              >
-                {isRefreshing ? "Refreshing..." : "Refresh"}
-              </button>
+          <section className="ui-card rounded-lg p-6 sm:p-8">
+            <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-4">
+                <ProfileAvatarPreview
+                  avatarUrl={profile.avatar}
+                  fallbackInitials={initials}
+                  name={profile.name}
+                />
+                <div>
+                  <p className="text-xl font-semibold text-foreground">
+                    {profile.name || "Unnamed user"}
+                  </p>
+                  <p className="ui-text-muted text-sm">{profile.email || "No email"}</p>
+                  <p className="ui-text-muted text-xs uppercase tracking-wider">
+                    {profile.gender || "Unknown"}
+                  </p>
+                </div>
+              </div>
               <Link
                 className="ui-btn-primary rounded-full px-4 py-2 text-xs font-semibold transition-colors"
+                href="/profile/edit"
+              >
+                Edit your profile
+              </Link>
+            </div>
+            {profileError ? (
+              <p className="ui-alert-warning mt-4 rounded-2xl px-4 py-3 text-sm">
+                {profileError}
+              </p>
+            ) : null}
+          </section>
+
+          <section className="space-y-3">
+            <header className="mb-4 flex items-center justify-between gap-2">
+              <h2 className="text-lg font-semibold text-foreground">Your posts</h2>
+              <Link
+                className="ui-btn-ghost rounded-full px-3 py-1 text-xs font-semibold transition-colors"
                 href="/"
               >
                 Back to feed
               </Link>
-            </div>
-          </header>
+            </header>
 
-          {loadError ? (
-            <div className="ui-alert-warning rounded-2xl px-4 py-3 text-sm">
-              {loadError}
-            </div>
-          ) : null}
-
-          <section className="ui-card rounded-lg p-6 sm:p-8">
-            <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-              <ProfileAvatarPreview
-                avatarUrl={avatarPreview}
-                fallbackInitials={initials}
-                name={form.name}
-              />
-              <div>
-                <p className="text-xl font-semibold text-foreground">
-                  {form.name || "Unnamed user"}
-                </p>
-                <p className="ui-text-muted text-sm">{form.email || "No email"}</p>
+            {isPostsLoading ? (
+              <div className="ui-card flex items-center justify-center gap-3 rounded-lg p-6">
+                <span className="h-5 w-5 animate-spin rounded-full border-2 border-border border-t-brand" />
+                <span className="ui-text-muted text-sm">Loading posts...</span>
               </div>
-            </div>
-          </section>
-
-          <div className="grid gap-5 lg:grid-cols-2">
-            <ProfileFieldCard
-              disabled={Boolean(savingField) || !hasChanged("avatar")}
-              errorMessage={fieldErrors.avatar}
-              isSubmitting={savingField === "avatar"}
-              label="Avatar URL"
-              onSubmit={() => void saveField("avatar")}
-              submitLabel="Update avatar"
-              submittingLabel="Updating..."
-              successMessage={fieldSuccess.avatar}
-            >
-              <input
-                className="ui-input mt-2 w-full rounded-2xl px-4 py-3 text-sm outline-none transition-colors"
-                onChange={(event) =>
-                  handleFieldChange("avatar", event.target.value)
-                }
-                placeholder="https://example.com/avatar.png"
-                type="text"
-                value={form.avatar}
-              />
-            </ProfileFieldCard>
-
-            <ProfileFieldCard
-              disabled={Boolean(savingField) || !hasChanged("name")}
-              errorMessage={fieldErrors.name}
-              isSubmitting={savingField === "name"}
-              label="Full name"
-              onSubmit={() => void saveField("name")}
-              submitLabel="Update name"
-              submittingLabel="Updating..."
-              successMessage={fieldSuccess.name}
-            >
-              <input
-                className="ui-input mt-2 w-full rounded-2xl px-4 py-3 text-sm outline-none transition-colors"
-                onChange={(event) =>
-                  handleFieldChange("name", event.target.value)
-                }
-                placeholder="Your name"
-                type="text"
-                value={form.name}
-              />
-            </ProfileFieldCard>
-
-            <ProfileFieldCard
-              disabled={Boolean(savingField) || !hasChanged("email")}
-              errorMessage={fieldErrors.email}
-              isSubmitting={savingField === "email"}
-              label="Email"
-              onSubmit={() => void saveField("email")}
-              submitLabel="Update email"
-              submittingLabel="Updating..."
-              successMessage={fieldSuccess.email}
-            >
-              <input
-                className="ui-input mt-2 w-full rounded-2xl px-4 py-3 text-sm outline-none transition-colors"
-                onChange={(event) =>
-                  handleFieldChange("email", event.target.value)
-                }
-                placeholder="you@example.com"
-                type="email"
-                value={form.email}
-              />
-            </ProfileFieldCard>
-
-            <ProfileFieldCard
-              disabled={Boolean(savingField) || !hasChanged("gender")}
-              errorMessage={fieldErrors.gender}
-              isSubmitting={savingField === "gender"}
-              label="Gender"
-              onSubmit={() => void saveField("gender")}
-              submitLabel="Update gender"
-              submittingLabel="Updating..."
-              successMessage={fieldSuccess.gender}
-            >
-              <select
-                className="ui-input mt-2 w-full rounded-2xl px-4 py-3 text-sm outline-none transition-colors"
-                onChange={(event) =>
-                  handleFieldChange("gender", event.target.value)
-                }
-                value={form.gender}
-              >
-                <option value="">Select gender</option>
-                {genderOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
+            ) : postsError ? (
+              <div className="ui-alert-warning rounded-2xl px-4 py-3 text-sm">
+                {postsError}
+              </div>
+            ) : myPosts.length === 0 ? (
+              <p className="ui-text-muted text-sm">You have not created any posts yet.</p>
+            ) : (
+              <div className="space-y-6">
+                {myPosts.map((post, index) => (
+                  <PostCard
+                    key={post.id}
+                    post={post}
+                    index={index}
+                    isEditing={editingPostId === post.id}
+                    editingText={editingPostId === post.id ? editingText : post.content}
+                    commentDraft={commentDrafts[post.id] ?? ""}
+                    currentUserId={currentUserId}
+                    onStartEdit={() => handleStartEdit(post)}
+                    onCancelEdit={handleCancelEdit}
+                    onSaveEdit={() => handleSaveEdit(post.id)}
+                    onDelete={() => handleDeletePost(post.id)}
+                    onChangeEditingText={setEditingText}
+                    onToggleLike={() => handleToggleLike(post.id)}
+                    onShare={() => handleShare(post.id)}
+                    onChangeCommentDraft={(value) => handleCommentDraft(post.id, value)}
+                    onAddComment={() => handleAddComment(post.id)}
+                    onSaveCommentEdit={(commentId, content) =>
+                      handleSaveCommentEdit(post.id, commentId, content)
+                    }
+                    onDeleteComment={(commentId) => handleDeleteComment(post.id, commentId)}
+                    onReportPost={handleReportContent}
+                    onReportComment={handleReportContent}
+                  />
                 ))}
-              </select>
-            </ProfileFieldCard>
-          </div>
+              </div>
+            )}
+          </section>
         </main>
       )}
     </ProfileShell>

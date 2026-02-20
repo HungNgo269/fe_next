@@ -83,3 +83,21 @@ export const updateCurrentUserProfileField = async (
 
   return { ok: true, data: extractProfile(result.data) };
 };
+
+export const updateCurrentUserProfile = async (
+  draft: Pick<UserProfile, "name" | "email" | "gender" | "avatar">,
+): Promise<ApiResponse<UserProfile | null>> => {
+  const payload = {
+    name: draft.name.trim(),
+    email: draft.email.trim(),
+    gender: draft.gender.trim().toUpperCase(),
+    avatarUrl: draft.avatar.trim(),
+  };
+
+  const result = await clientPatchJson<ProfileResponse>(PROFILE_PATH, payload);
+  if (!result.ok) {
+    return result;
+  }
+
+  return { ok: true, data: extractProfile(result.data) };
+};

@@ -134,6 +134,20 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+a[href] {
+  cursor: pointer;
+}
+
+button:not(:disabled),
+[role="button"],
+summary {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -179,7 +193,11 @@ body {
 @layer utilities {
   .ui-card {
     border: 1px solid var(--border);
-    background-color: color-mix(in oklab, var(--surface-elevated) 92%, transparent);
+    background-color: color-mix(
+      in oklab,
+      var(--surface-elevated) 92%,
+      transparent
+    );
     box-shadow: var(--shadow-soft);
   }
 

@@ -43,7 +43,7 @@ export default function FeedComposer({
         <div className="flex items-center gap-3">
           <span className="ui-text-soft text-xs">{value.length}/240</span>
           <button
-            className="ui-btn-primary rounded-full px-5 py-2 text-sm font-semibold transition-colors"
+            className="rounded-full px-2 py-1 text-sm font-semibold text-foreground transition-opacity hover:opacity-70 disabled:opacity-40"
             disabled={!canPost}
             onClick={onSubmit}
             type="button"

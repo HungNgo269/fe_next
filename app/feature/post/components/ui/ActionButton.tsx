@@ -15,10 +15,8 @@ export default function ActionButton({
 }: ActionButtonProps) {
   return (
     <button
-      className={`flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition-colors ${
-        active
-          ? "ui-btn-primary"
-          : "ui-subtle ui-text-muted hover:bg-surface-hover"
+      className={`flex items-center gap-2 rounded-full px-2 py-1.5 text-xs font-semibold transition-opacity hover:opacity-70 ${
+        active ? "text-like" : "ui-text-muted"
       }`}
       onClick={onClick}
       type="button"

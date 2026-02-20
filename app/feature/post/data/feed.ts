@@ -8,6 +8,7 @@ import type {
 } from "../types/feed";
 
 export const currentUser: AvatarInfo = {
+  id: "guest-user",
   name: "You",
   handle: "pulse.user",
   initials: "YU",
@@ -28,6 +29,7 @@ export const stories: StoryData[] = [
     id: "story-1",
     title: "Studio morning",
     author: {
+      id: "user-maya-tran",
       name: "Maya Tran",
       handle: "maya.t",
       initials: "MT",
@@ -39,6 +41,7 @@ export const stories: StoryData[] = [
     id: "story-2",
     title: "City lights",
     author: {
+      id: "user-luis-ortega",
       name: "Luis Ortega",
       handle: "luis.o",
       initials: "LO",
@@ -50,6 +53,7 @@ export const stories: StoryData[] = [
     id: "story-3",
     title: "Lunch break",
     author: {
+      id: "user-amina-yusuf",
       name: "Amina Yusuf",
       handle: "amina.y",
       initials: "AY",
@@ -61,6 +65,7 @@ export const stories: StoryData[] = [
     id: "story-4",
     title: "New sketch",
     author: {
+      id: "user-jae-park",
       name: "Jae Park",
       handle: "jae.p",
       initials: "JP",
@@ -74,6 +79,7 @@ export const initialPosts: PostData[] = [
   {
     id: "post-1",
     author: {
+      id: "user-maya-tran",
       name: "Maya Tran",
       handle: "maya.t",
       initials: "MT",
@@ -90,6 +96,7 @@ export const initialPosts: PostData[] = [
       {
         id: "comment-1",
         author: {
+          id: "user-amina-yusuf",
           name: "Amina Yusuf",
           handle: "amina.y",
           initials: "AY",
@@ -108,6 +115,7 @@ export const initialPosts: PostData[] = [
   {
     id: "post-2",
     author: {
+      id: "user-luis-ortega",
       name: "Luis Ortega",
       handle: "luis.o",
       initials: "LO",
@@ -124,6 +132,7 @@ export const initialPosts: PostData[] = [
       {
         id: "comment-2",
         author: {
+          id: "user-jae-park",
           name: "Jae Park",
           handle: "jae.p",
           initials: "JP",
@@ -135,6 +144,7 @@ export const initialPosts: PostData[] = [
       {
         id: "comment-3",
         author: {
+          id: "user-noah-kim",
           name: "Noah Kim",
           handle: "noah.k",
           initials: "NK",
@@ -148,6 +158,7 @@ export const initialPosts: PostData[] = [
   {
     id: "post-3",
     author: {
+      id: "user-amina-yusuf",
       name: "Amina Yusuf",
       handle: "amina.y",
       initials: "AY",
