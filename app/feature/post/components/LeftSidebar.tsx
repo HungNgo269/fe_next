@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import type {
   AvatarInfo,
   SidebarMessagePreview,
@@ -13,6 +14,8 @@ import SidebarBrand from "./left-sidebar/SidebarBrand";
 import SidebarNavItem from "./left-sidebar/SidebarNavItem";
 import SidebarProfileItem from "./left-sidebar/SidebarProfileItem";
 import Avatar from "./ui/Avatar";
+import { useAppSessionStore } from "@/app/share/stores/appSessionStore";
+import { logout } from "@/app/feature/auth/api/authApi";
 
 type LeftSidebarProps = {
   currentUser: AvatarInfo;
@@ -30,8 +33,34 @@ export default function LeftSidebar({
   notifications,
 }: LeftSidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { setTheme } = useTheme();
+  const themePreference = useAppSessionStore((state) => state.themePreference);
+  const setThemePreference = useAppSessionStore(
+    (state) => state.setThemePreference,
+  );
+  const clearAuthenticatedProfile = useAppSessionStore(
+    (state) => state.clearAuthenticatedProfile,
+  );
   const [expanded, setExpanded] = useState(false);
   const [activeLabel, setActiveLabel] = useState("Trang chủ");
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleThemeChange = (theme: "light" | "dark") => {
+    setThemePreference(theme);
+    setTheme(theme);
+  };
+
+  const handleLogout = async () => {
+    if (isLoggingOut) {
+      return;
+    }
+    setIsLoggingOut(true);
+    await logout();
+    clearAuthenticatedProfile();
+    router.replace("/login");
+    setIsLoggingOut(false);
+  };
 
   const badgeCounts = {
     messages: messages.length,
@@ -83,6 +112,39 @@ export default function LeftSidebar({
           </nav>
 
           <div className="space-y-1 border-t border-border/70 px-1 pt-2">
+            <div className="rounded-xl border border-border/70 bg-surface p-1.5">
+              <p
+                className={`px-2 pb-1 text-[10px] font-semibold uppercase tracking-widest-xl text-foreground-soft transition-opacity ${
+                  expanded ? "opacity-100" : "opacity-0"
+                }`}
+              >
+                Theme
+              </p>
+              <div className="grid grid-cols-2 gap-1">
+                <button
+                  type="button"
+                  onClick={() => handleThemeChange("light")}
+                  className={`rounded-lg px-2 py-1.5 text-xs font-semibold transition ${
+                    themePreference === "light"
+                      ? "bg-brand text-brand-foreground"
+                      : "bg-transparent text-foreground-muted hover:bg-surface-hover hover:text-foreground"
+                  }`}
+                >
+                  Light
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleThemeChange("dark")}
+                  className={`rounded-lg px-2 py-1.5 text-xs font-semibold transition ${
+                    themePreference === "dark"
+                      ? "bg-brand text-brand-foreground"
+                      : "bg-transparent text-foreground-muted hover:bg-surface-hover hover:text-foreground"
+                  }`}
+                >
+                  Dark
+                </button>
+              </div>
+            </div>
             {bottomItems.map((item) => (
               <SidebarNavItem
                 key={item.key}
@@ -96,6 +158,24 @@ export default function LeftSidebar({
                 onSelect={setActiveLabel}
               />
             ))}
+            {isAuthenticated ? (
+              <button
+                type="button"
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+                className="flex w-full items-center justify-center rounded-xl border border-border/70 px-2 py-2 text-xs font-semibold text-foreground-muted transition hover:bg-surface-hover hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isLoggingOut ? "Signing out..." : "Sign out"}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={onRequireAuth}
+                className="flex w-full items-center justify-center rounded-xl border border-border/70 px-2 py-2 text-xs font-semibold text-foreground-muted transition hover:bg-surface-hover hover:text-foreground"
+              >
+                Sign in
+              </button>
+            )}
           </div>
         </div>
       </aside>
@@ -185,6 +265,25 @@ export default function LeftSidebar({
               </span>
             </button>
           )}
+          <button
+            type="button"
+            onClick={() =>
+              handleThemeChange(themePreference === "light" ? "dark" : "light")
+            }
+            className="flex min-w-14 cursor-pointer flex-col items-center gap-1 text-xs text-foreground-muted"
+          >
+            {themePreference === "light" ? "D" : "L"}
+          </button>
+          {isAuthenticated ? (
+            <button
+              type="button"
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className="flex min-w-14 cursor-pointer flex-col items-center gap-1 text-xs text-foreground-muted disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isLoggingOut ? "..." : "Out"}
+            </button>
+          ) : null}
         </nav>
       </aside>
     </>

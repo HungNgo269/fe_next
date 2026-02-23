@@ -14,8 +14,17 @@ export type RegisterPayload = {
   password: string;
 };
 
+export type AuthUser = {
+  id: string;
+  name: string;
+  email: string;
+  gender?: string | null;
+  avatarUrl?: string | null;
+};
+
 export type LoginResponse = {
   message: string;
+  user: AuthUser;
 };
 
 export type RegisterResponse = {

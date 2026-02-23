@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { login } from "../api/authApi";
 import { loginSchema, type LoginFormValues } from "../schema/authSchema";
 import FormAlert from "@/app/share/components/FormAlert";
+import { useAppSessionStore } from "@/app/share/stores/appSessionStore";
 
 const buildErrorTitle = (status?: number) => {
   if (status === 400) {
@@ -27,6 +28,9 @@ const buildErrorTitle = (status?: number) => {
 
 export default function LoginForm() {
   const router = useRouter();
+  const setAuthenticatedProfile = useAppSessionStore(
+    (state) => state.setAuthenticatedProfile,
+  );
   const [serverErrors, setServerErrors] = useState<string[]>([]);
   const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -56,6 +60,14 @@ export default function LoginForm() {
       return;
     }
 
+    const authUser = result.data.user;
+    setAuthenticatedProfile({
+      id: authUser.id,
+      name: authUser.name,
+      email: authUser.email,
+      gender: authUser.gender ?? "",
+      avatar: authUser.avatarUrl ?? "",
+    });
     setSuccessMessage("Signed in successfully. Redirecting...");
     router.replace("/");
   };

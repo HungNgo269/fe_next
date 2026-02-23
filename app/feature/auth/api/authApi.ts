@@ -1,4 +1,4 @@
-import { clientPostJson } from "@/app/share/utils/api";
+import { clientGetJson, clientPostJson } from "@/app/share/utils/api";
 import type {
   LoginPayload,
   LoginResponse,
@@ -15,3 +15,6 @@ export const register = (payload: RegisterPayload) =>
   clientPostJson<RegisterResponse>("/auth/register", payload, {
     skipAuthRefresh: true,
   });
+
+export const logout = () =>
+  clientGetJson<{ message: string }>("/auth/logout");

@@ -14,11 +14,15 @@ import type {
   StoryData,
   Suggestion,
 } from "../types/feed";
+import type { UserProfile } from "@/app/feature/profile/types/profile";
+
+type FeedUserProfile = UserProfile & { id: string };
 
 type BackendUser = {
   id: string;
   name: string;
   email: string;
+  gender?: string;
   avatarUrl?: string | null;
 };
 
@@ -55,6 +59,7 @@ type BackendConversation = {
 
 export type FeedBootstrapData = {
   currentUser: AvatarInfo & { id: string };
+  currentUserProfile: FeedUserProfile | null;
   isAuthenticated: boolean;
   posts: PostData[];
   stories: StoryData[];
@@ -160,6 +165,7 @@ const extractUser = (payload: unknown): BackendUser | null => {
   const id = toText(candidate.id);
   const name = toText(candidate.name);
   const email = toText(candidate.email);
+  const gender = toText(candidate.gender);
   const avatarUrl = toText(candidate.avatarUrl ?? candidate.avatar) || undefined;
 
   if (!id || !name || !email) {
@@ -170,6 +176,7 @@ const extractUser = (payload: unknown): BackendUser | null => {
     id,
     name,
     email,
+    gender,
     avatarUrl,
   };
 };
@@ -381,6 +388,15 @@ export const fetchFeedBootstrap = async (): Promise<ApiResponse<FeedBootstrapDat
     ok: true,
     data: {
       currentUser,
+      currentUserProfile: me
+        ? {
+            id: me.id,
+            name: me.name,
+            email: me.email,
+            gender: me.gender ?? "",
+            avatar: me.avatarUrl ?? "",
+          }
+        : null,
       isAuthenticated,
       posts: mappedPosts,
       stories,

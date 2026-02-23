@@ -5,11 +5,15 @@ import type { ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import LeftSidebar from "../feature/post/components/LeftSidebar";
 import { fetchFeedBootstrap } from "../feature/post/api/feedApi";
-import { currentUser as fallbackCurrentUser } from "../feature/post/data/feed";
 import type {
   SidebarMessagePreview,
   SidebarNotificationItem,
 } from "../feature/post/types/feed";
+import {
+  GUEST_AVATAR,
+  toAvatarFromProfile,
+  useAppSessionStore,
+} from "../share/stores/appSessionStore";
 
 const AUTH_ROUTES = new Set(["/login", "/register"]);
 
@@ -20,12 +24,24 @@ type AppShellProps = {
 export default function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentUser, setCurrentUser] = useState(fallbackCurrentUser);
+  const storedAuthProfile = useAppSessionStore((state) => state.authProfile);
+  const storedIsAuthenticated = useAppSessionStore(
+    (state) => state.isAuthenticated,
+  );
+  const setAuthenticatedProfile = useAppSessionStore(
+    (state) => state.setAuthenticatedProfile,
+  );
+  const clearAuthenticatedProfile = useAppSessionStore(
+    (state) => state.clearAuthenticatedProfile,
+  );
   const [messages, setMessages] = useState<SidebarMessagePreview[]>([]);
   const [notifications, setNotifications] = useState<SidebarNotificationItem[]>(
     [],
   );
+  const isAuthenticated = storedIsAuthenticated;
+  const currentUser = storedAuthProfile
+    ? toAvatarFromProfile(storedAuthProfile)
+    : GUEST_AVATAR;
 
   const isAuthRoute = AUTH_ROUTES.has(pathname);
 
@@ -42,8 +58,11 @@ export default function AppShell({ children }: AppShellProps) {
         return;
       }
 
-      setCurrentUser(result.data.currentUser);
-      setIsAuthenticated(result.data.isAuthenticated);
+      if (result.data.currentUserProfile) {
+        setAuthenticatedProfile(result.data.currentUserProfile);
+      } else {
+        clearAuthenticatedProfile();
+      }
       setMessages(result.data.sidebarMessages);
       setNotifications(result.data.sidebarNotifications);
     };
@@ -53,7 +72,11 @@ export default function AppShell({ children }: AppShellProps) {
     return () => {
       active = false;
     };
-  }, [isAuthRoute]);
+  }, [
+    clearAuthenticatedProfile,
+    isAuthRoute,
+    setAuthenticatedProfile,
+  ]);
 
   if (isAuthRoute) {
     return <>{children}</>;

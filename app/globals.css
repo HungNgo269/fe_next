@@ -48,42 +48,40 @@
   --radius: 0.75rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0c0f14;
-    --surface: #111827;
-    --surface-hover: #1f2937;
-    --surface-elevated: #0f172a;
+.dark {
+  --background: #0c0f14;
+  --surface: #111827;
+  --surface-hover: #1f2937;
+  --surface-elevated: #0f172a;
 
-    --foreground: #e5e7eb;
-    --foreground-muted: #94a3b8;
-    --foreground-soft: #64748b;
+  --foreground: #e5e7eb;
+  --foreground-muted: #94a3b8;
+  --foreground-soft: #64748b;
 
-    --brand: var(--brand-400);
-    --brand-foreground: #0b1220;
+  --brand: var(--brand-400);
+  --brand-foreground: #0b1220;
 
-    --border: #293548;
-    --input: #182131;
-    --ring: #60a5fa;
-    --overlay: #02061780;
-    --auth-panel: #0f172ad9;
-    --auth-field: #0f172a;
-    --auth-field-hover: #1e293b;
-    --auth-hero-overlay: #02061799;
-    --feed-gradient-start: #0c0f14;
-    --feed-gradient-mid: #111827;
-    --feed-gradient-end: #0b1324;
-    --feed-orb-a: #22c55e1f;
-    --feed-orb-b: #3b82f61f;
+  --border: #293548;
+  --input: #182131;
+  --ring: #60a5fa;
+  --overlay: #02061780;
+  --auth-panel: #0f172ad9;
+  --auth-field: #0f172a;
+  --auth-field-hover: #1e293b;
+  --auth-hero-overlay: #02061799;
+  --feed-gradient-start: #0c0f14;
+  --feed-gradient-mid: #111827;
+  --feed-gradient-end: #0b1324;
+  --feed-orb-a: #22c55e1f;
+  --feed-orb-b: #3b82f61f;
 
-    --destructive: #f87171;
-    --destructive-foreground: #000000;
-    --success: #4ade80;
-    --link: #60a5fa;
-    --like: #ff3040;
+  --destructive: #f87171;
+  --destructive-foreground: #000000;
+  --success: #4ade80;
+  --link: #60a5fa;
+  --like: #ff3040;
 
-    --shadow-soft: 0 10px 34px -18px rgba(0, 0, 0, 0.6);
-  }
+  --shadow-soft: 0 10px 34px -18px rgba(0, 0, 0, 0.6);
 }
 
 @theme inline {

@@ -10,6 +10,7 @@ import {
 import ProfileShell from "../../feature/profile/components/ProfileShell";
 import ProfileStatusCard from "../../feature/profile/components/ProfileStatusCard";
 import type { UserProfile } from "../../feature/profile/types/profile";
+import { useAppSessionStore } from "../../share/stores/appSessionStore";
 
 const BASE_GENDER_OPTIONS = ["MALE", "FEMALE"];
 
@@ -46,9 +47,33 @@ const validateForm = (form: UserProfile): string | null => {
 };
 
 export default function EditProfilePage() {
-  const [profile, setProfile] = useState<UserProfile>(EMPTY_PROFILE);
-  const [form, setForm] = useState<UserProfile>(EMPTY_PROFILE);
-  const [isLoading, setIsLoading] = useState(true);
+  const authProfile = useAppSessionStore((state) => state.authProfile);
+  const setAuthenticatedProfile = useAppSessionStore(
+    (state) => state.setAuthenticatedProfile,
+  );
+  const [profile, setProfile] = useState<UserProfile>(() =>
+    authProfile
+      ? {
+          id: authProfile.id,
+          name: authProfile.name,
+          email: authProfile.email,
+          gender: authProfile.gender,
+          avatar: authProfile.avatar,
+        }
+      : EMPTY_PROFILE,
+  );
+  const [form, setForm] = useState<UserProfile>(() =>
+    authProfile
+      ? {
+          id: authProfile.id,
+          name: authProfile.name,
+          email: authProfile.email,
+          gender: authProfile.gender,
+          avatar: authProfile.avatar,
+        }
+      : EMPTY_PROFILE,
+  );
+  const [isLoading, setIsLoading] = useState(!authProfile);
   const [isSaving, setIsSaving] = useState(false);
   const [isUnauthorized, setIsUnauthorized] = useState(false);
   const [error, setError] = useState("");
@@ -58,6 +83,22 @@ export default function EditProfilePage() {
     let active = true;
 
     const bootstrap = async () => {
+      if (authProfile) {
+        const nextProfile: UserProfile = {
+          id: authProfile.id,
+          name: authProfile.name,
+          email: authProfile.email,
+          gender: authProfile.gender,
+          avatar: authProfile.avatar,
+        };
+        setProfile(nextProfile);
+        setForm(nextProfile);
+        setIsUnauthorized(false);
+        setError("");
+        setIsLoading(false);
+        return;
+      }
+
       const result = await getCurrentUserProfile();
       if (!active) {
         return;
@@ -72,6 +113,15 @@ export default function EditProfilePage() {
 
       setProfile(result.data);
       setForm(result.data);
+      if (result.data.id) {
+        setAuthenticatedProfile({
+          id: result.data.id,
+          name: result.data.name,
+          email: result.data.email,
+          gender: result.data.gender,
+          avatar: result.data.avatar,
+        });
+      }
       setIsUnauthorized(false);
       setError("");
       setIsLoading(false);
@@ -82,7 +132,7 @@ export default function EditProfilePage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [authProfile, setAuthenticatedProfile]);
 
   const hasChanges =
     normalizeFieldValue("name", form.name) !== normalizeFieldValue("name", profile.name) ||
@@ -138,6 +188,16 @@ export default function EditProfilePage() {
 
     setProfile(mergedProfile);
     setForm(mergedProfile);
+    const nextProfileId = mergedProfile.id ?? profile.id ?? authProfile?.id;
+    if (nextProfileId) {
+      setAuthenticatedProfile({
+        id: nextProfileId,
+        name: mergedProfile.name,
+        email: mergedProfile.email,
+        gender: mergedProfile.gender,
+        avatar: mergedProfile.avatar,
+      });
+    }
     setSuccess("Profile updated successfully.");
     setIsSaving(false);
   };

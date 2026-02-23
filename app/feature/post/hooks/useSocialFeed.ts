@@ -23,10 +23,17 @@ import type {
   StoryData,
   Suggestion,
 } from "../types/feed";
+import { useAppSessionStore } from "@/app/share/stores/appSessionStore";
 
 export type CurrentUser = AvatarInfo;
 
 export function useSocialFeed() {
+  const setAuthenticatedProfile = useAppSessionStore(
+    (state) => state.setAuthenticatedProfile,
+  );
+  const clearAuthenticatedProfile = useAppSessionStore(
+    (state) => state.clearAuthenticatedProfile,
+  );
   const [isLoadingFeed, setIsLoadingFeed] = useState(true);
   const [feedError, setFeedError] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -76,6 +83,11 @@ export function useSocialFeed() {
 
       setCurrentUser(result.data.currentUser);
       setIsAuthenticated(result.data.isAuthenticated);
+      if (result.data.currentUserProfile) {
+        setAuthenticatedProfile(result.data.currentUserProfile);
+      } else {
+        clearAuthenticatedProfile();
+      }
       setPosts(result.data.posts);
       setStories(result.data.stories);
       setSuggestions(result.data.suggestions);
@@ -91,7 +103,7 @@ export function useSocialFeed() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [clearAuthenticatedProfile, setAuthenticatedProfile]);
 
   const requireAuth = () => {
     setShowLoginDialog(true);

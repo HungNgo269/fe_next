@@ -10,6 +10,7 @@ import ProfileAvatarPreview from "../feature/profile/components/ProfileAvatarPre
 import ProfileShell from "../feature/profile/components/ProfileShell";
 import ProfileStatusCard from "../feature/profile/components/ProfileStatusCard";
 import type { UserProfile } from "../feature/profile/types/profile";
+import { useAppSessionStore } from "../share/stores/appSessionStore";
 
 const EMPTY_PROFILE: UserProfile = {
   name: "",
@@ -27,13 +28,27 @@ const buildInitials = (name: string): string => {
 };
 
 export default function UserProfilePage() {
-  const [profile, setProfile] = useState<UserProfile>(EMPTY_PROFILE);
+  const authProfile = useAppSessionStore((state) => state.authProfile);
+  const setAuthenticatedProfile = useAppSessionStore(
+    (state) => state.setAuthenticatedProfile,
+  );
+  const [profile, setProfile] = useState<UserProfile>(() =>
+    authProfile
+      ? {
+          id: authProfile.id,
+          name: authProfile.name,
+          email: authProfile.email,
+          gender: authProfile.gender,
+          avatar: authProfile.avatar,
+        }
+      : EMPTY_PROFILE,
+  );
   const [myPosts, setMyPosts] = useState<PostData[]>([]);
   const [currentUserId, setCurrentUserId] = useState("");
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState("");
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
-  const [isProfileLoading, setIsProfileLoading] = useState(true);
+  const [isProfileLoading, setIsProfileLoading] = useState(!authProfile);
   const [isPostsLoading, setIsPostsLoading] = useState(false);
   const [isUnauthorized, setIsUnauthorized] = useState(false);
   const [profileError, setProfileError] = useState("");
@@ -44,6 +59,21 @@ export default function UserProfilePage() {
     let active = true;
 
     const loadProfile = async () => {
+      if (authProfile) {
+        setProfile({
+          id: authProfile.id,
+          name: authProfile.name,
+          email: authProfile.email,
+          gender: authProfile.gender,
+          avatar: authProfile.avatar,
+        });
+        setCurrentUserId(authProfile.id);
+        setIsUnauthorized(false);
+        setProfileError("");
+        setIsProfileLoading(false);
+        return;
+      }
+
       const profileResult = await getCurrentUserProfile();
       if (!active) {
         return;
@@ -59,6 +89,18 @@ export default function UserProfilePage() {
       }
 
       setProfile(profileResult.data);
+      if (profileResult.data.id) {
+        setCurrentUserId(profileResult.data.id);
+      }
+      if (profileResult.data.id) {
+        setAuthenticatedProfile({
+          id: profileResult.data.id,
+          name: profileResult.data.name,
+          email: profileResult.data.email,
+          gender: profileResult.data.gender,
+          avatar: profileResult.data.avatar,
+        });
+      }
       setIsUnauthorized(false);
       setProfileError("");
       setIsProfileLoading(false);
@@ -69,7 +111,7 @@ export default function UserProfilePage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [authProfile, setAuthenticatedProfile]);
 
   useEffect(() => {
     if (isProfileLoading || isUnauthorized) {
