@@ -281,6 +281,10 @@ export function useSocialFeed() {
   };
 
   const handleShare = (postId: string) => {
+    if (!isAuthenticated) {
+      requireAuth();
+      return;
+    }
     setPosts((prev) =>
       prev.map((post) =>
         post.id === postId

@@ -1,21 +1,22 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { LogOut, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import type {
   AvatarInfo,
   SidebarMessagePreview,
   SidebarNotificationItem,
 } from "../types/feed";
-import { bottomItems, navItems } from "./left-sidebar/constants";
+import { navItems, type NavItem } from "./left-sidebar/constants";
 import SidebarBrand from "./left-sidebar/SidebarBrand";
 import SidebarNavItem from "./left-sidebar/SidebarNavItem";
-import SidebarProfileItem from "./left-sidebar/SidebarProfileItem";
 import Avatar from "./ui/Avatar";
 import { useAppSessionStore } from "@/app/share/stores/appSessionStore";
 import { logout } from "@/app/feature/auth/api/authApi";
+import LoginRequiredDialog from "./LoginRequiredDialog";
 
 type LeftSidebarProps = {
   currentUser: AvatarInfo;
@@ -43,12 +44,32 @@ export default function LeftSidebar({
     (state) => state.clearAuthenticatedProfile,
   );
   const [expanded, setExpanded] = useState(false);
-  const [activeLabel, setActiveLabel] = useState("Trang chủ");
+  const [activeLabel, setActiveLabel] = useState("Search");
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
+  const [showThemeMenu, setShowThemeMenu] = useState(false);
+  const themeMenuRef = useRef<HTMLDivElement | null>(null);
+
+  const requireAuth = () => {
+    setShowLoginDialog(true);
+  };
 
   const handleThemeChange = (theme: "light" | "dark") => {
     setThemePreference(theme);
     setTheme(theme);
+    setShowThemeMenu(false);
+  };
+
+  const toggleThemeMenu = () => {
+    setShowThemeMenu((previous) => !previous);
+  };
+
+  const handleProtectedSelect = (item: NavItem) => {
+    if (!isAuthenticated) {
+      requireAuth();
+      return;
+    }
+    setActiveLabel(item.label);
   };
 
   const handleLogout = async () => {
@@ -67,10 +88,27 @@ export default function LeftSidebar({
     notification: notifications.length,
   };
 
-  const homeItem = navItems.find((item) => item.key === "home");
-  const reelsItem = navItems.find((item) => item.key === "reels");
-  const createItem = navItems.find((item) => item.key === "create");
-  const messagesItem = navItems.find((item) => item.key === "messages");
+  useEffect(() => {
+    if (!showThemeMenu) {
+      return;
+    }
+
+    const handleDocumentClick = (event: MouseEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node)) {
+        return;
+      }
+      if (themeMenuRef.current?.contains(target)) {
+        return;
+      }
+      setShowThemeMenu(false);
+    };
+
+    document.addEventListener("mousedown", handleDocumentClick);
+    return () => {
+      document.removeEventListener("mousedown", handleDocumentClick);
+    };
+  }, [showThemeMenu]);
 
   return (
     <>
@@ -98,150 +136,168 @@ export default function LeftSidebar({
                 badgeCount={
                   badgeCounts[item.key as keyof typeof badgeCounts] ?? 0
                 }
-                onSelect={setActiveLabel}
+                onSelect={handleProtectedSelect}
               />
             ))}
-
-            <SidebarProfileItem
-              expanded={expanded}
-              pathname={pathname}
-              currentUser={currentUser}
-              isAuthenticated={isAuthenticated}
-              onRequireAuth={onRequireAuth}
-            />
           </nav>
 
           <div className="space-y-1 border-t border-border/70 px-1 pt-2">
-            <div className="rounded-xl border border-border/70 bg-surface p-1.5">
-              <p
-                className={`px-2 pb-1 text-[10px] font-semibold uppercase tracking-widest-xl text-foreground-soft transition-opacity ${
-                  expanded ? "opacity-100" : "opacity-0"
+            {isAuthenticated ? (
+              <Link
+                href="/profile"
+                className={`group relative flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition ${
+                  pathname === "/profile"
+                    ? "bg-surface-hover text-foreground"
+                    : "text-foreground-muted hover:bg-surface-hover hover:text-foreground"
                 }`}
               >
-                Theme
-              </p>
-              <div className="grid grid-cols-2 gap-1">
-                <button
-                  type="button"
-                  onClick={() => handleThemeChange("light")}
-                  className={`rounded-lg px-2 py-1.5 text-xs font-semibold transition ${
-                    themePreference === "light"
-                      ? "bg-brand text-brand-foreground"
-                      : "bg-transparent text-foreground-muted hover:bg-surface-hover hover:text-foreground"
+                <span className="shrink-0">
+                  <span className="flex h-5 w-5 items-center justify-center">
+                    <span className="scale-75">
+                      <Avatar
+                        initials={currentUser.initials}
+                        colorClass={currentUser.colorClass}
+                      />
+                    </span>
+                  </span>
+                </span>
+                <span
+                  className={`whitespace-nowrap transition-opacity duration-200 ${
+                    expanded ? "opacity-100" : "opacity-0"
                   }`}
                 >
-                  Light
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleThemeChange("dark")}
-                  className={`rounded-lg px-2 py-1.5 text-xs font-semibold transition ${
-                    themePreference === "dark"
-                      ? "bg-brand text-brand-foreground"
-                      : "bg-transparent text-foreground-muted hover:bg-surface-hover hover:text-foreground"
+                  Profile
+                </span>
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={onRequireAuth}
+                className="group relative flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-foreground-muted transition hover:bg-surface-hover hover:text-foreground"
+              >
+                <span className="shrink-0">
+                  <span className="flex h-5 w-5 items-center justify-center">
+                    <span className="scale-75">
+                      <Avatar initials="SI" colorClass="avatar-slate" />
+                    </span>
+                  </span>
+                </span>
+                <span
+                  className={`whitespace-nowrap transition-opacity duration-200 ${
+                    expanded ? "opacity-100" : "opacity-0"
                   }`}
                 >
-                  Dark
-                </button>
-              </div>
+                  Sign in
+                </span>
+              </button>
+            )}
+
+            <div ref={themeMenuRef} className="relative">
+              <button
+                type="button"
+                onClick={toggleThemeMenu}
+                className="group relative flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-foreground-muted transition hover:bg-surface-hover hover:text-foreground"
+              >
+                <span className="shrink-0">
+                  {themePreference === "light" ? (
+                    <Moon className="h-5 w-5" />
+                  ) : (
+                    <Sun className="h-5 w-5" />
+                  )}
+                </span>
+                <span
+                  className={`whitespace-nowrap transition-opacity duration-200 ${
+                    expanded ? "opacity-100" : "opacity-0"
+                  }`}
+                >
+                  Theme
+                </span>
+              </button>
+
+              {showThemeMenu ? (
+                <div
+                  className={`absolute z-40 w-36 rounded-xl border border-border/70 bg-background p-1.5 shadow-soft ${
+                    expanded
+                      ? "bottom-full left-3 mb-1.5"
+                      : "left-[4.25rem] top-1/2 -translate-y-1/2"
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => handleThemeChange("light")}
+                    className={`flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs font-semibold transition ${
+                      themePreference === "light"
+                        ? "bg-brand text-brand-foreground"
+                        : "text-foreground-muted hover:bg-surface-hover hover:text-foreground"
+                    }`}
+                  >
+                    Light
+                    <Sun className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleThemeChange("dark")}
+                    className={`mt-1 flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs font-semibold transition ${
+                      themePreference === "dark"
+                        ? "bg-brand text-brand-foreground"
+                        : "text-foreground-muted hover:bg-surface-hover hover:text-foreground"
+                    }`}
+                  >
+                    Dark
+                    <Moon className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ) : null}
             </div>
-            {bottomItems.map((item) => (
-              <SidebarNavItem
-                key={item.key}
-                item={item}
-                expanded={expanded}
-                isActive={
-                  item.href
-                    ? pathname === item.href
-                    : activeLabel === item.label
-                }
-                onSelect={setActiveLabel}
-              />
-            ))}
+
             {isAuthenticated ? (
               <button
                 type="button"
                 onClick={handleLogout}
                 disabled={isLoggingOut}
-                className="flex w-full items-center justify-center rounded-xl border border-border/70 px-2 py-2 text-xs font-semibold text-foreground-muted transition hover:bg-surface-hover hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
+                className="group relative flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-foreground-muted transition hover:bg-surface-hover hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {isLoggingOut ? "Signing out..." : "Sign out"}
+                <span className="shrink-0">
+                  <LogOut className="h-5 w-5" />
+                </span>
+                <span
+                  className={`whitespace-nowrap transition-opacity duration-200 ${
+                    expanded ? "opacity-100" : "opacity-0"
+                  }`}
+                >
+                  {isLoggingOut ? "Signing out..." : "Sign out"}
+                </span>
               </button>
-            ) : (
-              <button
-                type="button"
-                onClick={onRequireAuth}
-                className="flex w-full items-center justify-center rounded-xl border border-border/70 px-2 py-2 text-xs font-semibold text-foreground-muted transition hover:bg-surface-hover hover:text-foreground"
-              >
-                Sign in
-              </button>
-            )}
+            ) : null}
           </div>
         </div>
       </aside>
 
       <aside className="fixed inset-x-0 bottom-0 z-40 border-t border-border/70 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 lg:hidden">
-        <nav className="mx-auto flex h-16 w-full max-w-2xl items-center justify-around px-2">
-          {homeItem ? (
-            <Link
-              href={homeItem.href ?? "/"}
-              className={`flex min-w-14 cursor-pointer flex-col items-center gap-1 text-xs ${
-                pathname === "/" ? "text-foreground" : "text-foreground-muted"
-              }`}
-            >
-              {homeItem.icon}
-            </Link>
-          ) : null}
-
-          {reelsItem ? (
+        <nav className="mx-auto flex h-16 w-full max-w-2xl items-center gap-1 overflow-x-auto px-2">
+          {navItems.map((item) => (
             <button
+              key={item.key}
               type="button"
-              onClick={() => setActiveLabel(reelsItem.label)}
-              className={`flex min-w-14 cursor-pointer flex-col items-center gap-1 text-xs ${
-                activeLabel === reelsItem.label
+              onClick={() => handleProtectedSelect(item)}
+              className={`relative flex min-w-12 flex-col items-center justify-center gap-1 rounded-lg px-2 text-xs ${
+                activeLabel === item.label
                   ? "text-foreground"
                   : "text-foreground-muted"
               }`}
             >
-              {reelsItem.icon}
-            </button>
-          ) : null}
-
-          {createItem ? (
-            <button
-              type="button"
-              onClick={() => setActiveLabel(createItem.label)}
-              className={`flex min-w-14 cursor-pointer flex-col items-center gap-1 text-xs ${
-                activeLabel === createItem.label
-                  ? "text-foreground"
-                  : "text-foreground-muted"
-              }`}
-            >
-              {createItem.icon}
-            </button>
-          ) : null}
-
-          {messagesItem ? (
-            <button
-              type="button"
-              onClick={() => setActiveLabel(messagesItem.label)}
-              className={`relative flex min-w-14 cursor-pointer flex-col items-center gap-1 text-xs ${
-                activeLabel === messagesItem.label
-                  ? "text-foreground"
-                  : "text-foreground-muted"
-              }`}
-            >
-              {messagesItem.icon}
-              {badgeCounts.messages > 0 ? (
-                <span className="absolute right-2 top-0.5 h-2.5 w-2.5 rounded-full bg-like ring-2 ring-background" />
+              {item.icon}
+              {item.badge &&
+              (badgeCounts[item.key as keyof typeof badgeCounts] ?? 0) > 0 ? (
+                <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-like ring-2 ring-background" />
               ) : null}
             </button>
-          ) : null}
+          ))}
 
           {isAuthenticated ? (
             <Link
               href="/profile"
-              className={`flex min-w-14 cursor-pointer flex-col items-center gap-1 text-xs ${
+              className={`flex min-w-12 flex-col items-center justify-center gap-1 rounded-lg px-2 text-xs ${
                 pathname === "/profile"
                   ? "text-foreground"
                   : "text-foreground-muted"
@@ -258,34 +314,45 @@ export default function LeftSidebar({
             <button
               type="button"
               onClick={onRequireAuth}
-              className="flex min-w-14 cursor-pointer flex-col items-center gap-1 text-xs text-foreground-muted"
+              className="flex min-w-12 flex-col items-center justify-center gap-1 rounded-lg px-2 text-xs text-foreground-muted"
             >
               <span className="scale-90">
                 <Avatar initials="SI" colorClass="avatar-slate" />
               </span>
             </button>
           )}
+
           <button
             type="button"
             onClick={() =>
               handleThemeChange(themePreference === "light" ? "dark" : "light")
             }
-            className="flex min-w-14 cursor-pointer flex-col items-center gap-1 text-xs text-foreground-muted"
+            className="flex min-w-12 flex-col items-center justify-center gap-1 rounded-lg px-2 text-xs text-foreground-muted"
           >
-            {themePreference === "light" ? "D" : "L"}
+            {themePreference === "light" ? (
+              <Moon className="h-4 w-4" />
+            ) : (
+              <Sun className="h-4 w-4" />
+            )}
           </button>
+
           {isAuthenticated ? (
             <button
               type="button"
               onClick={handleLogout}
               disabled={isLoggingOut}
-              className="flex min-w-14 cursor-pointer flex-col items-center gap-1 text-xs text-foreground-muted disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex min-w-12 flex-col items-center justify-center gap-1 rounded-lg px-2 text-xs text-foreground-muted disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isLoggingOut ? "..." : "Out"}
             </button>
           ) : null}
         </nav>
       </aside>
+
+      <LoginRequiredDialog
+        open={showLoginDialog}
+        onClose={() => setShowLoginDialog(false)}
+      />
     </>
   );
 }

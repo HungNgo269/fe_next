@@ -8,7 +8,7 @@ type SidebarNavItemProps = {
   expanded: boolean;
   isActive: boolean;
   badgeCount?: number;
-  onSelect: (label: string) => void;
+  onSelect: (item: NavItem) => void;
 };
 
 const baseClassName =
@@ -56,7 +56,7 @@ export default function SidebarNavItem({
   return (
     <button
       type="button"
-      onClick={() => onSelect(item.label)}
+      onClick={() => onSelect(item)}
       className={className}
     >
       {content}

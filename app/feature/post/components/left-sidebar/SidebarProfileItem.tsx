@@ -9,18 +9,17 @@ type SidebarProfileItemProps = {
   pathname: string;
   currentUser: AvatarInfo;
   isAuthenticated: boolean;
-  onRequireAuth: () => void;
+  onSignIn: () => void;
 };
 
-const labelClassName =
-  "whitespace-nowrap transition-opacity duration-200";
+const labelClassName = "whitespace-nowrap transition-opacity duration-200";
 
 export default function SidebarProfileItem({
   expanded,
   pathname,
   currentUser,
   isAuthenticated,
-  onRequireAuth,
+  onSignIn,
 }: SidebarProfileItemProps) {
   if (isAuthenticated) {
     return (
@@ -43,7 +42,7 @@ export default function SidebarProfileItem({
             expanded ? "opacity-100" : "opacity-0"
           }`}
         >
-          Trang cá nhân
+          Profile
         </span>
       </Link>
     );
@@ -52,8 +51,8 @@ export default function SidebarProfileItem({
   return (
     <button
       type="button"
-      onClick={onRequireAuth}
-      className="group relative flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-foreground-muted transition hover:bg-surface-hover hover:text-foreground"
+      onClick={onSignIn}
+      className="group relative flex w-full cursor-pointer items-center rounded-xl p-2 text-sm text-foreground-muted transition hover:bg-surface-hover hover:text-foreground"
     >
       <span className="shrink-0">
         <Avatar initials="SI" colorClass="avatar-slate" />
@@ -61,7 +60,7 @@ export default function SidebarProfileItem({
       <span
         className={`${labelClassName} ${expanded ? "opacity-100" : "opacity-0"}`}
       >
-        Trang cá nhân
+        Sign in
       </span>
     </button>
   );

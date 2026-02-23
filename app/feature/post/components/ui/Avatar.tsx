@@ -8,7 +8,7 @@ export default function Avatar({ initials, colorClass, online }: AvatarProps) {
   return (
     <div className="relative">
       <div
-        className={`flex h-10 w-10 items-center justify-center rounded-full text-xs font-semibold text-white ${colorClass}`}
+        className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold text-white ${colorClass}`}
       >
         {initials}
       </div>

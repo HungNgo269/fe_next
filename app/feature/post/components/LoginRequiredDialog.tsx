@@ -14,14 +14,20 @@ export default function LoginRequiredDialog({
   }
 
   return (
-    <div className="ui-overlay fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-      <div className="ui-card w-full max-w-md rounded-lg p-6">
+    <div
+      className="ui-overlay fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="ui-card w-full max-w-md rounded-lg p-6"
+        onClick={(event) => event.stopPropagation()}
+      >
         <h2 className="text-xl font-semibold text-foreground">
           Sign in required
         </h2>
         <p className="ui-text-muted mt-2 text-sm">
-          You can browse posts and profiles as a guest, but posting, liking,
-          commenting, and editing require an account.
+          Please sign in to use sidebar actions, share content, post, like,
+          comment, and edit.
         </p>
         <div className="mt-5 flex items-center gap-3">
           <Link
