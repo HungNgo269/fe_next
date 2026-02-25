@@ -1,11 +1,8 @@
-import type { Suggestion } from "../types/feed";
-import Avatar from "./ui/Avatar";
+import Link from "next/link";
+import type { Suggestion } from "@/app/feature/post/types/feed";
+import Avatar from "@/app/feature/post/components/ui/Avatar";
 
-type RightSidebarProps = {
-  suggestions: Suggestion[];
-};
-
-export default function RightSidebar({ suggestions }: RightSidebarProps) {
+export default function RightSidebar({ suggestions }: { suggestions: Suggestion[] }) {
   return (
     <aside className="col-span-12 space-y-6 lg:col-span-3">
       <div className="ui-card rounded-lg p-5">
@@ -25,18 +22,21 @@ export default function RightSidebar({ suggestions }: RightSidebarProps) {
           {suggestions.map((person) => (
             <div
               className="ui-subtle flex items-center justify-between gap-3 rounded-2xl px-3 py-3"
-              key={person.handle}
+              key={person.id}
             >
-              <div className="flex items-center gap-3">
+              <Link
+                className="flex min-w-0 items-center gap-3 transition-opacity hover:opacity-80"
+                href={`/profile/${person.id}`}
+              >
                 <Avatar
                   initials={person.initials}
                   colorClass={person.colorClass}
                 />
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm font-semibold text-foreground">{person.name}</p>
                   <p className="ui-text-muted text-xs">{person.note}</p>
                 </div>
-              </div>
+              </Link>
               <button
                 className="ui-btn-ghost rounded-full px-3 py-1 text-xs font-semibold transition-colors"
                 type="button"

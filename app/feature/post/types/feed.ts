@@ -63,6 +63,7 @@ export type TrendingTopic = {
 };
 
 export type Suggestion = {
+  id: string;
   name: string;
   handle: string;
   initials: string;

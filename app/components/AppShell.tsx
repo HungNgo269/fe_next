@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import LeftSidebar from "../feature/post/components/LeftSidebar";
+import LeftSidebar from "../feature/layout/components/LeftSidebar";
 import { fetchFeedBootstrap } from "../feature/post/api/feedApi";
 import type {
   SidebarMessagePreview,

@@ -1,9 +1,9 @@
 "use client";
 
+import LoginRequiredDialog from "@/app/share/components/LoginRequiredDialog";
+import RightSidebar from "@/app/feature/layout/components/RightSidebar";
+import { useSocialFeed } from "@/app/feature/post/hooks/useSocialFeed";
 import FeedMainContent from "./FeedMainContent";
-import LoginRequiredDialog from "./LoginRequiredDialog";
-import RightSidebar from "./RightSidebar";
-import { useSocialFeed } from "../hooks/useSocialFeed";
 
 export default function SocialFeed() {
   const feed = useSocialFeed();

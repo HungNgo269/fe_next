@@ -1,14 +1,12 @@
 import Link from "next/link";
 
-type LoginRequiredDialogProps = {
-  open: boolean;
-  onClose: () => void;
-};
-
 export default function LoginRequiredDialog({
   open,
   onClose,
-}: LoginRequiredDialogProps) {
+}: {
+  open: boolean;
+  onClose: () => void;
+}) {
   if (!open) {
     return null;
   }

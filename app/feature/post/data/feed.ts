@@ -189,6 +189,7 @@ export const trendingTopics: TrendingTopic[] = [
 
 export const suggestions: Suggestion[] = [
   {
+    id: "user-noah-kim",
     name: "Noah Kim",
     handle: "noah.k",
     initials: "NK",
@@ -196,6 +197,7 @@ export const suggestions: Suggestion[] = [
     note: "Product strategist",
   },
   {
+    id: "user-priya-rao",
     name: "Priya Rao",
     handle: "priya.r",
     initials: "PR",
@@ -203,6 +205,7 @@ export const suggestions: Suggestion[] = [
     note: "Community lead",
   },
   {
+    id: "user-elena-novak",
     name: "Elena Novak",
     handle: "elena.n",
     initials: "EN",

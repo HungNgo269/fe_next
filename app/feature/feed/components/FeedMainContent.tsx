@@ -1,8 +1,8 @@
-import FeedComposer from "./FeedComposer";
-import FeedStories from "./FeedStories";
-import PostCard from "./PostCard";
-import type { CurrentUser } from "../hooks/useSocialFeed";
-import type { PostData, StoryData } from "../types/feed";
+import FeedComposer from "@/app/feature/post/components/FeedComposer";
+import FeedStories from "@/app/feature/post/components/FeedStories";
+import PostCard from "@/app/feature/post/components/PostCard";
+import type { CurrentUser } from "@/app/feature/post/hooks/useSocialFeed";
+import type { PostData, StoryData } from "@/app/feature/post/types/feed";
 
 type FeedMainContentProps = {
   isLoadingFeed: boolean;

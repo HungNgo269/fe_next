@@ -1,16 +1,8 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
-import type { AvatarInfo } from "../../types/feed";
-import Avatar from "../ui/Avatar";
-
-type SidebarProfileItemProps = {
-  expanded: boolean;
-  pathname: string;
-  currentUser: AvatarInfo;
-  isAuthenticated: boolean;
-  onSignIn: () => void;
-};
+import type { AvatarInfo } from "@/app/feature/post/types/feed";
+import Avatar from "@/app/feature/post/components/ui/Avatar";
 
 const labelClassName = "whitespace-nowrap transition-opacity duration-200";
 
@@ -20,7 +12,13 @@ export default function SidebarProfileItem({
   currentUser,
   isAuthenticated,
   onSignIn,
-}: SidebarProfileItemProps) {
+}: {
+  expanded: boolean;
+  pathname: string;
+  currentUser: AvatarInfo;
+  isAuthenticated: boolean;
+  onSignIn: () => void;
+}) {
   if (isAuthenticated) {
     return (
       <Link

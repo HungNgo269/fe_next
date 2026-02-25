@@ -1,15 +1,7 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import type { NavItem } from "./constants";
-
-type SidebarNavItemProps = {
-  item: NavItem;
-  expanded: boolean;
-  isActive: boolean;
-  badgeCount?: number;
-  onSelect: (item: NavItem) => void;
-};
 
 const baseClassName =
   "group relative flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition";
@@ -20,7 +12,13 @@ export default function SidebarNavItem({
   isActive,
   badgeCount = 0,
   onSelect,
-}: SidebarNavItemProps) {
+}: {
+  item: NavItem;
+  expanded: boolean;
+  isActive: boolean;
+  badgeCount?: number;
+  onSelect: (item: NavItem) => void;
+}) {
   const className = `${baseClassName} ${
     isActive
       ? "bg-surface-hover text-foreground"

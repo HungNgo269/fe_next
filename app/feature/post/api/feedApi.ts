@@ -341,6 +341,7 @@ export const fetchFeedBootstrap = async (): Promise<ApiResponse<FeedBootstrapDat
     .filter((person) => person.id !== currentUser.id)
     .slice(0, 4)
     .map((person) => ({
+      id: person.id,
       name: person.name,
       handle: person.handle,
       initials: person.initials,
@@ -480,4 +481,28 @@ export const deleteLikeRequest = async (likeId: string): Promise<ApiResponse<nul
     const message = error instanceof Error ? error.message : "Unlike failed";
     return { ok: false, error: { messages: [message] } };
   }
+};
+
+export const fetchCurrentUserLikeIdsByPostIds = async (
+  postIds: string[],
+  userId: string,
+): Promise<ApiResponse<Record<string, string>>> => {
+  if (!userId || postIds.length === 0) {
+    return { ok: true, data: {} };
+  }
+
+  const likesResult = await clientGetJson<BackendLike[]>("/likes");
+  if (!likesResult.ok) {
+    return likesResult;
+  }
+
+  const postIdSet = new Set(postIds);
+  const likeMap: Record<string, string> = {};
+  for (const like of likesResult.data) {
+    if (like.userId === userId && postIdSet.has(like.postId)) {
+      likeMap[like.postId] = like.id;
+    }
+  }
+
+  return { ok: true, data: likeMap };
 };

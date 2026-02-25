@@ -1,7 +1,7 @@
 import type { AvatarInfo } from "../types/feed";
 import ActionChip from "./ui/ActionChip";
 import Avatar from "./ui/Avatar";
-import { IconImage, IconSmile, IconVideo } from "./icons";
+import { IconImage, IconSmile, IconVideo } from "@/app/share/components/icons";
 
 type FeedComposerProps = {
   currentUser: AvatarInfo;
