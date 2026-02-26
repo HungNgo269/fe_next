@@ -2,16 +2,18 @@
 
 import Link from "next/link";
 import { LogOut, Moon, Sun } from "lucide-react";
-import type { AvatarInfo, SidebarMessagePreview, SidebarNotificationItem } from "@/app/feature/post/types/feed";
+import type { SidebarMessagePreview, SidebarNotificationItem } from "@/app/feature/post/types/feed";
+import type { User } from "@/app/feature/post/types/api.types";
 import { navItems } from "./left-sidebar/constants";
 import SidebarBrand from "./left-sidebar/SidebarBrand";
 import SidebarNavItem from "./left-sidebar/SidebarNavItem";
 import Avatar from "@/app/feature/post/components/ui/Avatar";
+
 import LoginRequiredDialog from "@/app/share/components/LoginRequiredDialog";
-import { useLeftSidebar } from "@/app/feature/layout/hooks/useLeftSidebar";
+import { useLeftSidebar } from "./hooks/useLeftSidebar";
 
 type LeftSidebarProps = {
-  currentUser: AvatarInfo;
+  currentUser: User | null;
   isAuthenticated: boolean;
   onRequireAuth: () => void;
   messages: SidebarMessagePreview[];
@@ -73,13 +75,13 @@ export default function LeftSidebar({
           <div className="space-y-1 border-t border-border/70 px-1 pt-2">
             {isAuthenticated ? (
               <Link
-                href="/profile"
-                className={`group relative flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition ${pathname === "/profile" ? "bg-surface-hover text-foreground" : "text-foreground-muted hover:bg-surface-hover hover:text-foreground"}`}
+                href={`/profile/${currentUser!.handle || currentUser!.id}`}
+                className={`group relative flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition ${pathname.startsWith("/profile") ? "bg-surface-hover text-foreground" : "text-foreground-muted hover:bg-surface-hover hover:text-foreground"}`}
               >
                 <span className="shrink-0">
                   <span className="flex h-5 w-5 items-center justify-center">
                     <span className="scale-75">
-                      <Avatar initials={currentUser.initials} colorClass={currentUser.colorClass} />
+                      <Avatar avatar={currentUser!.avatarUrl ?? undefined} gender={currentUser!.gender} />
                     </span>
                   </span>
                 </span>
@@ -94,7 +96,7 @@ export default function LeftSidebar({
                 <span className="shrink-0">
                   <span className="flex h-5 w-5 items-center justify-center">
                     <span className="scale-75">
-                      <Avatar initials="SI" colorClass="avatar-slate" />
+                      <Avatar />
                     </span>
                   </span>
                 </span>
@@ -176,13 +178,13 @@ export default function LeftSidebar({
 
           {isAuthenticated ? (
             <Link
-              href="/profile"
+              href={`/profile/${currentUser!.handle || currentUser!.id}`}
               className={`flex min-w-12 flex-col items-center justify-center gap-1 rounded-lg px-2 text-xs ${
-                pathname === "/profile" ? "text-foreground" : "text-foreground-muted"
+                pathname.startsWith("/profile") ? "text-foreground" : "text-foreground-muted"
               }`}
             >
               <span className="scale-90">
-                <Avatar initials={currentUser.initials} colorClass={currentUser.colorClass} />
+                <Avatar avatar={currentUser!.avatarUrl ?? undefined} gender={currentUser!.gender} />
               </span>
             </Link>
           ) : (
@@ -192,7 +194,7 @@ export default function LeftSidebar({
               className="flex min-w-12 flex-col items-center justify-center gap-1 rounded-lg px-2 text-xs text-foreground-muted"
             >
               <span className="scale-90">
-                <Avatar initials="SI" colorClass="avatar-slate" />
+                <Avatar />
               </span>
             </button>
           )}

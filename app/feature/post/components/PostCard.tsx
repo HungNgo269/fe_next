@@ -1,31 +1,9 @@
-import type { PostData } from "../types/feed";
-import CommentList from "./CommentList";
+import type { Post } from "../types/api.types";
+import CommentSection from "./CommentSection";
 import PostActions from "./PostActions";
 import PostBody from "./PostBody";
 import PostHeader from "./PostHeader";
 import PostStats from "./PostStats";
-
-type PostCardProps = {
-  post: PostData;
-  index: number;
-  isEditing: boolean;
-  editingText: string;
-  commentDraft: string;
-  currentUserId: string;
-  onStartEdit: () => void;
-  onCancelEdit: () => void;
-  onSaveEdit: () => void;
-  onDelete: () => void;
-  onChangeEditingText: (value: string) => void;
-  onToggleLike: () => void;
-  onShare: () => void;
-  onChangeCommentDraft: (value: string) => void;
-  onAddComment: () => void;
-  onSaveCommentEdit: (commentId: string, content: string) => Promise<boolean>;
-  onDeleteComment: (commentId: string) => Promise<boolean>;
-  onReportPost: () => void;
-  onReportComment: () => void;
-};
 
 const postDelayClasses = [
   "animate-delay-120",
@@ -38,70 +16,32 @@ const postDelayClasses = [
 export default function PostCard({
   post,
   index,
-  isEditing,
-  editingText,
-  commentDraft,
-  currentUserId,
-  onStartEdit,
-  onCancelEdit,
-  onSaveEdit,
-  onDelete,
-  onChangeEditingText,
-  onToggleLike,
-  onShare,
-  onChangeCommentDraft,
-  onAddComment,
-  onSaveCommentEdit,
-  onDeleteComment,
-  onReportPost,
-  onReportComment,
-}: PostCardProps) {
+}: {
+  post: Post;
+  index: number;
+}) {
   const delayClass = postDelayClasses[index % postDelayClasses.length];
 
   return (
     <article className={`ui-card rounded-lg p-5 ${delayClass}`}>
       <PostHeader
+        postId={post.id}
         author={post.author}
-        time={post.time}
-        audience={post.audience}
-        isPostOwner={post.author.id === currentUserId}
-        onStartEdit={onStartEdit}
-        onDelete={onDelete}
-        onReportPost={onReportPost}
+        time={post.createdAt}
+        audience="Public"
       />
 
-      <PostBody
-        content={post.content}
-        media={post.media}
-        isEditing={isEditing}
-        editingText={editingText}
-        onChangeEditingText={onChangeEditingText}
-        onSaveEdit={onSaveEdit}
-        onCancelEdit={onCancelEdit}
-      />
+      <PostBody postId={post.id} content={post.content} media={undefined} />
 
       <PostStats
-        likes={post.likes}
+        likes={post.likesCount}
         commentsCount={post.comments.length}
-        shares={post.shares}
+        shares={0}
       />
 
-      <PostActions
-        likedByMe={post.likedByMe}
-        onToggleLike={onToggleLike}
-        onShare={onShare}
-      />
+      <PostActions postId={post.id} likedByMe={post.likedByMe} />
 
-      <CommentList
-        comments={post.comments}
-        currentUserId={currentUserId}
-        commentDraft={commentDraft}
-        onChangeCommentDraft={onChangeCommentDraft}
-        onAddComment={onAddComment}
-        onSaveCommentEdit={onSaveCommentEdit}
-        onDeleteComment={onDeleteComment}
-        onReportComment={onReportComment}
-      />
+      <CommentSection postId={post.id} comments={post.comments} />
     </article>
   );
 }

@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { logout } from "@/app/feature/auth/api/authApi";
 import { useAppSessionStore } from "@/app/share/stores/appSessionStore";
-import type { NavItem } from "../components/left-sidebar/constants";
+import type { NavItem } from "../left-sidebar/constants";
 
 type UseLeftSidebarOptions = {
   isAuthenticated: boolean;

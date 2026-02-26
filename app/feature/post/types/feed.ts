@@ -1,41 +1,19 @@
-export type AvatarInfo = {
-  id: string;
-  name: string;
-  handle: string;
-  initials: string;
-  colorClass: string;
-};
+import type { Post, User } from "./api.types";
+import type { UserProfile } from "@/app/feature/profile/types/profile";
 
-export type CommentData = {
-  id: string;
-  author: AvatarInfo;
-  text: string;
-  time: string;
-};
+export type FeedUserProfile = UserProfile & { id: string };
 
-export type PostMedia = {
-  title: string;
-  subtitle: string;
-  gradientClass: string;
-};
-
-export type PostData = {
-  id: string;
-  author: AvatarInfo;
-  time: string;
-  audience: string;
-  content: string;
-  likes: number;
-  shares: number;
-  likedByMe: boolean;
-  comments: CommentData[];
-  media?: PostMedia;
+export type FeedBootstrapData = {
+  currentUser: User | null;
+  currentUserProfile: FeedUserProfile | null;
+  isAuthenticated: boolean;
+  posts: Post[];
 };
 
 export type StoryData = {
   id: string;
   title: string;
-  author: AvatarInfo;
+  author: User;
   theme: string;
 };
 
@@ -62,11 +40,4 @@ export type TrendingTopic = {
   posts: string;
 };
 
-export type Suggestion = {
-  id: string;
-  name: string;
-  handle: string;
-  initials: string;
-  colorClass: string;
-  note: string;
-};
+export type { Suggestion } from "@/app/feature/suggestion/types/suggestion.type";

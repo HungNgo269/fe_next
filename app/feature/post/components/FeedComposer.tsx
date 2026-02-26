@@ -1,36 +1,42 @@
-import type { AvatarInfo } from "../types/feed";
+"use client";
+
+import { memo } from "react";
+import type { User } from "../types/api.types";
+
 import ActionChip from "./ui/ActionChip";
 import Avatar from "./ui/Avatar";
 import { IconImage, IconSmile, IconVideo } from "@/app/share/components/icons";
+import { usePostUIStore } from "../stores/postStore";
+import { useCreatePost } from "../hooks/useCreatePost";
 
-type FeedComposerProps = {
-  currentUser: AvatarInfo;
-  value: string;
-  onChange: (value: string) => void;
-  onSubmit: () => void;
-};
-
-export default function FeedComposer({
+function FeedComposer({
   currentUser,
-  value,
-  onChange,
-  onSubmit,
-}: FeedComposerProps) {
-  const canPost = value.trim().length > 0;
+}: {
+  currentUser: User;
+}) {
+  const composerText = usePostUIStore((s) => s.composerText);
+  const setComposerText = usePostUIStore((s) => s.setComposerText);
+  const { handleCreatePost } = useCreatePost();
+
+  const canPost = composerText.trim().length > 0;
+
+  const onSubmit = () => {
+    handleCreatePost(composerText);
+    setComposerText("");
+  };
 
   return (
     <div className="ui-card rounded-lg p-5">
       <div className="flex items-start gap-4">
         <Avatar
-          initials={currentUser.initials}
-          colorClass={currentUser.colorClass}
+          avatar={currentUser.avatarUrl ?? undefined} gender={currentUser.gender}
         />
         <div className="flex-1">
           <textarea
             className="ui-input min-h-composer w-full resize-none rounded-2xl px-4 py-3 text-sm outline-none transition-colors"
             placeholder="Share something with your circle..."
-            value={value}
-            onChange={(event) => onChange(event.target.value)}
+            value={composerText}
+            onChange={(event) => setComposerText(event.target.value)}
           />
         </div>
       </div>
@@ -41,7 +47,7 @@ export default function FeedComposer({
           <ActionChip label="Feeling" icon={<IconSmile />} />
         </div>
         <div className="flex items-center gap-3">
-          <span className="ui-text-soft text-xs">{value.length}/240</span>
+          <span className="ui-text-soft text-xs">{composerText.length}/240</span>
           <button
             className="rounded-full px-2 py-1 text-sm font-semibold text-foreground transition-opacity hover:opacity-70 disabled:opacity-40"
             disabled={!canPost}
@@ -55,3 +61,5 @@ export default function FeedComposer({
     </div>
   );
 }
+
+export default memo(FeedComposer);

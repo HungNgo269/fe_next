@@ -1,9 +1,16 @@
 "use client";
 
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect } from "react";
 import type { ReactNode } from "react";
 import { ThemeProvider, useTheme } from "next-themes";
 import { useAppSessionStore } from "../stores/appSessionStore";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    mutations: { retry: false },
+  },
+});
 
 function ThemePreferenceSync() {
   const themePreference = useAppSessionStore((state) => state.themePreference);
@@ -35,14 +42,16 @@ export default function AppProviders({ children }: AppProvidersProps) {
   const themePreference = useAppSessionStore((state) => state.themePreference);
 
   return (
-    <ThemeProvider
-      attribute="class"
-      defaultTheme={themePreference}
-      enableSystem={false}
-      disableTransitionOnChange
-    >
-      <ThemePreferenceSync />
-      {children}
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme={themePreference}
+        enableSystem={false}
+        disableTransitionOnChange
+      >
+        <ThemePreferenceSync />
+        {children}
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }

@@ -1,120 +1,112 @@
 "use client";
 
-import { useState } from "react";
-import {
-  fetchCurrentUserLikeIdsByPostIds,
-} from "@/app/feature/post/api/feedApi";
-import type { PostData } from "@/app/feature/post/types/feed";
-import type { ProfileFeedResult } from "@/app/feature/profile/api/profileApi";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ApiResponse } from "@/app/share/utils/api-types";
-import { useEffect } from "react";
+import type { ProfileFeedResponse } from "../types/api.types";
 import { useProfileData } from "./useProfileData";
-import { useFeedPostActions } from "@/app/feature/post/hooks/useFeedPostActions";
-import { useFeedLikes } from "@/app/feature/post/hooks/useFeedLikes";
-import { useFeedComments } from "@/app/feature/post/hooks/useFeedComments";
+import type { FeedBootstrapData } from "@/app/feature/post/types/feed";
+import { FEED_QUERY_KEY } from "@/app/feature/post/hooks/useFeedQuery";
+import { useState, useCallback, useEffect, useMemo } from "react";
+import type { UserProfile } from "../types/profile";
+import { buildInitials } from "./useProfileData";
 
 const PAGE_SIZE = 5;
 
 export type FetchProfileFeedFn = (
   page: number,
   limit: number,
-) => Promise<ApiResponse<ProfileFeedResult>>;
+) => Promise<ApiResponse<ProfileFeedResponse>>;
 
 export type UseProfileFeedOptions = {
   fetchFn: FetchProfileFeedFn;
   isOwnProfile?: boolean;
+  profileKey?: string;
 };
 
-export function useProfileFeed({ fetchFn, isOwnProfile = false }: UseProfileFeedOptions) {
-  const [posts, setPosts] = useState<PostData[]>([]);
-  const [postsError, setPostsError] = useState("");
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [hasMorePosts, setHasMorePosts] = useState(false);
-  const [totalPosts, setTotalPosts] = useState(0);
-  const [myLikeIdsByPostId, setMyLikeIdsByPostId] = useState<Record<string, string>>({});
+const toUserProfile = (
+  user: ProfileFeedResponse["user"],
+): UserProfile => ({
+  id: user.id,
+  name: user.name,
+  email: user.email ?? "",
+  gender: user.gender ?? "",
+  avatar: user.avatarUrl ?? "",
+});
 
+export function useProfileFeed({
+  fetchFn,
+  isOwnProfile = false,
+  profileKey = "default",
+}: UseProfileFeedOptions) {
+  const queryClient = useQueryClient();
   const profileData = useProfileData(isOwnProfile);
+  const {
+    currentUserId,
+    currentUserAvatar,
+    isUnauthorized,
+    setIsUnauthorized,
+    syncProfileToSession,
+  } = profileData;
+  const [currentPage, setCurrentPage] = useState<number | null>(null);
+  const [allPosts, setAllPosts] = useState<ProfileFeedResponse["posts"]>([]);
+  const [hasMorePosts, setHasMorePosts] = useState<boolean | null>(null);
+  const [totalPosts, setTotalPosts] = useState<number | null>(null);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [postsError, setPostsError] = useState("");
 
-  const likes = useFeedLikes({
-    currentUserId: profileData.currentUserId,
-    posts,
-    setPosts,
-    myLikeIdsByPostId,
-    setMyLikeIdsByPostId,
-    setFeedError: setPostsError,
-  });
-
-  const postActions = useFeedPostActions({
-    currentUser: profileData.currentUserAvatar,
-    posts,
-    setPosts,
-    setFeedError: setPostsError,
-    setTotalPosts,
-    setMyLikeIdsByPostId,
-  });
-
-  const comments = useFeedComments({
-    currentUser: profileData.currentUserAvatar,
-    posts,
-    setPosts,
-    setFeedError: setPostsError,
-  });
-
-
-  const applyFeed = (feed: ProfileFeedResult, append: boolean) => {
-    profileData.setProfile(feed.profile);
-    profileData.syncProfileToSession(feed.profile);
-    setPosts((prev) => (append ? [...prev, ...feed.posts] : feed.posts));
-    if (!append) setMyLikeIdsByPostId({});
-    setCurrentPage(feed.pagination.page);
-    setHasMorePosts(feed.pagination.hasMore);
-    setTotalPosts(feed.pagination.totalPosts);
-  };
-
-
-  useEffect(() => {
-    const active = { value: true };
-
-    const loadFirstPage = async () => {
-      profileData.setIsLoading(true);
-      profileData.setProfileError("");
-      setPostsError("");
-
+  const query = useQuery({
+    queryKey: ["profile-feed", isOwnProfile ? "me" : "other", profileKey],
+    queryFn: async () => {
       const result = await fetchFn(1, PAGE_SIZE);
-      if (!active.value) return;
-
       if (!result.ok) {
         const status = (result.error as { status?: number }).status;
-        profileData.setIsUnauthorized(status === 401 || status === 403);
-        profileData.setProfileError(result.error.messages[0] ?? "Unable to load profile.");
-        setPosts([]);
-        profileData.setIsLoading(false);
-        return;
+        setIsUnauthorized(status === 401 || status === 403);
+        throw new Error(result.error.messages[0] ?? "Unable to load profile.");
       }
+      return result.data;
+    },
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+  });
 
-      applyFeed(result.data, false);
-      await likes.hydrateLikeIds(
-        result.data.posts,
-        result.data.profile.id ?? profileData.currentUserId,
-        active,
-      );
-      profileData.setIsUnauthorized(false);
-      profileData.setIsLoading(false);
-    };
+  const profile = useMemo(
+    () => (query.data ? toUserProfile(query.data.user) : profileData.profile),
+    [query.data, profileData.profile],
+  );
+  const initials = useMemo(() => buildInitials(profile.name), [profile.name]);
+  const canEditProfile =
+    Boolean(currentUserId) &&
+    (isOwnProfile || (Boolean(profile.id) && currentUserId === profile.id));
+  const basePosts = useMemo(() => query.data?.posts ?? [], [query.data]);
+  const posts = allPosts.length > 0 ? allPosts : basePosts;
+  const effectiveCurrentPage = currentPage ?? query.data?.pagination.page ?? 1;
+  const effectiveHasMorePosts = hasMorePosts ?? query.data?.pagination.hasMore ?? false;
+  const effectiveTotalPosts = totalPosts ?? query.data?.pagination.totalPosts ?? 0;
 
-    void loadFirstPage();
-    return () => { active.value = false; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchFn]);
+  useEffect(() => {
+    if (!query.data) return;
 
+    syncProfileToSession(toUserProfile(query.data.user));
+    queryClient.setQueryData<FeedBootstrapData>(FEED_QUERY_KEY, (old) => {
+      if (!old) return old;
+      const oldIds = new Set(old.posts.map((post) => post.id));
+      const mergedPosts = [...old.posts];
+      for (const post of query.data.posts) {
+        if (!oldIds.has(post.id)) {
+          mergedPosts.push(post);
+          oldIds.add(post.id);
+        }
+      }
+      return { ...old, posts: mergedPosts } as FeedBootstrapData;
+    });
+  }, [query.data, queryClient, syncProfileToSession]);
 
-  const handleLoadMore = async () => {
-    if (isLoadingMore || !hasMorePosts) return;
+  const handleLoadMore = useCallback(async () => {
+    if (isLoadingMore || !effectiveHasMorePosts) return;
     setIsLoadingMore(true);
     setPostsError("");
 
-    const nextPage = currentPage + 1;
+    const nextPage = effectiveCurrentPage + 1;
     const result = await fetchFn(nextPage, PAGE_SIZE);
     if (!result.ok) {
       setPostsError(result.error.messages[0] ?? "Unable to load more posts.");
@@ -122,58 +114,36 @@ export function useProfileFeed({ fetchFn, isOwnProfile = false }: UseProfileFeed
       return;
     }
 
-    setPosts((prev) => [...prev, ...result.data.posts]);
+    setAllPosts((prev) =>
+      prev.length > 0 ? [...prev, ...result.data.posts] : [...basePosts, ...result.data.posts],
+    );
     setCurrentPage(result.data.pagination.page);
     setHasMorePosts(result.data.pagination.hasMore);
     setTotalPosts(result.data.pagination.totalPosts);
 
-    if (profileData.currentUserId) {
-      const likeResult = await fetchCurrentUserLikeIdsByPostIds(
-        result.data.posts.map((p) => p.id),
-        profileData.currentUserId,
-      );
-      if (likeResult.ok) {
-        setMyLikeIdsByPostId((prev) => ({ ...prev, ...likeResult.data }));
-      }
-    }
-    setIsLoadingMore(false);
-  };
+    // Add to feed cache for mutation hooks
+    queryClient.setQueryData<FeedBootstrapData>(FEED_QUERY_KEY, (old) => {
+      if (!old) return old;
+      return { ...old, posts: [...old.posts, ...result.data.posts] } as FeedBootstrapData;
+    });
 
+    setIsLoadingMore(false);
+  }, [isLoadingMore, effectiveHasMorePosts, effectiveCurrentPage, fetchFn, queryClient, basePosts]);
 
   return {
-    profile: profileData.profile,
+    profile,
     posts,
-    initials: profileData.initials,
-    currentUserId: profileData.currentUserId,
-    currentUserAvatar: profileData.currentUserAvatar,
-    canEditProfile: profileData.canEditProfile,
-    composerText: postActions.composerText,
-    editingPostId: postActions.editingPostId,
-    editingText: postActions.editingText,
-    commentDrafts: comments.commentDrafts,
-    myLikeIdsByPostId,
-    isLoading: profileData.isLoading,
+    initials: initials,
+    currentUserId,
+    currentUserAvatar,
+    canEditProfile,
+    isLoading: query.isLoading,
     isLoadingMore,
-    isUnauthorized: profileData.isUnauthorized,
-    profileError: profileData.profileError,
+    isUnauthorized,
+    profileError: query.error?.message ?? profileData.profileError,
     postsError,
-    currentPage,
-    hasMorePosts,
-    totalPosts,
+    hasMorePosts: effectiveHasMorePosts,
+    totalPosts: effectiveTotalPosts,
     handleLoadMore,
-    handleComposerChange: postActions.handleComposerChange,
-    handleCreatePost: postActions.handleCreatePost,
-    handleStartEdit: postActions.handleStartEdit,
-    handleCancelEdit: postActions.handleCancelEdit,
-    handleSaveEdit: postActions.handleSaveEdit,
-    setEditingText: postActions.setEditingText,
-    handleDeletePost: postActions.handleDeletePost,
-    handleToggleLike: likes.handleToggleLike,
-    handleShare: likes.handleShare,
-    handleCommentDraft: comments.handleCommentDraft,
-    handleAddComment: comments.handleAddComment,
-    handleSaveCommentEdit: comments.handleSaveCommentEdit,
-    handleDeleteComment: comments.handleDeleteComment,
-    handleReportContent: comments.handleReportContent,
   };
 }

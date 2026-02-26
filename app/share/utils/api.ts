@@ -181,4 +181,19 @@ export const clientPutJson = async <T>(
     options,
   );
 
+export const clientDeleteJson = async <T = null>(
+  path: string,
+  options?: ClientRequestOptions,
+): Promise<ApiResponse<T>> =>
+  executeClientRequest(
+    async (requestConfig) => {
+      const response = await apiClient.delete<T>(
+        normalizePath(path),
+        requestConfig,
+      );
+      return (response.data ?? null) as T;
+    },
+    options,
+  );
+
 export { apiClient };

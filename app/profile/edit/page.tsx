@@ -21,7 +21,10 @@ const EMPTY_PROFILE: UserProfile = {
   avatar: "",
 };
 
-const normalizeFieldValue = (field: keyof UserProfile, value: string): string => {
+const normalizeFieldValue = (
+  field: keyof UserProfile,
+  value: string,
+): string => {
   const trimmed = value.trim();
   return field === "gender" ? trimmed.toUpperCase() : trimmed;
 };
@@ -105,7 +108,9 @@ export default function EditProfilePage() {
       }
 
       if (!result.ok) {
-        setIsUnauthorized(result.error.status === 401 || result.error.status === 403);
+        setIsUnauthorized(
+          result.error.status === 401 || result.error.status === 403,
+        );
         setError(result.error.messages[0] ?? "Unable to load profile.");
         setIsLoading(false);
         return;
@@ -135,10 +140,14 @@ export default function EditProfilePage() {
   }, [authProfile, setAuthenticatedProfile]);
 
   const hasChanges =
-    normalizeFieldValue("name", form.name) !== normalizeFieldValue("name", profile.name) ||
-    normalizeFieldValue("email", form.email) !== normalizeFieldValue("email", profile.email) ||
-    normalizeFieldValue("gender", form.gender) !== normalizeFieldValue("gender", profile.gender) ||
-    normalizeFieldValue("avatar", form.avatar) !== normalizeFieldValue("avatar", profile.avatar);
+    normalizeFieldValue("name", form.name) !==
+      normalizeFieldValue("name", profile.name) ||
+    normalizeFieldValue("email", form.email) !==
+      normalizeFieldValue("email", profile.email) ||
+    normalizeFieldValue("gender", form.gender) !==
+      normalizeFieldValue("gender", profile.gender) ||
+    normalizeFieldValue("avatar", form.avatar) !==
+      normalizeFieldValue("avatar", profile.avatar);
 
   const normalizedGender = normalizeFieldValue("gender", form.gender);
   const genderOptions =
@@ -176,15 +185,7 @@ export default function EditProfilePage() {
       return;
     }
 
-    const mergedProfile = result.data
-      ? { ...form, ...result.data }
-      : {
-          ...form,
-          name: form.name.trim(),
-          email: form.email.trim(),
-          gender: form.gender.trim().toUpperCase(),
-          avatar: form.avatar.trim(),
-        };
+    const mergedProfile = { ...form, ...result.data };
 
     setProfile(mergedProfile);
     setForm(mergedProfile);
@@ -227,16 +228,15 @@ export default function EditProfilePage() {
       ) : (
         <main className="relative mx-auto w-full max-w-3xl space-y-4 px-4 pb-16 pt-12 sm:px-6">
           <header className="flex items-center justify-between gap-2">
-            <h1 className="text-2xl font-semibold text-foreground">Edit profile</h1>
-            <Link
-              className="ui-btn-ghost rounded-full px-4 py-2 text-xs font-semibold transition-colors"
-              href="/profile"
-            >
-              Back to profile
-            </Link>
+            <h1 className="text-2xl font-semibold text-foreground">
+              Edit profile
+            </h1>
           </header>
 
-          <form className="ui-card space-y-4 rounded-lg p-6" onSubmit={onSubmit}>
+          <form
+            className="ui-card space-y-4 rounded-lg p-6"
+            onSubmit={onSubmit}
+          >
             <div>
               <label className="ui-text-muted block text-xs font-semibold uppercase tracking-widest-xl">
                 Avatar URL

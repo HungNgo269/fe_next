@@ -1,41 +1,34 @@
+"use client";
+
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-import type { CommentData } from "../types/feed";
+import { useCallback, useState } from "react";
+import type { Post } from "../types/api.types";
+import { formatRelativeTime } from "@/app/share/utils/format";
 import Avatar from "./ui/Avatar";
 import { IconMoreVertical } from "@/app/share/components/icons";
-
-type CommentItemProps = {
-  comment: CommentData;
-  isCommentOwner: boolean;
-  onSaveCommentEdit: (commentId: string, content: string) => Promise<boolean>;
-  onDeleteComment: (commentId: string) => Promise<boolean>;
-  onReportComment: () => void;
-};
+import { useCommentMutations } from "../hooks/useCommentMutations";
+import { useAppSessionStore } from "@/app/share/stores/appSessionStore";
+import { useClickOutside } from "@/app/share/hooks/useClickOutside";
 
 export default function CommentItem({
+  postId,
   comment,
-  isCommentOwner,
-  onSaveCommentEdit,
-  onDeleteComment,
-  onReportComment,
-}: CommentItemProps) {
-  const menuRef = useRef<HTMLDivElement | null>(null);
+}: {
+  postId: string;
+  comment: Post["comments"][0];
+}) {
+  const { handleSaveCommentEdit, handleDeleteComment, handleReportContent } =
+    useCommentMutations(postId);
+  const authProfile = useAppSessionStore((state) => state.authProfile);
+  const isCommentOwner = authProfile?.id === comment.author.id;
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingText, setEditingText] = useState("");
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsMenuOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  const menuRef = useClickOutside<HTMLDivElement>(useCallback(() => setIsMenuOpen(false), []));
 
   const startEdit = () => {
-    setEditingText(comment.text);
+    setEditingText(comment.content);
     setIsEditing(true);
     setIsMenuOpen(false);
   };
@@ -46,12 +39,12 @@ export default function CommentItem({
   };
 
   const saveEdit = async () => {
-    const ok = await onSaveCommentEdit(comment.id, editingText);
+    const ok = await handleSaveCommentEdit(comment.id, editingText);
     if (ok) cancelEdit();
   };
 
   const handleDelete = async () => {
-    const ok = await onDeleteComment(comment.id);
+    const ok = await handleDeleteComment(comment.id);
     if (ok) {
       setIsMenuOpen(false);
       if (isEditing) cancelEdit();
@@ -60,15 +53,20 @@ export default function CommentItem({
 
   return (
     <div className="ui-subtle group relative flex items-start gap-3 rounded-2xl px-3 py-2.5">
-      <Avatar initials={comment.author.initials} colorClass={comment.author.colorClass} />
+      <Avatar
+        initials={undefined}
+        avatar={comment.author.avatarUrl ?? undefined} gender={comment.author.gender}
+      />
 
       <div className="flex-1">
         <Link
           className="text-xs font-semibold text-foreground transition-opacity hover:opacity-80"
-          href={`/profile/${comment.author.id}`}
+          href={`/profile/${comment.author.handle}`}
         >
           {comment.author.name}
-          <span className="ui-text-muted ml-2 text-2xs font-normal">{comment.time}</span>
+          <span className="ui-text-muted ml-2 text-2xs font-normal">
+            {formatRelativeTime(comment.createdAt)}
+          </span>
         </Link>
 
         {isEditing ? (
@@ -96,7 +94,7 @@ export default function CommentItem({
             </div>
           </div>
         ) : (
-          <p className="ui-text-muted text-xs">{comment.text}</p>
+          <p className="ui-text-muted text-xs">{comment.content}</p>
         )}
       </div>
 
@@ -130,7 +128,10 @@ export default function CommentItem({
             ) : (
               <button
                 className="block w-full rounded-lg px-2 py-1.5 text-left text-xs font-medium text-foreground transition-opacity hover:opacity-70"
-                onClick={() => { setIsMenuOpen(false); onReportComment(); }}
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  handleReportContent("comment");
+                }}
                 type="button"
               >
                 Report comment

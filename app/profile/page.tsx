@@ -13,7 +13,7 @@ export default function UserProfilePage() {
     [],
   );
 
-  const feed = useProfileFeed({ fetchFn, isOwnProfile: true });
+  const feed = useProfileFeed({ fetchFn, isOwnProfile: true, profileKey: "me" });
 
   return (
     <ProfileShell>

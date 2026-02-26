@@ -1,28 +1,25 @@
+"use client";
+
+import { usePostMutations } from "../hooks/usePostMutations";
+
 type PostMedia = {
   gradientClass: string;
   title: string;
   subtitle?: string;
 };
 
-type PostBodyProps = {
-  content: string;
-  media?: PostMedia;
-  isEditing: boolean;
-  editingText: string;
-  onChangeEditingText: (value: string) => void;
-  onSaveEdit: () => void;
-  onCancelEdit: () => void;
-};
-
 export default function PostBody({
+  postId,
   content,
   media,
-  isEditing,
-  editingText,
-  onChangeEditingText,
-  onSaveEdit,
-  onCancelEdit,
-}: PostBodyProps) {
+}: {
+  postId: string;
+  content: string;
+  media?: PostMedia;
+}) {
+  const { isEditing, editingText, setEditingText, handleSaveEdit, handleCancelEdit } =
+    usePostMutations(postId);
+
   return (
     <div className="mt-4">
       {isEditing ? (
@@ -30,19 +27,19 @@ export default function PostBody({
           <textarea
             className="ui-input min-h-composer w-full resize-none rounded-2xl px-4 py-3 text-sm outline-none transition-colors"
             value={editingText}
-            onChange={(event) => onChangeEditingText(event.target.value)}
+            onChange={(event) => setEditingText(event.target.value)}
           />
           <div className="flex items-center gap-2">
             <button
               className="text-xs font-semibold text-foreground transition-opacity hover:opacity-70"
-              onClick={onSaveEdit}
+              onClick={handleSaveEdit}
               type="button"
             >
               Save changes
             </button>
             <button
               className="ui-text-muted text-xs font-semibold transition-opacity hover:opacity-70"
-              onClick={onCancelEdit}
+              onClick={handleCancelEdit}
               type="button"
             >
               Cancel

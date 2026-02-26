@@ -1,0 +1,34 @@
+"use client";
+
+import { useQuery } from "@tanstack/react-query";
+import { fetchSuggestedUsers } from "@/app/feature/post/api/feedApi";
+import { userToSuggestion } from "../types/suggestion.type";
+import { useAppSessionStore } from "@/app/share/stores/appSessionStore";
+import { useMemo } from "react";
+
+export function useSuggestedUsers() {
+  const authProfile = useAppSessionStore((s) => s.authProfile);
+  const currentUserId = authProfile?.id;
+
+  const { data: allUsers = [], isLoading } = useQuery({
+    queryKey: ["suggested-users"],
+    queryFn: async () => {
+      const result = await fetchSuggestedUsers();
+      if (!result.ok) throw new Error("Unable to load users.");
+      return result.data;
+    },
+    staleTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: false,
+  });
+
+  const suggestions = useMemo(
+    () =>
+      allUsers
+        .filter((u) => u.id !== currentUserId)
+        .slice(0, 3)
+        .map(userToSuggestion),
+    [allUsers, currentUserId],
+  );
+
+  return { suggestions, isLoading };
+}

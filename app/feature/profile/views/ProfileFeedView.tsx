@@ -1,56 +1,50 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import FeedComposer from "@/app/feature/post/components/FeedComposer";
 import PostCard from "@/app/feature/post/components/PostCard";
 import ProfileAvatarPreview from "@/app/feature/profile/components/ProfileAvatarPreview";
 import ProfileStatusCard from "@/app/feature/profile/components/ProfileStatusCard";
 import type { useProfileFeed } from "@/app/feature/profile/hooks/useProfileFeed";
+import type { Post } from "@/app/feature/post/types/api.types";
 
 type ProfileFeedState = ReturnType<typeof useProfileFeed>;
 
 type ProfileFeedViewProps = ProfileFeedState & {
   headerActions?: ReactNode;
   postsLabel?: string;
-  emptyMessage?: string;    
+  emptyMessage?: string;
 };
 
 export default function ProfileFeedView({
   profile,
   initials,
-  currentUserId,
   currentUserAvatar,
   canEditProfile,
   posts,
-  composerText,
-  editingPostId,
-  editingText,
-  commentDrafts,
   isLoading,
   isUnauthorized,
   profileError,
   postsError,
-  totalPosts,
   hasMorePosts,
   isLoadingMore,
   handleLoadMore,
-  handleComposerChange,
-  handleCreatePost,
-  handleStartEdit,
-  handleCancelEdit,
-  handleSaveEdit,
-  setEditingText,
-  handleDeletePost,
-  handleToggleLike,
-  handleShare,
-  handleCommentDraft,
-  handleAddComment,
-  handleSaveCommentEdit,
-  handleDeleteComment,
-  handleReportContent,
   headerActions,
   postsLabel = "Posts",
   emptyMessage = "No posts yet.",
 }: ProfileFeedViewProps) {
+  void currentUserAvatar;
+
+  const composerUser = useMemo(
+    () => ({
+      id: profile.id ?? "",
+      name: profile.name,
+      email: profile.email ?? "",
+      avatarUrl: profile.avatar,
+      gender: profile.gender ?? undefined,
+    }),
+    [profile.id, profile.name, profile.email, profile.avatar, profile.gender],
+  );
+
   if (isLoading) {
     return (
       <main className="relative mx-auto flex w-full max-w-5xl items-center justify-center px-4 pb-16 pt-12 sm:px-6">
@@ -72,12 +66,6 @@ export default function ProfileFeedView({
                 href="/login"
               >
                 Sign in
-              </Link>
-              <Link
-                className="ui-btn-ghost rounded-full px-5 py-2 text-xs font-semibold transition"
-                href="/"
-              >
-                Back to feed
               </Link>
             </div>
           }
@@ -103,7 +91,9 @@ export default function ProfileFeedView({
               <p className="text-xl font-semibold text-foreground">
                 {profile.name || "Unnamed user"}
               </p>
-              <p className="ui-text-muted text-sm">{profile.email || "No email"}</p>
+              <p className="ui-text-muted text-sm">
+                {profile.email || "No email"}
+              </p>
               <p className="ui-text-muted text-xs uppercase tracking-wider">
                 {profile.gender || "Unknown"}
               </p>
@@ -123,22 +113,17 @@ export default function ProfileFeedView({
       <section className="space-y-3">
         <header className="mb-4 flex items-center justify-between gap-2">
           <h2 className="text-lg font-semibold text-foreground">
-            {postsLabel} 
+            {postsLabel}
           </h2>
         </header>
 
         {postsError ? (
-          <div className="ui-alert-warning rounded-2xl px-4 py-3 text-sm">{postsError}</div>
+          <div className="ui-alert-warning rounded-2xl px-4 py-3 text-sm">
+            {postsError}
+          </div>
         ) : null}
 
-        {canEditProfile ? (
-          <FeedComposer
-            currentUser={currentUserAvatar}
-            value={composerText}
-            onChange={handleComposerChange}
-            onSubmit={handleCreatePost}
-          />
-        ) : null}
+        {canEditProfile ? <FeedComposer currentUser={composerUser} /> : null}
 
         {posts.length === 0 ? (
           <p className="ui-text-muted text-sm">{emptyMessage}</p>
@@ -148,27 +133,8 @@ export default function ProfileFeedView({
               {posts.map((post, index) => (
                 <PostCard
                   key={post.id}
-                  post={post}
+                  post={post as unknown as Post}
                   index={index}
-                  isEditing={editingPostId === post.id}
-                  editingText={editingPostId === post.id ? editingText : post.content}
-                  commentDraft={commentDrafts[post.id] ?? ""}
-                  currentUserId={currentUserId}
-                  onStartEdit={() => handleStartEdit(post)}
-                  onCancelEdit={handleCancelEdit}
-                  onSaveEdit={() => handleSaveEdit(post.id)}
-                  onDelete={() => handleDeletePost(post.id)}
-                  onChangeEditingText={setEditingText}
-                  onToggleLike={() => handleToggleLike(post.id)}
-                  onShare={() => handleShare(post.id)}
-                  onChangeCommentDraft={(value) => handleCommentDraft(post.id, value)}
-                  onAddComment={() => handleAddComment(post.id)}
-                  onSaveCommentEdit={(commentId, content) =>
-                    handleSaveCommentEdit(post.id, commentId, content)
-                  }
-                  onDeleteComment={(commentId) => handleDeleteComment(post.id, commentId)}
-                  onReportPost={() => handleReportContent("post")}
-                  onReportComment={() => handleReportContent("comment")}
                 />
               ))}
             </div>

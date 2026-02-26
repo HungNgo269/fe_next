@@ -1,57 +1,55 @@
+"use client";
+
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-import type { AvatarInfo } from "../types/feed";
+import { useCallback, useState } from "react";
+import type { User } from "../types/api.types";
+import { formatRelativeTime } from "@/app/share/utils/format";
 import Avatar from "./ui/Avatar";
 import { IconMoreVertical } from "@/app/share/components/icons";
-
-type PostHeaderProps = {
-  author: AvatarInfo & { id: string };
-  time: string;
-  audience: string;
-  isPostOwner: boolean;
-  onStartEdit: () => void;
-  onDelete: () => void;
-  onReportPost: () => void;
-};
+import { usePostMutations } from "../hooks/usePostMutations";
+import { useClickOutside } from "@/app/share/hooks/useClickOutside";
 
 export default function PostHeader({
+  postId,
   author,
   time,
   audience,
-  isPostOwner,
-  onStartEdit,
-  onDelete,
-  onReportPost,
-}: PostHeaderProps) {
-  const menuRef = useRef<HTMLDivElement | null>(null);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+}: {
+  postId: string;
+  author: User;
+  time: string;
+  audience: string;
+}) {
+  const { isOwner, handleStartEdit, handleDeletePost } =
+    usePostMutations(postId);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsMenuOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  const fallback = author.email.split("@")[0] ?? "user";
+  const userHandle = author.handle || fallback;
+  const displayTime = formatRelativeTime(time);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useClickOutside<HTMLDivElement>(useCallback(() => setIsMenuOpen(false), []));
+
+  const handleReport = () => {
+    setIsMenuOpen(false);
+    console.info("Report submitted for this post (demo).");
+  };
 
   return (
     <header className="flex items-start justify-between gap-3">
       <div className="flex items-center gap-3">
-        <Avatar initials={author.initials} colorClass={author.colorClass} />
+        <Avatar avatar={author.avatarUrl ?? undefined} gender={author.gender} />
         <div>
           <Link
             className="text-sm font-semibold text-foreground transition-opacity hover:opacity-80"
-            href={`/profile/${author.id}`}
+            href={`/profile/${author.handle}`}
           >
             {author.name}
             <span className="ui-text-muted ml-2 text-xs font-medium">
-              @{author.handle}
+              @{userHandle}
             </span>
           </Link>
           <p className="ui-text-muted text-xs">
-            {time} - {audience}
+            {displayTime} - {audience}
           </p>
         </div>
       </div>
@@ -66,18 +64,24 @@ export default function PostHeader({
         </button>
         {isMenuOpen ? (
           <div className="ui-card absolute right-0 top-10 z-20 min-w-36 rounded-xl p-2">
-            {isPostOwner ? (
+            {isOwner ? (
               <>
                 <button
                   className="block w-full rounded-lg px-2 py-1.5 text-left text-xs font-medium text-foreground transition-opacity hover:opacity-70"
-                  onClick={() => { setIsMenuOpen(false); onStartEdit(); }}
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    handleStartEdit();
+                  }}
                   type="button"
                 >
                   Edit post
                 </button>
                 <button
                   className="block w-full rounded-lg px-2 py-1.5 text-left text-xs font-medium text-foreground transition-opacity hover:opacity-70"
-                  onClick={() => { setIsMenuOpen(false); onDelete(); }}
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    handleDeletePost();
+                  }}
                   type="button"
                 >
                   Delete post
@@ -86,7 +90,7 @@ export default function PostHeader({
             ) : (
               <button
                 className="block w-full rounded-lg px-2 py-1.5 text-left text-xs font-medium text-foreground transition-opacity hover:opacity-70"
-                onClick={() => { setIsMenuOpen(false); onReportPost(); }}
+                onClick={handleReport}
                 type="button"
               >
                 Report post

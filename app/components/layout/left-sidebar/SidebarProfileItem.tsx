@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import type { AvatarInfo } from "@/app/feature/post/types/feed";
+import type { User } from "@/app/feature/post/types/api.types";
 import Avatar from "@/app/feature/post/components/ui/Avatar";
+
 
 const labelClassName = "whitespace-nowrap transition-opacity duration-200";
 
@@ -15,24 +16,23 @@ export default function SidebarProfileItem({
 }: {
   expanded: boolean;
   pathname: string;
-  currentUser: AvatarInfo;
+  currentUser: User;
   isAuthenticated: boolean;
   onSignIn: () => void;
 }) {
   if (isAuthenticated) {
     return (
       <Link
-        href="/profile"
+        href={`/profile/${currentUser.handle || currentUser.id}`}
         className={`group relative flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition ${
-          pathname === "/profile"
+          pathname.startsWith("/profile")
             ? "bg-surface-hover text-foreground"
             : "text-foreground-muted hover:bg-surface-hover hover:text-foreground"
         }`}
       >
         <span className="shrink-0">
           <Avatar
-            initials={currentUser.initials}
-            colorClass={currentUser.colorClass}
+            avatar={currentUser.avatarUrl ?? undefined} gender={currentUser.gender}
           />
         </span>
         <span
@@ -53,7 +53,7 @@ export default function SidebarProfileItem({
       className="group relative flex w-full cursor-pointer items-center rounded-xl p-2 text-sm text-foreground-muted transition hover:bg-surface-hover hover:text-foreground"
     >
       <span className="shrink-0">
-        <Avatar initials="SI" colorClass="avatar-slate" />
+        <Avatar />
       </span>
       <span
         className={`${labelClassName} ${expanded ? "opacity-100" : "opacity-0"}`}

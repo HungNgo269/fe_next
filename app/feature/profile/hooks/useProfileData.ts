@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import type { UserProfile } from "@/app/feature/profile/types/profile";
 import {
   toAvatarFromProfile,
@@ -59,17 +59,20 @@ export function useProfileData(isOwnProfile: boolean): ProfileLoadingState {
     (isOwnProfile || (Boolean(profile.id) && currentUserId === profile.id));
 
   /** Sync profile into the global session store when viewing own profile */
-  const syncProfileToSession = (incoming: UserProfile) => {
-    if (isOwnProfile && incoming.id) {
-      setAuthenticatedProfile({
-        id: incoming.id,
-        name: incoming.name,
-        email: incoming.email,
-        gender: incoming.gender,
-        avatar: incoming.avatar,
-      });
-    }
-  };
+  const syncProfileToSession = useCallback(
+    (incoming: UserProfile) => {
+      if (isOwnProfile && incoming.id) {
+        setAuthenticatedProfile({
+          id: incoming.id,
+          name: incoming.name,
+          email: incoming.email,
+          gender: incoming.gender,
+          avatar: incoming.avatar,
+        });
+      }
+    },
+    [isOwnProfile, setAuthenticatedProfile],
+  );
 
   return {
     profile,
