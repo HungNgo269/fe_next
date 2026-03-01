@@ -39,8 +39,14 @@ export function useOwnership() {
     (postId: string, commentId: string) => {
       const comments =
         queryClient.getQueryData<PostComment[]>(["post-comments", postId]) ?? [];
-      const comment = comments.find((c) => c.id === commentId);
-      return isOwnerByUserId(comment?.author.id);
+      const comment = comments.find(
+        (root) => root.id === commentId || root.replies?.some((reply) => reply.id === commentId),
+      );
+      const ownerId =
+        comment?.id === commentId
+          ? comment.author.id
+          : comment?.replies?.find((reply) => reply.id === commentId)?.author.id;
+      return isOwnerByUserId(ownerId);
     },
     [queryClient, isOwnerByUserId],
   );

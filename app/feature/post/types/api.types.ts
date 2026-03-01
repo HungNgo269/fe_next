@@ -32,6 +32,7 @@ export type PostComment = {
   id: string;
   content: string;
   createdAt: string;
+  parentId?: string | null;
   author: {
     id: string;
     handle?: string | null;
@@ -40,6 +41,7 @@ export type PostComment = {
     avatarUrl?: string | null;
     gender?: string;
   };
+  replies?: PostComment[];
 };
 
 export type User = {
@@ -69,5 +71,6 @@ export type Comment = {
   content: string;
   postId: string;
   authorId: string;
+  parentId?: string | null;
   createdAt?: string;
 };

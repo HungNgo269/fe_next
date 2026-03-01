@@ -68,11 +68,13 @@ export const createCommentRequest = async (
   postId: string,
   authorId: string,
   content: string,
+  parentId?: string,
 ): Promise<ApiResponse<Comment>> =>
   clientPostJson<Comment>("/comments", {
     postId,
     authorId,
     content: content.trim(),
+    ...(parentId ? { parentId } : {}),
   });
 
 export const updateCommentRequest = async (
@@ -98,5 +100,8 @@ export const createShareRequest = async (postId: string): Promise<ApiResponse<Sh
 
 export const fetchCommentsByPostId = async (
   postId: string,
+  includeReplies = true,
 ): Promise<ApiResponse<PostComment[]>> =>
-  clientGetJson<PostComment[]>(`/comments?postId=${postId}`);
+  clientGetJson<PostComment[]>(
+    `/comments?postId=${postId}${includeReplies ? "&includeReplies=true" : ""}`,
+  );

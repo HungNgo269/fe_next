@@ -24,8 +24,9 @@ export function useCommentActions(postId: string) {
   const setCommentDraft = usePostUIStore((state) => state.setCommentDraft);
 
   const addCommentMutation = useMutation({
-    mutationFn: (content: string) => createCommentRequest(postId, currentUser!.id, content),
-    onSuccess: (result) => {
+    mutationFn: ({ content, parentId }: { content: string; parentId?: string }) =>
+      createCommentRequest(postId, currentUser!.id, content, parentId),
+    onSuccess: (result, variables) => {
       if (!result.ok || !currentUser) return;
       cache.appendComment(postId, {
         id: result.data.id,
@@ -39,8 +40,12 @@ export function useCommentActions(postId: string) {
         },
         content: result.data.content,
         createdAt: result.data.createdAt ?? new Date().toISOString(),
+        parentId: variables.parentId ?? null,
+        replies: [],
       });
-      setCommentDraft(postId, "");
+      if (!variables.parentId) {
+        setCommentDraft(postId, "");
+      }
     },
   });
 
@@ -69,9 +74,27 @@ export function useCommentActions(postId: string) {
       if (!currentUser) return;
       const trimmed = commentDraft.trim();
       if (!trimmed) return;
-      addCommentMutation.mutate(trimmed);
+      addCommentMutation.mutate({ content: trimmed });
     });
   }, [addCommentMutation, commentDraft, currentUser, runIfAuth]);
+
+  const handleAddReply = useCallback(
+    async (parentId: string, content: string): Promise<boolean> => {
+      if (!runIfAuth(() => true)) return false;
+      const trimmed = content.trim();
+      if (!trimmed || !currentUser) return false;
+      try {
+        const result = await addCommentMutation.mutateAsync({
+          content: trimmed,
+          parentId,
+        });
+        return result.ok;
+      } catch {
+        return false;
+      }
+    },
+    [addCommentMutation, currentUser, runIfAuth],
+  );
 
   const handleSaveCommentEdit = useCallback(
     async (commentId: string, content: string): Promise<boolean> => {
@@ -107,6 +130,7 @@ export function useCommentActions(postId: string) {
     commentDraft,
     setCommentDraft: (value: string) => setCommentDraft(postId, value),
     handleAddComment,
+    handleAddReply,
     handleSaveCommentEdit,
     handleDeleteComment,
     handleReportContent,

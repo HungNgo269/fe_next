@@ -31,11 +31,15 @@ export default function ModalPostContent({
   >({
     queryKey: commentQueryKey(postId),
     queryFn: async () => {
-      const result = await fetchCommentsByPostId(postId);
+      const result = await fetchCommentsByPostId(postId, true);
       return result.ok ? result.data : [];
     },
     staleTime: 1000 * 60 * 2,
   });
+  const totalComments = comments.reduce(
+    (acc, root) => acc + 1 + (root.replies?.length ?? 0),
+    0,
+  );
 
   const stableClose = useCallback(() => onClose(), [onClose]);
   const contentRef = useClickOutside<HTMLDivElement>(stableClose);
@@ -217,7 +221,7 @@ export default function ModalPostContent({
                 </span>
                 <span className="ui-text-muted text-xs">·</span>
                 <span className="ui-text-muted text-xs">
-                  {comments.length} comments
+                  {totalComments} comments
                 </span>
               </div>
             </div>
