@@ -4,15 +4,18 @@ import LoginRequiredDialog from "@/app/share/components/LoginRequiredDialog";
 import RightSidebar from "@/app/components/layout/RightSidebar";
 import { useFeedQuery } from "@/app/feature/post/hooks/useFeedQuery";
 import { usePostUIStore } from "@/app/feature/post/stores/postStore";
+import { usePostDetailModal } from "@/app/feature/post/hooks/usePostDetailModal";
 import FeedComposer from "@/app/feature/post/components/FeedComposer";
 import FeedStories from "@/app/feature/post/components/FeedStories";
 import PostCard from "@/app/feature/post/components/PostCard";
+import PostDetailModal from "@/app/feature/post/components/PostDetailModal";
 import type { Post } from "@/app/feature/post/types/api.types";
 
 export default function Home() {
   const { data, isLoading, error } = useFeedQuery();
   const showLoginDialog = usePostUIStore((s) => s.showLoginDialog);
   const setShowLoginDialog = usePostUIStore((s) => s.setShowLoginDialog);
+  const openModal = usePostDetailModal((s) => s.openModal);
 
   const currentUser = data?.currentUser ?? null;
   const posts: Post[] = data?.posts ?? [];
@@ -24,11 +27,7 @@ export default function Home() {
         <div className="lg:col-span-2"></div>
 
         <section className="col-span-12 min-w-0 space-y-6 lg:col-span-6">
-          {isLoading ? (
-            <div className="ui-card ui-text-muted rounded-2xl px-4 py-3 text-sm">
-              Syncing feed from backend...
-            </div>
-          ) : null}
+          {isLoading && null}
           {feedError ? (
             <div className="rounded-2xl border border-amber-200/70 bg-amber-50/80 px-4 py-3 text-sm text-amber-700">
               {feedError}
@@ -41,13 +40,20 @@ export default function Home() {
 
           <div className="space-y-6">
             {posts.map((post, index) => (
-              <PostCard key={post.id} post={post} index={index} />
+              <PostCard
+                key={post.id}
+                post={post}
+                index={index}
+                onOpenDetail={openModal}
+              />
             ))}
           </div>
         </section>
 
         <RightSidebar />
       </main>
+
+      <PostDetailModal />
 
       <LoginRequiredDialog
         open={showLoginDialog}

@@ -58,7 +58,6 @@ export function useProfileData(isOwnProfile: boolean): ProfileLoadingState {
     Boolean(currentUserId) &&
     (isOwnProfile || (Boolean(profile.id) && currentUserId === profile.id));
 
-  /** Sync profile into the global session store when viewing own profile */
   const syncProfileToSession = useCallback(
     (incoming: UserProfile) => {
       if (isOwnProfile && incoming.id) {

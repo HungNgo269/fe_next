@@ -9,11 +9,7 @@ import { IconImage, IconSmile, IconVideo } from "@/app/share/components/icons";
 import { usePostUIStore } from "../stores/postStore";
 import { useCreatePost } from "../hooks/useCreatePost";
 
-function FeedComposer({
-  currentUser,
-}: {
-  currentUser: User;
-}) {
+function FeedComposer({ currentUser }: { currentUser: User }) {
   const composerText = usePostUIStore((s) => s.composerText);
   const setComposerText = usePostUIStore((s) => s.setComposerText);
   const { handleCreatePost } = useCreatePost();
@@ -26,10 +22,11 @@ function FeedComposer({
   };
 
   return (
-    <div className="ui-card rounded-lg p-5">
+    <div className=" rounded-md p-5">
       <div className="flex items-start gap-4">
         <Avatar
-          avatar={currentUser.avatarUrl ?? undefined} gender={currentUser.gender}
+          avatar={currentUser.avatarUrl ?? undefined}
+          gender={currentUser.gender}
         />
         <div className="flex-1">
           <textarea
@@ -47,7 +44,9 @@ function FeedComposer({
           <ActionChip label="Feeling" icon={<IconSmile />} />
         </div>
         <div className="flex items-center gap-3">
-          <span className="ui-text-soft text-xs">{composerText.length}/240</span>
+          <span className="ui-text-soft text-xs">
+            {composerText.length}/240
+          </span>
           <button
             className="rounded-full px-2 py-1 text-sm font-semibold text-foreground transition-opacity hover:opacity-70 disabled:opacity-40"
             disabled={!canPost}

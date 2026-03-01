@@ -2,10 +2,12 @@ import Link from "next/link";
 import { useMemo, type ReactNode } from "react";
 import FeedComposer from "@/app/feature/post/components/FeedComposer";
 import PostCard from "@/app/feature/post/components/PostCard";
+import PostDetailModal from "@/app/feature/post/components/PostDetailModal";
 import ProfileAvatarPreview from "@/app/feature/profile/components/ProfileAvatarPreview";
 import ProfileStatusCard from "@/app/feature/profile/components/ProfileStatusCard";
 import type { useProfileFeed } from "@/app/feature/profile/hooks/useProfileFeed";
 import type { Post } from "@/app/feature/post/types/api.types";
+import { usePostDetailModal } from "@/app/feature/post/hooks/usePostDetailModal";
 
 type ProfileFeedState = ReturnType<typeof useProfileFeed>;
 
@@ -33,6 +35,7 @@ export default function ProfileFeedView({
   emptyMessage = "No posts yet.",
 }: ProfileFeedViewProps) {
   void currentUserAvatar;
+  const openModal = usePostDetailModal((s) => s.openModal);
 
   const composerUser = useMemo(
     () => ({
@@ -79,7 +82,7 @@ export default function ProfileFeedView({
 
   return (
     <main className="relative mx-auto w-full max-w-5xl space-y-6 px-4 pb-16 pt-12 sm:px-6">
-      <section className="ui-card rounded-lg p-6 sm:p-8">
+      <section className=" rounded-md p-6 sm:p-8">
         <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
             <ProfileAvatarPreview
@@ -135,6 +138,7 @@ export default function ProfileFeedView({
                   key={post.id}
                   post={post as unknown as Post}
                   index={index}
+                  onOpenDetail={openModal}
                 />
               ))}
             </div>
@@ -154,6 +158,8 @@ export default function ProfileFeedView({
           </>
         )}
       </section>
+
+      <PostDetailModal />
     </main>
   );
 }

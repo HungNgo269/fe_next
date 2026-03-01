@@ -1,6 +1,9 @@
+import type { Post } from "@/app/feature/post/types/api.types";
+
 /** Actual shape returned by the backend for GET/PATCH /users/me */
 export type ProfileResponse = {
   id: string;
+  handle?: string | null;
   name: string;
   email: string;
   gender: string;
@@ -10,37 +13,13 @@ export type ProfileResponse = {
 export type ProfileFeedResponse = {
   user: {
     id: string;
+    handle?: string | null;
     name: string;
     email: string;
     gender: string;
     avatarUrl: string | null;
   };
-  posts: Array<{
-    id: string;
-    content: string;
-    createdAt: string;
-    likesCount: number;
-    likedByMe: boolean;
-    author: {
-      id: string;
-      name: string;
-      email: string;
-      avatarUrl?: string | null;
-      gender?: string;
-    };
-    comments: Array<{
-      id: string;
-      content: string;
-      createdAt: string;
-      author: {
-        id: string;
-        name: string;
-        email: string;
-        avatarUrl?: string | null;
-        gender?: string;
-      };
-    }>;
-  }>;
+  posts: Post[];
   pagination: {
     page: number;
     limit: number;

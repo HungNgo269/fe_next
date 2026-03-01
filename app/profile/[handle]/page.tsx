@@ -29,7 +29,7 @@ export default function OtherUserProfilePage() {
             <p className="ui-text-muted max-w-md text-sm">
               {feed.isUnauthorized
                 ? "You don't have permission to view this profile."
-                : `We couldn't find a user with the handle "${handle}". They may have changed their username or the link may be incorrect.`}
+                : `This user may have changed their username or the link may be incorrect.`}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -49,8 +49,8 @@ export default function OtherUserProfilePage() {
     <ProfileShell>
       <ProfileFeedView
         {...feed}
-        postsLabel="Posts"
-        emptyMessage="This user has not created any posts yet."
+        postsLabel="Posts and shares"
+        emptyMessage="This user has not created or shared any posts yet."
         headerActions={
           feed.canEditProfile ? (
             <>

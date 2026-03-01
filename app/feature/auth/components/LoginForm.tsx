@@ -102,7 +102,7 @@ export default function LoginForm() {
         </section>
 
         <section className="flex items-center justify-center px-6 py-10 sm:px-10">
-          <div className="w-full max-w-lg rounded-lg border border-border bg-auth-panel p-7 shadow-soft backdrop-blur md:p-10">
+          <div className="w-full max-w-lg rounded-md border border-border bg-auth-panel p-7 shadow-soft backdrop-blur md:p-10">
             <div className="space-y-2">
               <p className="text-xs font-semibold uppercase tracking-widest-xl text-foreground-muted">
                 Sign in

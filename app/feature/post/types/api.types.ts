@@ -1,8 +1,36 @@
-/** Shape returned by the new `GET /posts` endpoint (nested data). */
+/** Shape returned by the `GET /posts` endpoint (no inline comments). */
 export type Post = {
   id: string;
+  sourcePostId?: string;
   content: string;
   mediaUrls: string[];
+  createdAt: string;
+  sharedAt?: string;
+  sharedBy?: {
+    id: string;
+    handle?: string | null;
+    name: string;
+    email: string;
+    avatarUrl?: string | null;
+  };
+  author: {
+    id: string;
+    handle?: string | null;
+    name: string;
+    email: string;
+    avatarUrl?: string | null;
+    gender?: string;
+  };
+  commentsCount: number;
+  likesCount: number;
+  sharesCount: number;
+  likedByMe: boolean;
+};
+
+/** Shape returned by `GET /comments?postId=xxx` with author relation. */
+export type PostComment = {
+  id: string;
+  content: string;
   createdAt: string;
   author: {
     id: string;
@@ -12,21 +40,6 @@ export type Post = {
     avatarUrl?: string | null;
     gender?: string;
   };
-  comments: Array<{
-    id: string;
-    content: string;
-    createdAt: string;
-    author: {
-      id: string;
-      handle?: string | null;
-      name: string;
-      email: string;
-      avatarUrl?: string | null;
-      gender?: string;
-    };
-  }>;
-  likesCount: number;
-  likedByMe: boolean;
 };
 
 export type User = {
@@ -42,6 +55,13 @@ export type Like = {
   id: string;
   postId: string;
   userId: string;
+};
+
+export type Share = {
+  id: string;
+  postId: string;
+  userId: string;
+  createdAt: string;
 };
 
 export type Comment = {

@@ -17,7 +17,7 @@ export default function LoginRequiredDialog({
       onClick={onClose}
     >
       <div
-        className="ui-card w-full max-w-md rounded-lg p-6"
+        className=" w-full max-w-md rounded-md p-6"
         onClick={(event) => event.stopPropagation()}
       >
         <h2 className="text-xl font-semibold text-foreground">

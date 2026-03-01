@@ -7,15 +7,13 @@ export default function SuggestionList({
   suggestions: Suggestion[];
 }) {
   return (
-    <div className="ui-card rounded-lg p-5">
+    <div className=" rounded-md p-5">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-semibold text-foreground">
             Suggested for you
           </p>
-          <p className="ui-text-muted text-xs">
-            Follow creators in your niche
-          </p>
+          <p className="ui-text-muted text-xs">Follow creators in your niche</p>
         </div>
         <button
           className="ui-btn-ghost rounded-full px-3 py-1 text-xs font-semibold transition-colors"

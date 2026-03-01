@@ -1,18 +1,18 @@
 "use client";
 
-import type { Post } from "../types/api.types";
+import type { PostComment } from "../types/api.types";
 import CommentItem from "./CommentItem";
-import { useCommentMutations } from "../hooks/useCommentMutations";
+import { useCommentActions } from "../hooks/useCommentActions";
 
 export default function CommentSection({
   postId,
   comments,
 }: {
   postId: string;
-  comments: Post["comments"];
+  comments: PostComment[];
 }) {
   const { commentDraft, setCommentDraft, handleAddComment } =
-    useCommentMutations(postId);
+    useCommentActions(postId);
 
   return (
     <>

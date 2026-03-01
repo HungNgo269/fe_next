@@ -1,5 +1,6 @@
 export type UserProfile = {
   id?: string;
+  handle?: string | null;
   name: string;
   email: string;
   gender: string;

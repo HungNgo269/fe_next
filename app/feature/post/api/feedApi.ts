@@ -8,9 +8,11 @@ import {
 
 import type {
   Post,
+  PostComment,
   User,
   Comment,
   Like,
+  Share,
 } from "../types/api.types";
 import type { FeedUserProfile } from "../types/feed";
 
@@ -36,6 +38,7 @@ export const fetchCurrentUser = async (): Promise<
       currentUser: user,
       currentUserProfile: {
         id: user.id,
+        handle: user.handle ?? null,
         name: user.name,
         email: user.email,
         gender: user.gender ?? "",
@@ -89,3 +92,11 @@ export const createLikeRequest = async (
 
 export const deleteLikeRequest = async (likeId: string): Promise<ApiResponse<null>> =>
   clientDeleteJson(`/likes/${likeId}`);
+
+export const createShareRequest = async (postId: string): Promise<ApiResponse<Share>> =>
+  clientPostJson<Share>("/shares", { postId });
+
+export const fetchCommentsByPostId = async (
+  postId: string,
+): Promise<ApiResponse<PostComment[]>> =>
+  clientGetJson<PostComment[]>(`/comments?postId=${postId}`);

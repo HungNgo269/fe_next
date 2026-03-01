@@ -6,7 +6,7 @@ import type { User } from "../types/api.types";
 import { formatRelativeTime } from "@/app/share/utils/format";
 import Avatar from "./ui/Avatar";
 import { IconMoreVertical } from "@/app/share/components/icons";
-import { usePostMutations } from "../hooks/usePostMutations";
+import { usePostActions } from "../hooks/usePostActions";
 import { useClickOutside } from "@/app/share/hooks/useClickOutside";
 
 export default function PostHeader({
@@ -14,20 +14,30 @@ export default function PostHeader({
   author,
   time,
   audience,
+  sharedBy,
 }: {
   postId: string;
   author: User;
   time: string;
   audience: string;
+  sharedBy?: {
+    id: string;
+    handle?: string | null;
+    name: string;
+    email: string;
+    avatarUrl?: string | null;
+  };
 }) {
-  const { isOwner, handleStartEdit, handleDeletePost } =
-    usePostMutations(postId);
+  const { isOwner, handleStartEdit, handleDeletePost } = usePostActions(postId);
 
   const fallback = author.email.split("@")[0] ?? "user";
   const userHandle = author.handle || fallback;
+  const profileKey = author.handle || author.id;
   const displayTime = formatRelativeTime(time);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const menuRef = useClickOutside<HTMLDivElement>(useCallback(() => setIsMenuOpen(false), []));
+  const menuRef = useClickOutside<HTMLDivElement>(
+    useCallback(() => setIsMenuOpen(false), []),
+  );
 
   const handleReport = () => {
     setIsMenuOpen(false);
@@ -36,12 +46,21 @@ export default function PostHeader({
 
   return (
     <header className="flex items-start justify-between gap-3">
-      <div className="flex items-center gap-3">
-        <Avatar avatar={author.avatarUrl ?? undefined} gender={author.gender} />
+      <div className="flex items-start gap-3">
+        <Avatar
+          avatar={sharedBy?.avatarUrl ?? author.avatarUrl ?? undefined}
+          gender={author.gender}
+        />
         <div>
+          {sharedBy ? (
+            <p className="ui-text-muted text-[11px] font-medium">
+              <span className="text-foreground">{sharedBy.name}</span> shared
+              this post
+            </p>
+          ) : null}
           <Link
             className="text-sm font-semibold text-foreground transition-opacity hover:opacity-80"
-            href={`/profile/${author.handle}`}
+            href={`/profile/${profileKey}`}
           >
             {author.name}
             <span className="ui-text-muted ml-2 text-xs font-medium">
@@ -63,11 +82,11 @@ export default function PostHeader({
           <IconMoreVertical />
         </button>
         {isMenuOpen ? (
-          <div className="ui-card absolute right-0 top-10 z-20 min-w-36 rounded-xl p-2">
+          <div className=" absolute right-0 top-10 z-20 min-w-36 rounded-xl p-2">
             {isOwner ? (
               <>
                 <button
-                  className="block w-full rounded-lg px-2 py-1.5 text-left text-xs font-medium text-foreground transition-opacity hover:opacity-70"
+                  className="block w-full rounded-md px-2 py-1.5 text-left text-xs font-medium text-foreground transition-opacity hover:opacity-70"
                   onClick={() => {
                     setIsMenuOpen(false);
                     handleStartEdit();
@@ -77,7 +96,7 @@ export default function PostHeader({
                   Edit post
                 </button>
                 <button
-                  className="block w-full rounded-lg px-2 py-1.5 text-left text-xs font-medium text-foreground transition-opacity hover:opacity-70"
+                  className="block w-full rounded-md px-2 py-1.5 text-left text-xs font-medium text-foreground transition-opacity hover:opacity-70"
                   onClick={() => {
                     setIsMenuOpen(false);
                     handleDeletePost();
@@ -89,7 +108,7 @@ export default function PostHeader({
               </>
             ) : (
               <button
-                className="block w-full rounded-lg px-2 py-1.5 text-left text-xs font-medium text-foreground transition-opacity hover:opacity-70"
+                className="block w-full rounded-md px-2 py-1.5 text-left text-xs font-medium text-foreground transition-opacity hover:opacity-70"
                 onClick={handleReport}
                 type="button"
               >

@@ -11,7 +11,7 @@ const VARIANT_STYLES: Record<
   NonNullable<ProfileStatusCardProps["variant"]>,
   string
 > = {
-  default: "ui-card text-foreground",
+  default: " text-foreground",
   error:
     "border border-destructive/35 bg-destructive/10 text-destructive shadow-soft",
 };
@@ -23,9 +23,7 @@ export default function ProfileStatusCard({
   action,
 }: ProfileStatusCardProps) {
   return (
-    <div
-      className={`rounded-lg p-8 text-sm ${VARIANT_STYLES[variant]}`}
-    >
+    <div className={`rounded-md p-8 text-sm ${VARIANT_STYLES[variant]}`}>
       {title ? <p className="font-semibold">{title}</p> : null}
       <p className={title ? "mt-1" : "font-medium"}>{message}</p>
       {action ? <div className="mt-4">{action}</div> : null}

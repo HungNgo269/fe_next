@@ -29,6 +29,7 @@ export const toAvatarFromProfile = (
   }
   return {
     id: profile.id,
+    handle: profile.handle ?? null,
     name: profile.name,
     email: profile.email ?? "",
     avatarUrl: profile.avatar,

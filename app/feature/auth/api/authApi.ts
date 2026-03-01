@@ -17,4 +17,6 @@ export const register = (payload: RegisterPayload) =>
   });
 
 export const logout = () =>
-  clientGetJson<{ message: string }>("/auth/logout");
+  clientGetJson<{ message: string }>("/auth/logout", {
+    skipAuthRefresh: true,
+  });

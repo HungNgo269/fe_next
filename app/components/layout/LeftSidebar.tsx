@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { LogOut, Moon, Sun } from "lucide-react";
-import type { SidebarMessagePreview, SidebarNotificationItem } from "@/app/feature/post/types/feed";
+import type {
+  SidebarMessagePreview,
+  SidebarNotificationItem,
+} from "@/app/feature/post/types/feed";
 import type { User } from "@/app/feature/post/types/api.types";
 import { navItems } from "./left-sidebar/constants";
 import SidebarBrand from "./left-sidebar/SidebarBrand";
@@ -65,8 +68,14 @@ export default function LeftSidebar({
                 key={item.key}
                 item={item}
                 expanded={expanded}
-                isActive={item.href ? pathname === item.href : activeLabel === item.label}
-                badgeCount={badgeCounts[item.key as keyof typeof badgeCounts] ?? 0}
+                isActive={
+                  item.href
+                    ? pathname === item.href
+                    : activeLabel === item.label
+                }
+                badgeCount={
+                  badgeCounts[item.key as keyof typeof badgeCounts] ?? 0
+                }
                 onSelect={handleProtectedSelect}
               />
             ))}
@@ -81,11 +90,18 @@ export default function LeftSidebar({
                 <span className="shrink-0">
                   <span className="flex h-5 w-5 items-center justify-center">
                     <span className="scale-75">
-                      <Avatar avatar={currentUser!.avatarUrl ?? undefined} gender={currentUser!.gender} />
+                      <Avatar
+                        avatar={currentUser!.avatarUrl ?? undefined}
+                        gender={currentUser!.gender}
+                      />
                     </span>
                   </span>
                 </span>
-                <span className={`whitespace-nowrap transition-opacity duration-200 ${expanded ? "opacity-100" : "opacity-0"}`}>Profile</span>
+                <span
+                  className={`whitespace-nowrap transition-opacity duration-200 ${expanded ? "opacity-100" : "opacity-0"}`}
+                >
+                  Profile
+                </span>
               </Link>
             ) : (
               <button
@@ -100,7 +116,11 @@ export default function LeftSidebar({
                     </span>
                   </span>
                 </span>
-                <span className={`whitespace-nowrap transition-opacity duration-200 ${expanded ? "opacity-100" : "opacity-0"}`}>Sign in</span>
+                <span
+                  className={`whitespace-nowrap transition-opacity duration-200 ${expanded ? "opacity-100" : "opacity-0"}`}
+                >
+                  Sign in
+                </span>
               </button>
             )}
 
@@ -111,15 +131,25 @@ export default function LeftSidebar({
                 className="group relative flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition text-foreground-muted hover:bg-surface-hover hover:text-foreground"
               >
                 <span className="shrink-0">
-                  {themePreference === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+                  {themePreference === "light" ? (
+                    <Moon className="h-5 w-5" />
+                  ) : (
+                    <Sun className="h-5 w-5" />
+                  )}
                 </span>
-                <span className={`whitespace-nowrap transition-opacity duration-200 ${expanded ? "opacity-100" : "opacity-0"}`}>Theme</span>
+                <span
+                  className={`whitespace-nowrap transition-opacity duration-200 ${expanded ? "opacity-100" : "opacity-0"}`}
+                >
+                  Theme
+                </span>
               </button>
 
               {showThemeMenu ? (
                 <div
                   className={`absolute z-40 w-36 rounded-xl border border-border/70 bg-background p-1.5 shadow-soft ${
-                    expanded ? "bottom-full left-3 mb-1.5" : "left-[4.25rem] top-1/2 -translate-y-1/2"
+                    expanded
+                      ? "bottom-full left-3 mb-1.5"
+                      : "left-[4.25rem] top-1/2 -translate-y-1/2"
                   }`}
                 >
                   {(["light", "dark"] as const).map((t) => (
@@ -127,12 +157,18 @@ export default function LeftSidebar({
                       key={t}
                       type="button"
                       onClick={() => handleThemeChange(t)}
-                      className={`flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs font-semibold transition first:mb-0 last:mt-1 ${
-                        themePreference === t ? "bg-brand text-brand-foreground" : "text-foreground-muted hover:bg-surface-hover hover:text-foreground"
+                      className={`flex w-full items-center justify-between rounded-md px-2 py-1.5 text-xs font-semibold transition first:mb-0 last:mt-1 ${
+                        themePreference === t
+                          ? "bg-brand text-brand-foreground"
+                          : "text-foreground-muted hover:bg-surface-hover hover:text-foreground"
                       }`}
                     >
                       {t.charAt(0).toUpperCase() + t.slice(1)}
-                      {t === "light" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+                      {t === "light" ? (
+                        <Sun className="h-3.5 w-3.5" />
+                      ) : (
+                        <Moon className="h-3.5 w-3.5" />
+                      )}
                     </button>
                   ))}
                 </div>
@@ -149,7 +185,9 @@ export default function LeftSidebar({
                 <span className="shrink-0">
                   <LogOut className="h-5 w-5" />
                 </span>
-                <span className={`whitespace-nowrap transition-opacity duration-200 ${expanded ? "opacity-100" : "opacity-0"}`}>
+                <span
+                  className={`whitespace-nowrap transition-opacity duration-200 ${expanded ? "opacity-100" : "opacity-0"}`}
+                >
                   {isLoggingOut ? "Signing out..." : "Sign out"}
                 </span>
               </button>
@@ -165,12 +203,15 @@ export default function LeftSidebar({
               key={item.key}
               type="button"
               onClick={() => handleProtectedSelect(item)}
-              className={`relative flex min-w-12 flex-col items-center justify-center gap-1 rounded-lg px-2 text-xs ${
-                activeLabel === item.label ? "text-foreground" : "text-foreground-muted"
+              className={`relative flex min-w-12 flex-col items-center justify-center gap-1 rounded-md px-2 text-xs ${
+                activeLabel === item.label
+                  ? "text-foreground"
+                  : "text-foreground-muted"
               }`}
             >
               {item.icon}
-              {item.badge && (badgeCounts[item.key as keyof typeof badgeCounts] ?? 0) > 0 ? (
+              {item.badge &&
+              (badgeCounts[item.key as keyof typeof badgeCounts] ?? 0) > 0 ? (
                 <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-like ring-2 ring-background" />
               ) : null}
             </button>
@@ -179,19 +220,24 @@ export default function LeftSidebar({
           {isAuthenticated ? (
             <Link
               href={`/profile/${currentUser!.handle || currentUser!.id}`}
-              className={`flex min-w-12 flex-col items-center justify-center gap-1 rounded-lg px-2 text-xs ${
-                pathname.startsWith("/profile") ? "text-foreground" : "text-foreground-muted"
+              className={`flex min-w-12 flex-col items-center justify-center gap-1 rounded-md px-2 text-xs ${
+                pathname.startsWith("/profile")
+                  ? "text-foreground"
+                  : "text-foreground-muted"
               }`}
             >
               <span className="scale-90">
-                <Avatar avatar={currentUser!.avatarUrl ?? undefined} gender={currentUser!.gender} />
+                <Avatar
+                  avatar={currentUser!.avatarUrl ?? undefined}
+                  gender={currentUser!.gender}
+                />
               </span>
             </Link>
           ) : (
             <button
               type="button"
               onClick={onRequireAuth}
-              className="flex min-w-12 flex-col items-center justify-center gap-1 rounded-lg px-2 text-xs text-foreground-muted"
+              className="flex min-w-12 flex-col items-center justify-center gap-1 rounded-md px-2 text-xs text-foreground-muted"
             >
               <span className="scale-90">
                 <Avatar />
@@ -202,9 +248,13 @@ export default function LeftSidebar({
           <button
             type="button"
             onClick={toggleTheme}
-            className="flex min-w-12 flex-col items-center justify-center gap-1 rounded-lg px-2 text-xs text-foreground-muted"
+            className="flex min-w-12 flex-col items-center justify-center gap-1 rounded-md px-2 text-xs text-foreground-muted"
           >
-            {themePreference === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+            {themePreference === "light" ? (
+              <Moon className="h-4 w-4" />
+            ) : (
+              <Sun className="h-4 w-4" />
+            )}
           </button>
 
           {isAuthenticated ? (
@@ -212,7 +262,7 @@ export default function LeftSidebar({
               type="button"
               onClick={handleLogout}
               disabled={isLoggingOut}
-              className="flex min-w-12 flex-col items-center justify-center gap-1 rounded-lg px-2 text-xs text-foreground-muted disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex min-w-12 flex-col items-center justify-center gap-1 rounded-md px-2 text-xs text-foreground-muted disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isLoggingOut ? "..." : "Out"}
             </button>

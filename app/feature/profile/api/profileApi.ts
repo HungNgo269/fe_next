@@ -10,6 +10,7 @@ const PROFILE_PATH = "/users/me";
 
 const mapToUserProfile = (data: ProfileResponse): UserProfile => ({
   id: data.id,
+  handle: data.handle ?? null,
   name: data.name,
   email: data.email,
   gender: data.gender,

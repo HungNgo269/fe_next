@@ -1,16 +1,16 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useState } from "react";
+import Link from "next/link";
 import type { PostComment } from "../types/api.types";
-import { formatRelativeTime } from "@/app/share/utils/format";
-import Avatar from "./ui/Avatar";
-import { IconMoreVertical } from "@/app/share/components/icons";
 import { useCommentActions } from "../hooks/useCommentActions";
 import { useOwnership } from "../hooks/useOwnership";
 import { useClickOutside } from "@/app/share/hooks/useClickOutside";
+import { formatRelativeTime } from "@/app/share/utils/format";
+import Avatar from "./ui/Avatar";
+import { IconMoreVertical } from "@/app/share/components/icons";
 
-export default function CommentItem({
+export default function ModalCommentItem({
   postId,
   comment,
 }: {
@@ -20,7 +20,7 @@ export default function CommentItem({
   const { handleSaveCommentEdit, handleDeleteComment, handleReportContent } =
     useCommentActions(postId);
   const { isCommentOwner } = useOwnership();
-  const canManageComment = isCommentOwner(postId, comment.id);
+  const canManage = isCommentOwner(postId, comment.id);
   const authorProfileKey = comment.author.handle || comment.author.id;
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -48,37 +48,34 @@ export default function CommentItem({
 
   const handleDelete = async () => {
     const ok = await handleDeleteComment(comment.id);
-    if (ok) {
-      setIsMenuOpen(false);
-      if (isEditing) cancelEdit();
-    }
+    if (ok) setIsMenuOpen(false);
   };
 
   return (
-    <div className="ui-subtle group relative flex items-start gap-3 rounded-2xl px-3 py-2.5">
+    <div className="group flex items-start gap-3 px-4 py-2">
       <Avatar
-        initials={undefined}
         avatar={comment.author.avatarUrl ?? undefined}
         gender={comment.author.gender}
       />
-
-      <div className="flex-1">
-        <Link
-          className="text-xs font-semibold text-foreground transition-opacity hover:opacity-80"
-          href={`/profile/${authorProfileKey}`}
-        >
-          {comment.author.name}
-          <span className="ui-text-muted ml-2 text-2xs font-normal">
+      <div className="min-w-0 flex-1">
+        <div className="flex items-baseline gap-2">
+          <Link
+            className="text-xs font-semibold text-foreground transition-opacity hover:opacity-80"
+            href={`/profile/${authorProfileKey}`}
+          >
+            {comment.author.name}
+          </Link>
+          <span className="ui-text-muted text-2xs">
             {formatRelativeTime(comment.createdAt)}
           </span>
-        </Link>
+        </div>
 
         {isEditing ? (
           <div className="mt-1 space-y-2">
             <input
               className="ui-input w-full rounded-full px-3 py-1.5 text-xs outline-none transition-colors"
               value={editingText}
-              onChange={(event) => setEditingText(event.target.value)}
+              onChange={(e) => setEditingText(e.target.value)}
             />
             <div className="flex items-center gap-3">
               <button
@@ -102,7 +99,7 @@ export default function CommentItem({
         )}
       </div>
 
-      <div className="relative ml-2 self-start" ref={menuRef}>
+      <div className="relative ml-auto self-start" ref={menuRef}>
         <button
           className="ui-text-muted rounded-full p-1.5 opacity-0 transition-opacity hover:opacity-70 group-hover:opacity-100 focus:opacity-100"
           onClick={() => setIsMenuOpen((prev) => !prev)}
@@ -111,8 +108,8 @@ export default function CommentItem({
           <IconMoreVertical />
         </button>
         {isMenuOpen ? (
-          <div className=" absolute right-0 top-8 z-20 min-w-36 rounded-xl p-2">
-            {canManageComment ? (
+          <div className="absolute right-0 top-8 z-20 min-w-36 rounded-xl border border-border bg-surface p-2">
+            {canManage ? (
               <>
                 <button
                   className="block w-full rounded-md px-2 py-1.5 text-left text-xs font-medium text-foreground transition-opacity hover:opacity-70"

@@ -4,28 +4,19 @@ import { useMutation } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { createPostRequest } from "../api/feedApi";
 import type { Post } from "../types/api.types";
-import { usePostUIStore } from "../stores/postStore";
-import { usePostCacheUpdate } from "./usePostCacheUpdate";
 import {
   useAppSessionStore,
   toAvatarFromProfile,
 } from "@/app/share/stores/appSessionStore";
+import { useRequireAuthAction } from "./useRequireAuthAction";
+import { useFeedCacheUpdater } from "./useFeedCacheUpdater";
 
 export function useCreatePost() {
   const authProfile = useAppSessionStore((state) => state.authProfile);
-  const isAuthenticated = useAppSessionStore((state) => state.isAuthenticated);
-  const setShowLoginDialog = usePostUIStore((s) => s.setShowLoginDialog);
-  const updatePostsInCache = usePostCacheUpdate();
+  const { runIfAuth } = useRequireAuthAction();
+  const cache = useFeedCacheUpdater();
 
   const currentUser = toAvatarFromProfile(authProfile);
-
-  const requireAuth = useCallback(() => {
-    if (!isAuthenticated) {
-      setShowLoginDialog(true);
-      return false;
-    }
-    return true;
-  }, [isAuthenticated, setShowLoginDialog]);
 
   const createMutation = useMutation({
     mutationFn: (content: string) =>
@@ -45,21 +36,23 @@ export function useCreatePost() {
         content: content.trim(),
         likesCount: 0,
         likedByMe: false,
-        comments: [],
+        commentsCount: 0,
+        sharesCount: 0,
         mediaUrls: [],
       };
-      updatePostsInCache((posts) => [newPost, ...posts]);
+      cache.prependPost(newPost);
     },
   });
 
   const handleCreatePost = useCallback(
     (content: string) => {
-      if (!requireAuth()) return;
-      const trimmed = content.trim();
-      if (!trimmed) return;
-      createMutation.mutate(trimmed);
+      runIfAuth(() => {
+        const trimmed = content.trim();
+        if (!trimmed) return;
+        createMutation.mutate(trimmed);
+      });
     },
-    [requireAuth, createMutation],
+    [runIfAuth, createMutation],
   );
 
   return { handleCreatePost, isCreating: createMutation.isPending };

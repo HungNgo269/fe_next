@@ -25,7 +25,7 @@ export default function ProfileFieldCard({
 }: ProfileFieldCardProps) {
   return (
     <form
-      className="ui-card rounded-lg p-6"
+      className=" rounded-md p-6"
       onSubmit={(event) => {
         event.preventDefault();
         onSubmit();
@@ -36,10 +36,14 @@ export default function ProfileFieldCard({
       </label>
       {children}
       {errorMessage ? (
-        <p className="mt-2 text-xs font-medium text-destructive">{errorMessage}</p>
+        <p className="mt-2 text-xs font-medium text-destructive">
+          {errorMessage}
+        </p>
       ) : null}
       {successMessage ? (
-        <p className="mt-2 text-xs font-medium text-success">{successMessage}</p>
+        <p className="mt-2 text-xs font-medium text-success">
+          {successMessage}
+        </p>
       ) : null}
       <button
         className="ui-btn-primary mt-4 rounded-full px-5 py-2 text-xs font-semibold transition-colors"

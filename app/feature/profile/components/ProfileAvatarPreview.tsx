@@ -11,7 +11,7 @@ export default function ProfileAvatarPreview({
 }: ProfileAvatarPreviewProps) {
   return (
     <div
-      className={`profile-avatar-frame flex h-24 w-24 items-center justify-center rounded-lg text-lg font-semibold text-white ${
+      className={`profile-avatar-frame flex h-24 w-24 items-center justify-center rounded-md text-lg font-semibold text-white ${
         avatarUrl ? "profile-avatar-surface" : "bg-brand"
       }`}
     >

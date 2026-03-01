@@ -1,6 +1,6 @@
 "use client";
 
-import { usePostMutations } from "../hooks/usePostMutations";
+import { usePostActions } from "../hooks/usePostActions";
 
 type PostMedia = {
   gradientClass: string;
@@ -12,13 +12,20 @@ export default function PostBody({
   postId,
   content,
   media,
+  onClickContent,
 }: {
   postId: string;
   content: string;
   media?: PostMedia;
+  onClickContent?: () => void;
 }) {
-  const { isEditing, editingText, setEditingText, handleSaveEdit, handleCancelEdit } =
-    usePostMutations(postId);
+  const {
+    isEditing,
+    editingText,
+    setEditingText,
+    handleSaveEdit,
+    handleCancelEdit,
+  } = usePostActions(postId);
 
   return (
     <div className="mt-4">
@@ -47,11 +54,29 @@ export default function PostBody({
           </div>
         </div>
       ) : (
-        <p className="ui-text-muted text-sm leading-6">{content}</p>
+        <p
+          className="ui-text-muted cursor-pointer text-sm leading-6"
+          onClick={onClickContent}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") onClickContent?.();
+          }}
+        >
+          {content}
+        </p>
       )}
 
       {media ? (
-        <div className="mt-4 overflow-hidden rounded-2xl border border-border">
+        <div
+          className="mt-4 cursor-pointer overflow-hidden rounded-2xl border border-border"
+          onClick={onClickContent}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") onClickContent?.();
+          }}
+        >
           <div
             className={`flex h-44 flex-col items-start justify-end bg-cover p-4 text-sm text-foreground ${media.gradientClass}`}
           >

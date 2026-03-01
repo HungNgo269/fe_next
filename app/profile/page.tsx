@@ -13,14 +13,18 @@ export default function UserProfilePage() {
     [],
   );
 
-  const feed = useProfileFeed({ fetchFn, isOwnProfile: true, profileKey: "me" });
+  const feed = useProfileFeed({
+    fetchFn,
+    isOwnProfile: true,
+    profileKey: "me",
+  });
 
   return (
     <ProfileShell>
       <ProfileFeedView
         {...feed}
-        postsLabel="Your posts"
-        emptyMessage="You have not created any posts yet."
+        postsLabel="Posts"
+        emptyMessage="You have not created or shared any posts yet."
         headerActions={
           <Link
             className="ui-btn-primary rounded-full px-4 py-2 text-xs font-semibold transition-colors"

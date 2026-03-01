@@ -233,10 +233,7 @@ export default function EditProfilePage() {
             </h1>
           </header>
 
-          <form
-            className="ui-card space-y-4 rounded-lg p-6"
-            onSubmit={onSubmit}
-          >
+          <form className=" space-y-4 rounded-md p-6" onSubmit={onSubmit}>
             <div>
               <label className="ui-text-muted block text-xs font-semibold uppercase tracking-widest-xl">
                 Avatar URL
