@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import LeftSidebar from "./layout/LeftSidebar";
-import { fetchCurrentUser } from "../feature/post/api/feedApi";
 import { clientGetJson } from "../share/utils/api";
 import type {
   SidebarMessagePreview,
@@ -15,6 +14,7 @@ import {
   useAppSessionStore,
 } from "../share/stores/appSessionStore";
 import { formatRelativeTime } from "../share/utils/format";
+import { fetchCurrentUser } from "../share/api/userApi";
 
 const AUTH_ROUTES = new Set(["/login", "/register"]);
 
@@ -70,15 +70,23 @@ export default function AppShell({ children }: AppShellProps) {
         }
       }
 
-      if (userResult.ok && userResult.data.isAuthenticated && userResult.data.currentUser) {
-        const convResult = await clientGetJson<Conversation[]>("/conversations?limit=8");
+      if (
+        userResult.ok &&
+        userResult.data.isAuthenticated &&
+        userResult.data.currentUser
+      ) {
+        const convResult = await clientGetJson<Conversation[]>(
+          "/conversations?limit=8",
+        );
         if (!active || !convResult.ok) return;
 
         const currentUserId = userResult.data.currentUser.id;
         setMessages(
           convResult.data.map((conv) => {
             const latest = conv.messages?.[0];
-            const otherId = conv.participants?.find((p) => p.userId !== currentUserId)?.userId;
+            const otherId = conv.participants?.find(
+              (p) => p.userId !== currentUserId,
+            )?.userId;
             const fallbackName = conv.isGroup ? "Group chat" : "Direct message";
             return {
               id: conv.id,
@@ -96,11 +104,7 @@ export default function AppShell({ children }: AppShellProps) {
     return () => {
       active = false;
     };
-  }, [
-    clearAuthenticatedProfile,
-    isAuthRoute,
-    setAuthenticatedProfile,
-  ]);
+  }, [clearAuthenticatedProfile, isAuthRoute, setAuthenticatedProfile]);
 
   if (isAuthRoute) {
     return <>{children}</>;

@@ -2,7 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
-import { updatePostRequest, deletePostRequest } from "../api/feedApi";
+import { updatePostRequest, deletePostRequest } from "../api/postApi";
 import { usePostUIStore } from "../stores/postStore";
 import type { FeedBootstrapData } from "../types/feed";
 import { FEED_QUERY_KEY } from "./useFeedQuery";

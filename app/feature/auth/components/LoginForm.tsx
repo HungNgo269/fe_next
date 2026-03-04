@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { useQueryClient } from "@tanstack/react-query";
 import { login } from "../api/authApi";
 import { loginSchema, type LoginFormValues } from "../schema/authSchema";
 import FormAlert from "@/app/share/components/FormAlert";
@@ -28,6 +29,7 @@ const buildErrorTitle = (status?: number) => {
 
 export default function LoginForm() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const setAuthenticatedProfile = useAppSessionStore(
     (state) => state.setAuthenticatedProfile,
   );
@@ -68,6 +70,7 @@ export default function LoginForm() {
       gender: authUser.gender ?? "",
       avatar: authUser.avatarUrl ?? "",
     });
+    await queryClient.invalidateQueries();
     setSuccessMessage("Signed in successfully. Redirecting...");
     router.replace("/");
   };

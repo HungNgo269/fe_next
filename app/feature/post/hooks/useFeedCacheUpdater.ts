@@ -52,7 +52,13 @@ export function useFeedCacheUpdater() {
           const next = old.map((root) => {
             if (root.id !== comment.parentId) return root;
             attached = true;
-            return { ...root, replies: [...(root.replies ?? []), comment] };
+            // Also update the _count.replies if we just appended a reply locally
+            const nextCount = root._count ? { replies: root._count.replies + 1 } : { replies: (root.replies?.length ?? 0) + 1 };
+            return { 
+              ...root, 
+              replies: [...(root.replies ?? []), comment],
+              _count: nextCount
+            };
           });
           return attached ? next : [...old, comment];
         },
@@ -66,6 +72,31 @@ export function useFeedCacheUpdater() {
       );
     },
     [queryClient, updateAll],
+  );
+
+  const appendReplies = useCallback(
+    (postId: string, commentId: string, newReplies: PostComment[]) => {
+      if (newReplies.length === 0) return;
+      queryClient.setQueryData<PostComment[]>(
+        ["post-comments", postId],
+        (old) => {
+          if (!old) return old;
+          return old.map((root) => {
+            if (root.id !== commentId) return root;
+            
+            // Avoid duplicates by checking existing IDs
+            const existingIds = new Set(root.replies?.map((r) => r.id) || []);
+            const uniqueNew = newReplies.filter((r) => !existingIds.has(r.id));
+            
+            return {
+              ...root,
+              replies: [...(root.replies ?? []), ...uniqueNew],
+            };
+          });
+        },
+      );
+    },
+    [queryClient]
   );
 
   const updateComment = useCallback(
@@ -109,7 +140,15 @@ export function useFeedCacheUpdater() {
             const filteredReplies = replies.filter((reply) => reply.id !== commentId);
             if (filteredReplies.length !== replies.length) {
               removedCount += replies.length - filteredReplies.length;
-              remaining.push({ ...root, replies: filteredReplies });
+              const nextCount = root._count 
+                ? { replies: Math.max(0, root._count.replies - 1) } 
+                : { replies: filteredReplies.length };
+                
+              remaining.push({ 
+                ...root, 
+                replies: filteredReplies,
+                _count: nextCount
+              });
               continue;
             }
 
@@ -173,6 +212,7 @@ export function useFeedCacheUpdater() {
     updateAll,
     toggleLike,
     appendComment,
+    appendReplies,
     updateComment,
     removeComment,
     updatePostContent,

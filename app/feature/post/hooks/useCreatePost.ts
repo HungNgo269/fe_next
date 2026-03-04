@@ -1,8 +1,8 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
-import { createPostRequest } from "../api/feedApi";
+import { createPostRequest } from "../api/postApi";
 import type { Post } from "../types/api.types";
 import {
   useAppSessionStore,
@@ -10,8 +10,10 @@ import {
 } from "@/app/share/stores/appSessionStore";
 import { useRequireAuthAction } from "./useRequireAuthAction";
 import { useFeedCacheUpdater } from "./useFeedCacheUpdater";
+import { FEED_QUERY_KEY } from "./useFeedQuery";
 
 export function useCreatePost() {
+  const queryClient = useQueryClient();
   const authProfile = useAppSessionStore((state) => state.authProfile);
   const { runIfAuth } = useRequireAuthAction();
   const cache = useFeedCacheUpdater();
@@ -21,7 +23,7 @@ export function useCreatePost() {
   const createMutation = useMutation({
     mutationFn: (content: string) =>
       createPostRequest(content, currentUser!.id),
-    onSuccess: (result, content) => {
+    onSuccess: async (result, content) => {
       if (!result.ok) return;
       const newPost: Post = {
         id: result.data.id,
@@ -41,6 +43,10 @@ export function useCreatePost() {
         mediaUrls: [],
       };
       cache.prependPost(newPost);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: FEED_QUERY_KEY }),
+        queryClient.invalidateQueries({ queryKey: ["profile-feed"] }),
+      ]);
     },
   });
 

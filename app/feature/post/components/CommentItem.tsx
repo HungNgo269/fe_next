@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useState } from "react";
+import { memo, useCallback, useState } from "react";
 import type { PostComment } from "../types/api.types";
 import { formatRelativeTime } from "@/app/share/utils/format";
 import Avatar from "./ui/Avatar";
@@ -9,8 +9,10 @@ import { IconMoreVertical } from "@/app/share/components/icons";
 import { useCommentActions } from "../hooks/useCommentActions";
 import { useOwnership } from "../hooks/useOwnership";
 import { useClickOutside } from "@/app/share/hooks/useClickOutside";
+import { fetchRepliesByCommentId } from "../api/postCommentApi";
+import { useFeedCacheUpdater } from "../hooks/useFeedCacheUpdater";
 
-export default function CommentItem({
+function CommentItemComponent({
   postId,
   comment,
   isReplyItem = false,
@@ -26,6 +28,7 @@ export default function CommentItem({
     handleReportContent,
   } = useCommentActions(postId);
   const { isCommentOwner } = useOwnership();
+  const cacheUpdater = useFeedCacheUpdater();
   const canManageComment = isCommentOwner(postId, comment.id);
   const authorProfileKey = comment.author.handle || comment.author.id;
 
@@ -34,6 +37,8 @@ export default function CommentItem({
   const [editingText, setEditingText] = useState("");
   const [isReplying, setIsReplying] = useState(false);
   const [replyText, setReplyText] = useState("");
+  const [isLoadingReplies, setIsLoadingReplies] = useState(false);
+
   const menuRef = useClickOutside<HTMLDivElement>(
     useCallback(() => setIsMenuOpen(false), []),
   );
@@ -75,6 +80,30 @@ export default function CommentItem({
   const submitReply = async () => {
     const ok = await handleAddReply(comment.id, replyText);
     if (ok) cancelReply();
+  };
+
+  const numLoadedReplies = comment.replies?.length ?? 0;
+  const totalReplies = comment._count?.replies ?? 0;
+  const hasMoreReplies = numLoadedReplies < totalReplies;
+
+  const handleLoadMoreReplies = async () => {
+    if (isLoadingReplies || !hasMoreReplies) return;
+    setIsLoadingReplies(true);
+    try {
+      const take = 10;
+      const result = await fetchRepliesByCommentId(
+        comment.id,
+        numLoadedReplies,
+        take,
+      );
+      if (result.ok && result.data.length > 0) {
+        cacheUpdater.appendReplies(postId, comment.id, result.data);
+      }
+    } catch (e) {
+      console.error("Failed to load replies", e);
+    } finally {
+      setIsLoadingReplies(false);
+    }
   };
 
   return (
@@ -217,13 +246,47 @@ export default function CommentItem({
         </div>
       </div>
 
-      {!isReplyItem && comment.replies && comment.replies.length > 0 ? (
+      {!isReplyItem && (numLoadedReplies > 0 || hasMoreReplies) ? (
         <div className="mt-2 space-y-2 pl-8">
-          {comment.replies.map((reply) => (
-            <CommentItem key={reply.id} postId={postId} comment={reply} isReplyItem />
+          {comment.replies?.map((reply) => (
+            <CommentItem
+              key={reply.id}
+              postId={postId}
+              comment={reply}
+              isReplyItem
+            />
           ))}
+          {hasMoreReplies ? (
+            <div className="pt-2 flex items-center">
+              <span className="w-6 border-t border-border mr-2 inline-block"></span>
+              <button
+                type="button"
+                className="text-xs font-semibold text-foreground hover:underline"
+                onClick={() => void handleLoadMoreReplies()}
+                disabled={isLoadingReplies}
+              >
+                {isLoadingReplies
+                  ? "Loading..."
+                  : `Show more ${totalReplies - numLoadedReplies} comment${totalReplies - numLoadedReplies > 1 ? "s" : ""}`}
+              </button>
+            </div>
+          ) : null}
         </div>
       ) : null}
     </div>
   );
 }
+
+const CommentItem = memo(CommentItemComponent, (prevProps, nextProps) => {
+  return (
+    prevProps.postId === nextProps.postId &&
+    prevProps.isReplyItem === nextProps.isReplyItem &&
+    prevProps.comment.id === nextProps.comment.id &&
+    prevProps.comment.content === nextProps.comment.content &&
+    prevProps.comment.createdAt === nextProps.comment.createdAt &&
+    prevProps.comment._count?.replies === nextProps.comment._count?.replies &&
+    prevProps.comment.replies?.length === nextProps.comment.replies?.length
+  );
+});
+
+export default CommentItem;

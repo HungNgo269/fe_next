@@ -10,17 +10,21 @@ import FeedStories from "@/app/feature/post/components/FeedStories";
 import PostCard from "@/app/feature/post/components/PostCard";
 import PostDetailModal from "@/app/feature/post/components/PostDetailModal";
 import type { Post } from "@/app/feature/post/types/api.types";
+import {
+  toAvatarFromProfile,
+  useAppSessionStore,
+} from "@/app/share/stores/appSessionStore";
 
 export default function Home() {
   const { data, isLoading, error } = useFeedQuery();
+  const authProfile = useAppSessionStore((state) => state.authProfile);
   const showLoginDialog = usePostUIStore((s) => s.showLoginDialog);
   const setShowLoginDialog = usePostUIStore((s) => s.setShowLoginDialog);
   const openModal = usePostDetailModal((s) => s.openModal);
 
-  const currentUser = data?.currentUser ?? null;
+  const currentUser = data?.currentUser ?? toAvatarFromProfile(authProfile);
   const posts: Post[] = data?.posts ?? [];
   const feedError = error?.message ?? "";
-
   return (
     <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
       <main className="relative grid min-w-0 w-full grid-cols-12 gap-6 px-4 pb-24 pt-10 sm:px-6 lg:pb-16">

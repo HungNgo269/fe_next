@@ -2,7 +2,6 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
-import { createLikeRequest, deleteLikeRequest } from "../api/feedApi";
 import type { FeedBootstrapData } from "../types/feed";
 import { FEED_QUERY_KEY } from "./useFeedQuery";
 import { clientGetJson } from "@/app/share/utils/api";
@@ -10,6 +9,7 @@ import { useOwnership } from "./useOwnership";
 import { useRequireAuthAction } from "./useRequireAuthAction";
 import { useFeedCacheUpdater } from "./useFeedCacheUpdater";
 import type { Post } from "../types/api.types";
+import { createLikeRequest, deleteLikeRequest } from "../api/postLikeApi";
 
 type LikeEntry = { id: string; postId: string; userId: string };
 
@@ -49,14 +49,14 @@ export function useLikeActions(postId: string) {
     );
     if (!result.ok) return undefined;
     return result.data[0]?.id;
-  };  
+  };
 
   const likeMutation = useMutation({
     // Optimistic update
     onMutate: async () => {
       const post = findPostInCaches(queryClient, postId);
       const wasLiked = post?.likedByMe ?? false;
-      
+
       cache.toggleLike(postId);
 
       return { wasLiked };
@@ -67,12 +67,14 @@ export function useLikeActions(postId: string) {
         const likeId = await findLikeIdForPost();
         if (!likeId) throw new Error("Unable to unlike post.");
         const result = await deleteLikeRequest(likeId);
-        if (!result.ok) throw new Error(result.error.messages[0] ?? "Unable to unlike.");
+        if (!result.ok)
+          throw new Error(result.error.messages[0] ?? "Unable to unlike.");
         return;
       }
 
       const result = await createLikeRequest(postId, currentUserId);
-      if (!result.ok) throw new Error(result.error.messages[0] ?? "Unable to like.");
+      if (!result.ok)
+        throw new Error(result.error.messages[0] ?? "Unable to like.");
     },
     // Rollback on error
     onError: (_error, _variables, context) => {

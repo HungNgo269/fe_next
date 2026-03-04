@@ -1,10 +1,10 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { fetchSuggestedUsers } from "@/app/feature/post/api/feedApi";
 import { userToSuggestion } from "../types/suggestion.type";
 import { useAppSessionStore } from "@/app/share/stores/appSessionStore";
 import { useMemo } from "react";
+import { fetchSuggestedUsers } from "../api/suggestionUserApi";
 
 export function useSuggestedUsers() {
   const authProfile = useAppSessionStore((s) => s.authProfile);

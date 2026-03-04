@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { memo, useCallback, useState } from "react";
 import Link from "next/link";
 import type { PostComment } from "../types/api.types";
 import { useCommentActions } from "../hooks/useCommentActions";
@@ -9,8 +9,10 @@ import { useClickOutside } from "@/app/share/hooks/useClickOutside";
 import { formatRelativeTime } from "@/app/share/utils/format";
 import Avatar from "./ui/Avatar";
 import { IconMoreVertical } from "@/app/share/components/icons";
+import { fetchRepliesByCommentId } from "../api/postCommentApi";
+import { useFeedCacheUpdater } from "../hooks/useFeedCacheUpdater";
 
-export default function ModalCommentItem({
+function ModalCommentItemComponent({
   postId,
   comment,
   isReplyItem = false,
@@ -26,6 +28,7 @@ export default function ModalCommentItem({
     handleReportContent,
   } = useCommentActions(postId);
   const { isCommentOwner } = useOwnership();
+  const cacheUpdater = useFeedCacheUpdater();
   const canManage = isCommentOwner(postId, comment.id);
   const authorProfileKey = comment.author.handle || comment.author.id;
 
@@ -34,6 +37,8 @@ export default function ModalCommentItem({
   const [editingText, setEditingText] = useState("");
   const [isReplying, setIsReplying] = useState(false);
   const [replyText, setReplyText] = useState("");
+  const [isLoadingReplies, setIsLoadingReplies] = useState(false);
+
   const menuRef = useClickOutside<HTMLDivElement>(
     useCallback(() => setIsMenuOpen(false), []),
   );
@@ -72,6 +77,30 @@ export default function ModalCommentItem({
   const submitReply = async () => {
     const ok = await handleAddReply(comment.id, replyText);
     if (ok) cancelReply();
+  };
+
+  const numLoadedReplies = comment.replies?.length ?? 0;
+  const totalReplies = comment._count?.replies ?? 0;
+  const hasMoreReplies = numLoadedReplies < totalReplies;
+
+  const handleLoadMoreReplies = async () => {
+    if (isLoadingReplies || !hasMoreReplies) return;
+    setIsLoadingReplies(true);
+    try {
+      const take = 10;
+      const result = await fetchRepliesByCommentId(
+        comment.id,
+        numLoadedReplies,
+        take,
+      );
+      if (result.ok && result.data.length > 0) {
+        cacheUpdater.appendReplies(postId, comment.id, result.data);
+      }
+    } catch (e) {
+      console.error("Failed to load replies", e);
+    } finally {
+      setIsLoadingReplies(false);
+    }
   };
 
   return (
@@ -214,13 +243,50 @@ export default function ModalCommentItem({
         </div>
       </div>
 
-      {!isReplyItem && comment.replies && comment.replies.length > 0 ? (
-        <div className="space-y-1 pl-10">
-          {comment.replies.map((reply) => (
-            <ModalCommentItem key={reply.id} postId={postId} comment={reply} isReplyItem />
+      {!isReplyItem && (numLoadedReplies > 0 || hasMoreReplies) ? (
+        <div className="space-y-1 pl-10 pr-2 pb-2">
+          {comment.replies?.map((reply) => (
+            <ModalCommentItem
+              key={reply.id}
+              postId={postId}
+              comment={reply}
+              isReplyItem
+            />
           ))}
+          {hasMoreReplies ? (
+            <div className="pt-1 flex items-center">
+              <span className="w-6 border-t border-border mr-2 inline-block"></span>
+              <button
+                type="button"
+                className="text-xs font-semibold text-foreground hover:underline"
+                onClick={() => void handleLoadMoreReplies()}
+                disabled={isLoadingReplies}
+              >
+                {isLoadingReplies
+                  ? "Loading..."
+                  : `Show more ${totalReplies - numLoadedReplies} comment${totalReplies - numLoadedReplies > 1 ? "s" : ""}`}
+              </button>
+            </div>
+          ) : null}
         </div>
       ) : null}
     </div>
   );
 }
+
+const ModalCommentItem = memo(
+  ModalCommentItemComponent,
+  (prevProps, nextProps) => {
+    return (
+      prevProps.postId === nextProps.postId &&
+      prevProps.isReplyItem === nextProps.isReplyItem &&
+      prevProps.comment.id === nextProps.comment.id &&
+      prevProps.comment.content === nextProps.comment.content &&
+      prevProps.comment.createdAt === nextProps.comment.createdAt &&
+      prevProps.comment._count?.replies === nextProps.comment._count?.replies &&
+      prevProps.comment.replies?.length === nextProps.comment.replies?.length
+    );
+  },
+);
+
+export default ModalCommentItem;

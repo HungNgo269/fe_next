@@ -1,10 +1,11 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { fetchCurrentUser, fetchPosts } from "../api/feedApi";
+import { fetchPosts } from "../api/postApi";
 import type { FeedBootstrapData } from "../types/feed";
 import { useAppSessionStore } from "@/app/share/stores/appSessionStore";
 import { useEffect } from "react";
+import { fetchCurrentUser } from "@/app/share/api/userApi";
 
 export const FEED_QUERY_KEY = ["feed-bootstrap"] as const;
 
@@ -26,7 +27,11 @@ export function useFeedQuery() {
 
       const userData = userResult.ok
         ? userResult.data
-        : { currentUser: null, currentUserProfile: null, isAuthenticated: false };
+        : {
+            currentUser: null,
+            currentUserProfile: null,
+            isAuthenticated: false,
+          };
 
       const posts = postsResult.ok ? postsResult.data : [];
 

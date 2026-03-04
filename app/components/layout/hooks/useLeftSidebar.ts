@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
+import { useQueryClient } from "@tanstack/react-query";
 import { logout } from "@/app/feature/auth/api/authApi";
 import { useAppSessionStore } from "@/app/share/stores/appSessionStore";
 import type { NavItem } from "../left-sidebar/constants";
@@ -20,6 +21,7 @@ export function useLeftSidebar({
 }: UseLeftSidebarOptions) {
   const pathname = usePathname();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { setTheme } = useTheme();
 
   const themePreference = useAppSessionStore((state) => state.themePreference);
@@ -74,6 +76,7 @@ export function useLeftSidebar({
     setIsLoggingOut(true);
     await logout();
     clearAuthenticatedProfile();
+    queryClient.clear();
     router.replace("/login");
     setIsLoggingOut(false);
   };

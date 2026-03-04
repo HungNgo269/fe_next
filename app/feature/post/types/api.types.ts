@@ -42,6 +42,7 @@ export type PostComment = {
     gender?: string;
   };
   replies?: PostComment[];
+  _count?: { replies: number };
 };
 
 export type User = {

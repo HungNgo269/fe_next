@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import type { Post, PostComment } from "../types/api.types";
-import { fetchCommentsByPostId } from "../api/feedApi";
+import { fetchCommentsByPostId } from "../api/postCommentApi";
 import { useClickOutside } from "@/app/share/hooks/useClickOutside";
 import { useCommentActions } from "../hooks/useCommentActions";
 import { useLikeActions } from "../hooks/useLikeActions";
@@ -86,8 +86,6 @@ export default function ModalPostContent({
 
   return (
     <div className="post-detail-overlay">
-
-
       <div className="post-detail-container" ref={contentRef}>
         <div className="post-detail-left">
           {post.mediaUrls && post.mediaUrls.length > 0 ? (
@@ -98,7 +96,9 @@ export default function ModalPostContent({
             />
           ) : (
             <div className="post-detail-text-content">
-              <p className="text-lg leading-7 text-foreground">{post.content}</p>
+              <p className="text-lg leading-7 text-foreground">
+                {post.content}
+              </p>
             </div>
           )}
         </div>

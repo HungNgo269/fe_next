@@ -6,9 +6,12 @@ import {
   createCommentRequest,
   updateCommentRequest,
   deleteCommentRequest,
-} from "../api/feedApi";
+} from "../api/postCommentApi";
 import { usePostUIStore } from "../stores/postStore";
-import { useAppSessionStore, toAvatarFromProfile } from "@/app/share/stores/appSessionStore";
+import {
+  useAppSessionStore,
+  toAvatarFromProfile,
+} from "@/app/share/stores/appSessionStore";
 import { useRequireAuthAction } from "./useRequireAuthAction";
 import { useFeedCacheUpdater } from "./useFeedCacheUpdater";
 import { useOwnership } from "./useOwnership";
@@ -20,12 +23,19 @@ export function useCommentActions(postId: string) {
   const cache = useFeedCacheUpdater();
   const { isCommentOwner } = useOwnership();
 
-  const commentDraft = usePostUIStore((state) => state.commentDrafts[postId] ?? "");
+  const commentDraft = usePostUIStore(
+    (state) => state.commentDrafts[postId] ?? "",
+  );
   const setCommentDraft = usePostUIStore((state) => state.setCommentDraft);
 
   const addCommentMutation = useMutation({
-    mutationFn: ({ content, parentId }: { content: string; parentId?: string }) =>
-      createCommentRequest(postId, currentUser!.id, content, parentId),
+    mutationFn: ({
+      content,
+      parentId,
+    }: {
+      content: string;
+      parentId?: string;
+    }) => createCommentRequest(postId, currentUser!.id, content, parentId),
     onSuccess: (result, variables) => {
       if (!result.ok || !currentUser) return;
       cache.appendComment(postId, {
@@ -50,8 +60,13 @@ export function useCommentActions(postId: string) {
   });
 
   const editCommentMutation = useMutation({
-    mutationFn: ({ commentId, content }: { commentId: string; content: string }) =>
-      updateCommentRequest(commentId, content),
+    mutationFn: ({
+      commentId,
+      content,
+    }: {
+      commentId: string;
+      content: string;
+    }) => updateCommentRequest(commentId, content),
     onSuccess: (result, { commentId }) => {
       if (!result.ok) return;
       cache.updateComment(postId, commentId, {

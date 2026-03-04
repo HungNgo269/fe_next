@@ -2,13 +2,16 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
-import { createShareRequest } from "../api/feedApi";
 import type { FeedBootstrapData } from "../types/feed";
 import { FEED_QUERY_KEY } from "./useFeedQuery";
 import { useRequireAuthAction } from "./useRequireAuthAction";
-import { useAppSessionStore, toAvatarFromProfile } from "@/app/share/stores/appSessionStore";
+import {
+  useAppSessionStore,
+  toAvatarFromProfile,
+} from "@/app/share/stores/appSessionStore";
 import { useFeedCacheUpdater } from "./useFeedCacheUpdater";
 import type { Post } from "../types/api.types";
+import { createShareRequest } from "../api/postShareApi";
 
 export function useSharePost(postId: string) {
   const queryClient = useQueryClient();
@@ -23,7 +26,9 @@ export function useSharePost(postId: string) {
       if (!result.ok || !currentUser) return;
       const sourcePost = queryClient
         .getQueryData<FeedBootstrapData>(FEED_QUERY_KEY)
-        ?.posts.find((item) => item.id === postId || item.sourcePostId === postId);
+        ?.posts.find(
+          (item) => item.id === postId || item.sourcePostId === postId,
+        );
       if (!sourcePost) return;
 
       const sharedPost: Post = {
