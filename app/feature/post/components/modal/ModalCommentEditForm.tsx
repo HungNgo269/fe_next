@@ -1,10 +1,10 @@
 "use client";
 
-import { useModalCommentItemContext } from "./ModalCommentItemContext";
+import { useModalCommentEditContext } from "./ModalCommentItemContext";
 
 export default function ModalCommentEditForm() {
   const { editingText, setEditingText, saveEdit, cancelEdit } =
-    useModalCommentItemContext();
+    useModalCommentEditContext();
 
   return (
     <div className="mt-1 space-y-2">

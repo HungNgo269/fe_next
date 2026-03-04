@@ -1,15 +1,14 @@
 "use client";
 
-import { useModalCommentItemContext } from "./ModalCommentItemContext";
+import {
+  useModalCommentDataContext,
+  useModalCommentReplyContext,
+} from "./ModalCommentItemContext";
 
 export default function ModalCommentReplyForm() {
-  const {
-    comment,
-    replyText,
-    setReplyText,
-    submitReply,
-    cancelReply,
-  } = useModalCommentItemContext();
+  const { comment } = useModalCommentDataContext();
+  const { replyText, setReplyText, submitReply, cancelReply } =
+    useModalCommentReplyContext();
 
   return (
     <div className="mt-2 space-y-2">

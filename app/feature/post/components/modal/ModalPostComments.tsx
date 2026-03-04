@@ -2,7 +2,7 @@
 
 import { CirclePlus } from "lucide-react";
 import ModalCommentItem from "../ModalCommentItem";
-import { useModalPostContentContext } from "./ModalPostContentContext";
+import { useModalPostDataContext } from "./ModalPostContentContext";
 
 export default function ModalPostComments() {
   const {
@@ -11,7 +11,7 @@ export default function ModalPostComments() {
     visibleRootComments,
     hasMoreRootComments,
     showMoreRootComments,
-  } = useModalPostContentContext();
+  } = useModalPostDataContext();
 
   return (
     <div className="post-detail-comments">

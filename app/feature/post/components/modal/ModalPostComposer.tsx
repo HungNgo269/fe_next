@@ -1,10 +1,10 @@
 "use client";
 
-import { useModalPostContentContext } from "./ModalPostContentContext";
+import { useModalPostActionsContext } from "./ModalPostContentContext";
 
 export default function ModalPostComposer() {
   const { commentDraft, setCommentDraft, handleAddComment } =
-    useModalPostContentContext();
+    useModalPostActionsContext();
   const isDisabled = commentDraft.trim().length === 0;
 
   return (

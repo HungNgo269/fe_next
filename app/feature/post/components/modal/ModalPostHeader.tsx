@@ -3,18 +3,16 @@
 import Link from "next/link";
 import Avatar from "../ui/Avatar";
 import { formatRelativeTime } from "@/app/share/utils/format";
-import { useModalPostContentContext } from "./ModalPostContentContext";
+import {
+  useModalPostDataContext,
+  useModalPostEditContext,
+  useModalPostActionsContext,
+} from "./ModalPostContentContext";
 
 export default function ModalPostHeader() {
-  const {
-    post,
-    profileKey,
-    userHandle,
-    isOwner,
-    onClose,
-    handleStartEdit,
-    handleDeletePostAndClose,
-  } = useModalPostContentContext();
+  const { post, profileKey, userHandle, isOwner } = useModalPostDataContext();
+  const { handleStartEdit } = useModalPostEditContext();
+  const { onClose, handleDeletePostAndClose } = useModalPostActionsContext();
   const author = post.author;
 
   return (

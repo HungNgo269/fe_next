@@ -2,11 +2,14 @@
 
 import ActionButton from "../ui/ActionButton";
 import { IconLike, IconShare } from "@/app/share/components/icons";
-import { useModalPostContentContext } from "./ModalPostContentContext";
+import {
+  useModalPostDataContext,
+  useModalPostActionsContext,
+} from "./ModalPostContentContext";
 
 export default function ModalPostActions() {
-  const { likesCount, totalComments, likedByMe, handleToggleLike, handleShare } =
-    useModalPostContentContext();
+  const { likesCount, totalComments, likedByMe } = useModalPostDataContext();
+  const { handleToggleLike, handleShare } = useModalPostActionsContext();
 
   return (
     <div className="post-detail-actions">

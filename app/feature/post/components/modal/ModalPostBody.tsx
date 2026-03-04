@@ -1,16 +1,14 @@
 "use client";
 
-import { useModalPostContentContext } from "./ModalPostContentContext";
+import {
+  useModalPostDataContext,
+  useModalPostEditContext,
+} from "./ModalPostContentContext";
 
 export default function ModalPostBody() {
-  const {
-    post,
-    isEditing,
-    editingText,
-    setEditingText,
-    handleSaveEdit,
-    handleCancelEdit,
-  } = useModalPostContentContext();
+  const { post } = useModalPostDataContext();
+  const { isEditing, editingText, setEditingText, handleSaveEdit, handleCancelEdit } =
+    useModalPostEditContext();
 
   return (
     <div className="post-detail-body">
