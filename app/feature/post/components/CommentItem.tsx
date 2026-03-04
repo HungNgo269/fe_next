@@ -10,7 +10,7 @@ import { useCommentActions } from "../hooks/useCommentActions";
 import { useOwnership } from "../hooks/useOwnership";
 import { useClickOutside } from "@/app/share/hooks/useClickOutside";
 import { fetchRepliesByCommentId } from "../api/postCommentApi";
-import { useFeedCacheUpdater } from "../hooks/useFeedCacheUpdater";
+import { useFeedCacheUpdater } from "@/app/share/hooks/useFeedCacheUpdater";
 import { Loader2 } from "lucide-react";
 
 function CommentItemComponent({

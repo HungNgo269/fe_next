@@ -3,9 +3,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useAppSessionStore } from "@/app/share/stores/appSessionStore";
-import { STORY_THEMES, STORY_TITLES } from "@/app/feature/post/data/feed";
-import type { StoryData } from "@/app/feature/post/types/feed";
-import { fetchSuggestedUsers } from "../../suggestion/api/suggestionUserApi";
+import { STORY_THEMES, STORY_TITLES } from "@/app/feature/story/data/story";
+import type { StoryData } from "@/app/feature/story/types/story";
+import { fetchSuggestedUsers } from "@/app/feature/suggestion/api/suggestionUserApi";
 
 export function useStories() {
   const authProfile = useAppSessionStore((s) => s.authProfile);

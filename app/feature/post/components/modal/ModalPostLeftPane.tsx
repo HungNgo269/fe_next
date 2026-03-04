@@ -1,9 +1,9 @@
 "use client";
 
-import { useModalPostContentContext } from "./ModalPostContentContext";
+import { useModalPostDataContext } from "./ModalPostContentContext";
 
 export default function ModalPostLeftPane() {
-  const { post } = useModalPostContentContext();
+  const { post } = useModalPostDataContext();
   const { content, mediaUrls } = post;
 
   if (mediaUrls && mediaUrls.length > 0) {

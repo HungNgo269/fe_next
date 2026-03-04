@@ -2,15 +2,15 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
-import { createPostRequest } from "../api/postApi";
-import type { Post } from "../types/api.types";
+import { createPostRequest } from "@/app/feature/post/api/postApi";
+import type { Post } from "@/app/feature/post/types/api.types";
 import {
   useAppSessionStore,
   toAvatarFromProfile,
 } from "@/app/share/stores/appSessionStore";
-import { useRequireAuthAction } from "./useRequireAuthAction";
-import { useFeedCacheUpdater } from "./useFeedCacheUpdater";
-import { FEED_QUERY_KEY } from "./feedQueryKeys";
+import { useRequireAuthAction } from "@/app/feature/post/hooks/useRequireAuthAction";
+import { useFeedCacheUpdater } from "@/app/share/hooks/useFeedCacheUpdater";
+import { FEED_QUERY_KEY } from "@/app/share/hooks/feedQueryKeys";
 
 export function useCreatePost() {
   const queryClient = useQueryClient();

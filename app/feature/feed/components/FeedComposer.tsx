@@ -1,13 +1,12 @@
 "use client";
 
 import { memo } from "react";
-import type { User } from "../types/api.types";
-
-import ActionChip from "./ui/ActionChip";
-import Avatar from "./ui/Avatar";
+import type { User } from "@/app/feature/post/types/api.types";
+import ActionChip from "@/app/feature/post/components/ui/ActionChip";
+import Avatar from "@/app/feature/post/components/ui/Avatar";
 import { IconImage, IconSmile, IconVideo } from "@/app/share/components/icons";
-import { usePostUIStore } from "../stores/postStore";
-import { useCreatePost } from "../hooks/useCreatePost";
+import { usePostUIStore } from "@/app/feature/post/stores/postStore";
+import { useCreatePost } from "@/app/feature/feed/hooks/useCreatePost";
 
 function FeedComposer({ currentUser }: { currentUser: User }) {
   const composerText = usePostUIStore((s) => s.composerText);

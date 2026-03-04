@@ -1,6 +1,6 @@
-import FeedPage from "@/app/feature/post/components/FeedPage";
-import { prefetchFeedPosts } from "@/app/feature/post/api/postApi.server";
-import { FEED_QUERY_KEY } from "@/app/feature/post/hooks/feedQueryKeys";
+import FeedPage from "@/app/feature/feed/components/FeedPage";
+import { prefetchFeedPosts } from "@/app/feature/feed/api/feedApi.server";
+import { FEED_QUERY_KEY } from "@/app/share/hooks/feedQueryKeys";
 import {
   HydrationBoundary,
   QueryClient,

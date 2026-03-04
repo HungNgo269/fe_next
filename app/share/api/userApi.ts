@@ -1,6 +1,6 @@
 import { User } from "@/app/feature/post/types/api.types";
 import { ApiResponse } from "../utils/api-types";
-import { FeedUserProfile } from "@/app/feature/post/types/feed";
+import { FeedUserProfile } from "@/app/feature/feed/types/feed";
 import { clientGetJson } from "../utils/api";
 
 export const fetchCurrentUser = async (): Promise<

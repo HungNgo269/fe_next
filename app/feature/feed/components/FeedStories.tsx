@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useStories } from "../hooks/useStories";
+import { useStories } from "@/app/feature/story/hooks/useStories";
 import Image from "next/image";
 
 export default function FeedStories() {

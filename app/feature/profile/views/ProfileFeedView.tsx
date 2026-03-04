@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useMemo, type ReactNode } from "react";
-import FeedComposer from "@/app/feature/post/components/FeedComposer";
+import FeedComposer from "@/app/feature/feed/components/FeedComposer";
 import PostCard from "@/app/feature/post/components/PostCard";
 import PostDetailModal from "@/app/feature/post/components/PostDetailModal";
 import ProfileAvatarPreview from "@/app/feature/profile/components/ProfileAvatarPreview";

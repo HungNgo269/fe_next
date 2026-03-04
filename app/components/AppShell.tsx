@@ -8,7 +8,7 @@ import { clientGetJson } from "../share/utils/api";
 import type {
   SidebarMessagePreview,
   SidebarNotificationItem,
-} from "../feature/post/types/feed";
+} from "../feature/feed/types/feed";
 import {
   toAvatarFromProfile,
   useAppSessionStore,

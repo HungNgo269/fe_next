@@ -13,7 +13,7 @@ import {
   toAvatarFromProfile,
 } from "@/app/share/stores/appSessionStore";
 import { useRequireAuthAction } from "./useRequireAuthAction";
-import { useFeedCacheUpdater } from "./useFeedCacheUpdater";
+import { useFeedCacheUpdater } from "@/app/share/hooks/useFeedCacheUpdater";
 import { useOwnership } from "./useOwnership";
 
 export function useCommentActions(postId: string) {

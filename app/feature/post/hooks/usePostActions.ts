@@ -4,10 +4,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { updatePostRequest, deletePostRequest } from "../api/postApi";
 import { usePostUIStore } from "../stores/postStore";
-import type { FeedBootstrapData } from "../types/feed";
-import { FEED_QUERY_KEY } from "./feedQueryKeys";
+import type { FeedBootstrapData } from "@/app/feature/feed/types/feed";
+import { FEED_QUERY_KEY } from "@/app/share/hooks/feedQueryKeys";
 import { useRequireAuthAction } from "./useRequireAuthAction";
-import { useFeedCacheUpdater } from "./useFeedCacheUpdater";
+import { useFeedCacheUpdater } from "@/app/share/hooks/useFeedCacheUpdater";
 import { useOwnership } from "./useOwnership";
 
 export function usePostActions(postId: string) {

@@ -2,8 +2,8 @@
 
 import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import type { Post, PostComment } from "../types/api.types";
-import type { FeedBootstrapData } from "../types/feed";
+import type { Post, PostComment } from "@/app/feature/post/types/api.types";
+import type { FeedBootstrapData } from "@/app/feature/feed/types/feed";
 import { FEED_QUERY_KEY } from "./feedQueryKeys";
 
 const matchPost = (post: Post, postId: string) =>

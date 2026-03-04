@@ -11,7 +11,7 @@ import { formatRelativeTime } from "@/app/share/utils/format";
 import Avatar from "./ui/Avatar";
 import { IconMoreVertical } from "@/app/share/components/icons";
 import { fetchRepliesByCommentId } from "../api/postCommentApi";
-import { useFeedCacheUpdater } from "../hooks/useFeedCacheUpdater";
+import { useFeedCacheUpdater } from "@/app/share/hooks/useFeedCacheUpdater";
 import ModalCommentMenu from "./modal/ModalCommentMenu";
 import ModalCommentEditForm from "./modal/ModalCommentEditForm";
 import ModalCommentReplyForm from "./modal/ModalCommentReplyForm";

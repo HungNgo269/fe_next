@@ -2,12 +2,12 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
-import type { FeedBootstrapData } from "../types/feed";
-import { FEED_QUERY_KEY } from "./feedQueryKeys";
+import type { FeedBootstrapData } from "@/app/feature/feed/types/feed";
+import { FEED_QUERY_KEY } from "@/app/share/hooks/feedQueryKeys";
 import { clientGetJson } from "@/app/share/utils/api";
 import { useOwnership } from "./useOwnership";
 import { useRequireAuthAction } from "./useRequireAuthAction";
-import { useFeedCacheUpdater } from "./useFeedCacheUpdater";
+import { useFeedCacheUpdater } from "@/app/share/hooks/useFeedCacheUpdater";
 import type { Post } from "../types/api.types";
 import { createLikeRequest, deleteLikeRequest } from "../api/postLikeApi";
 

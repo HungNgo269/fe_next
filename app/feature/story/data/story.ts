@@ -1,7 +1,3 @@
-import type { TrendingTopic } from "../types/feed";
-
-
-
 export const STORY_THEMES = [
   "gradient-theme-teal",
   "gradient-theme-orange",

@@ -5,7 +5,7 @@ import { LogOut, Moon, Sun } from "lucide-react";
 import type {
   SidebarMessagePreview,
   SidebarNotificationItem,
-} from "@/app/feature/post/types/feed";
+} from "@/app/feature/feed/types/feed";
 import type { User } from "@/app/feature/post/types/api.types";
 import { navItems } from "./left-sidebar/constants";
 import SidebarBrand from "./left-sidebar/SidebarBrand";

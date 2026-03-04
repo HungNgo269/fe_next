@@ -3,8 +3,8 @@ import "server-only";
 import { serverGetJson } from "@/app/share/utils/api.server";
 import type { ApiResponse } from "@/app/share/utils/api-types";
 import type { FeedBootstrapData } from "../types/feed";
-import type { PaginatedPostsResponse, User } from "../types/api.types";
-import { FEED_PAGE_SIZE } from "../hooks/feedQueryKeys";
+import type { PaginatedPostsResponse, User } from "@/app/feature/post/types/api.types";
+import { FEED_PAGE_SIZE } from "@/app/share/hooks/feedQueryKeys";
 
 type CurrentUserPayload = {
   currentUser: User | null;

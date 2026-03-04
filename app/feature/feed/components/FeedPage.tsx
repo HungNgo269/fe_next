@@ -2,11 +2,11 @@
 
 import LoginRequiredDialog from "@/app/share/components/LoginRequiredDialog";
 import RightSidebar from "@/app/components/layout/RightSidebar";
-import { useFeedQuery } from "@/app/feature/post/hooks/useFeedQuery";
+import { useFeedQuery } from "@/app/feature/feed/hooks/useFeedQuery";
 import { usePostUIStore } from "@/app/feature/post/stores/postStore";
 import { usePostDetailModal } from "@/app/feature/post/hooks/usePostDetailModal";
-import FeedComposer from "@/app/feature/post/components/FeedComposer";
-import FeedStories from "@/app/feature/post/components/FeedStories";
+import FeedComposer from "@/app/feature/feed/components/FeedComposer";
+import StoryList from "@/app/feature/story/components/StoryList";
 import PostCard from "@/app/feature/post/components/PostCard";
 import PostDetailModal from "@/app/feature/post/components/PostDetailModal";
 import type { Post } from "@/app/feature/post/types/api.types";
@@ -53,7 +53,7 @@ export default function FeedPage() {
             </div>
           ) : null}
 
-          <FeedStories />
+          <StoryList />
 
           {currentUser ? <FeedComposer currentUser={currentUser} /> : null}
 

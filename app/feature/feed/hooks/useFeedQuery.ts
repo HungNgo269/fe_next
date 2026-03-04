@@ -1,13 +1,13 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { fetchPosts } from "../api/postApi";
+import { fetchPosts } from "@/app/feature/post/api/postApi";
 import type { FeedBootstrapData } from "../types/feed";
 import { useAppSessionStore } from "@/app/share/stores/appSessionStore";
 import { useCallback, useEffect, useState } from "react";
 import { fetchCurrentUser } from "@/app/share/api/userApi";
 import { useQueryClient } from "@tanstack/react-query";
-import { FEED_PAGE_SIZE, FEED_QUERY_KEY } from "./feedQueryKeys";
+import { FEED_PAGE_SIZE, FEED_QUERY_KEY } from "@/app/share/hooks/feedQueryKeys";
 
 export function useFeedQuery() {
   const queryClient = useQueryClient();

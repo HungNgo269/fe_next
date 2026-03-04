@@ -1,4 +1,4 @@
-import type { FeedPagination, Post, User } from "./api.types";
+import type { FeedPagination, Post, User } from "@/app/feature/post/types/api.types";
 import type { UserProfile } from "@/app/feature/profile/types/profile";
 
 export type FeedUserProfile = UserProfile & { id: string };
@@ -11,12 +11,7 @@ export type FeedBootstrapData = {
   pagination: FeedPagination;
 };
 
-export type StoryData = {
-  id: string;
-  title: string;
-  author: User;
-  theme: string;
-};
+
 
 export type NavItem = {
   label: string;
