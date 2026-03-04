@@ -8,6 +8,8 @@ import ProfileStatusCard from "@/app/feature/profile/components/ProfileStatusCar
 import type { useProfileFeed } from "@/app/feature/profile/hooks/useProfileFeed";
 import type { Post } from "@/app/feature/post/types/api.types";
 import { usePostDetailModal } from "@/app/feature/post/hooks/usePostDetailModal";
+import { useInfiniteScrollTrigger } from "@/app/share/hooks/useInfiniteScrollTrigger";
+import { Loader2 } from "lucide-react";
 
 type ProfileFeedState = ReturnType<typeof useProfileFeed>;
 
@@ -36,6 +38,11 @@ export default function ProfileFeedView({
 }: ProfileFeedViewProps) {
   void currentUserAvatar;
   const openModal = usePostDetailModal((s) => s.openModal);
+  const loadMoreSentinelRef = useInfiniteScrollTrigger({
+    hasMore: hasMorePosts,
+    isLoading: isLoadingMore,
+    onLoadMore: handleLoadMore,
+  });
 
   const composerUser = useMemo(
     () => ({
@@ -144,15 +151,25 @@ export default function ProfileFeedView({
             </div>
 
             {hasMorePosts ? (
-              <div className="pt-2">
-                <button
-                  className="ui-btn-primary rounded-full px-5 py-2 text-xs font-semibold transition-colors disabled:opacity-60"
-                  disabled={isLoadingMore}
-                  onClick={() => void handleLoadMore()}
-                  type="button"
-                >
-                  {isLoadingMore ? "Loading..." : "Load 5 more posts"}
-                </button>
+              <div className="flex flex-col items-center gap-3 pt-2">
+                <div aria-hidden="true" className="h-2 w-full" ref={loadMoreSentinelRef} />
+                {isLoadingMore ? (
+                  <div
+                    aria-live="polite"
+                    className="inline-flex items-center justify-center"
+                  >
+                    <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
+                    <span className="sr-only">Loading more posts</span>
+                  </div>
+                ) : (
+                  <button
+                    className="ui-btn-primary inline-flex items-center justify-center rounded-full px-5 py-2 text-xs font-semibold transition-colors"
+                    onClick={() => void handleLoadMore()}
+                    type="button"
+                  >
+                    Load 5 more posts
+                  </button>
+                )}
               </div>
             ) : null}
           </>

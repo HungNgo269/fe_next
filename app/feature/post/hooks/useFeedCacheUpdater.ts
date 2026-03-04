@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Post, PostComment } from "../types/api.types";
 import type { FeedBootstrapData } from "../types/feed";
-import { FEED_QUERY_KEY } from "./useFeedQuery";
+import { FEED_QUERY_KEY } from "./feedQueryKeys";
 
 const matchPost = (post: Post, postId: string) =>
   post.id === postId || post.sourcePostId === postId;
@@ -52,12 +52,13 @@ export function useFeedCacheUpdater() {
           const next = old.map((root) => {
             if (root.id !== comment.parentId) return root;
             attached = true;
-            // Also update the _count.replies if we just appended a reply locally
-            const nextCount = root._count ? { replies: root._count.replies + 1 } : { replies: (root.replies?.length ?? 0) + 1 };
-            return { 
-              ...root, 
+            const nextCount = root._count
+              ? { replies: root._count.replies + 1 }
+              : { replies: (root.replies?.length ?? 0) + 1 };
+            return {
+              ...root,
               replies: [...(root.replies ?? []), comment],
-              _count: nextCount
+              _count: nextCount,
             };
           });
           return attached ? next : [...old, comment];
@@ -83,11 +84,10 @@ export function useFeedCacheUpdater() {
           if (!old) return old;
           return old.map((root) => {
             if (root.id !== commentId) return root;
-            
-            // Avoid duplicates by checking existing IDs
+
             const existingIds = new Set(root.replies?.map((r) => r.id) || []);
             const uniqueNew = newReplies.filter((r) => !existingIds.has(r.id));
-            
+
             return {
               ...root,
               replies: [...(root.replies ?? []), ...uniqueNew],
@@ -96,7 +96,7 @@ export function useFeedCacheUpdater() {
         },
       );
     },
-    [queryClient]
+    [queryClient],
   );
 
   const updateComment = useCallback(
@@ -108,7 +108,9 @@ export function useFeedCacheUpdater() {
           return old.map((root) => {
             if (root.id === commentId) return { ...root, ...patch };
             const replies = root.replies ?? [];
-            const nextIndex = replies.findIndex((reply) => reply.id === commentId);
+            const nextIndex = replies.findIndex(
+              (reply) => reply.id === commentId,
+            );
             if (nextIndex === -1) return root;
             const updatedReplies = replies.map((reply) =>
               reply.id === commentId ? { ...reply, ...patch } : reply,
@@ -137,17 +139,19 @@ export function useFeedCacheUpdater() {
             }
 
             const replies = root.replies ?? [];
-            const filteredReplies = replies.filter((reply) => reply.id !== commentId);
+            const filteredReplies = replies.filter(
+              (reply) => reply.id !== commentId,
+            );
             if (filteredReplies.length !== replies.length) {
               removedCount += replies.length - filteredReplies.length;
-              const nextCount = root._count 
-                ? { replies: Math.max(0, root._count.replies - 1) } 
+              const nextCount = root._count
+                ? { replies: Math.max(0, root._count.replies - 1) }
                 : { replies: filteredReplies.length };
-                
-              remaining.push({ 
-                ...root, 
+
+              remaining.push({
+                ...root,
                 replies: filteredReplies,
-                _count: nextCount
+                _count: nextCount,
               });
               continue;
             }

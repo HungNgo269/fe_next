@@ -3,7 +3,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import type { FeedBootstrapData } from "../types/feed";
-import { FEED_QUERY_KEY } from "./useFeedQuery";
+import { FEED_QUERY_KEY } from "./feedQueryKeys";
 import { useRequireAuthAction } from "./useRequireAuthAction";
 import {
   useAppSessionStore,

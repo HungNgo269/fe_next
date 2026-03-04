@@ -1,4 +1,3 @@
-/** Shape returned by the `GET /posts` endpoint (no inline comments). */
 export type Post = {
   id: string;
   sourcePostId?: string;
@@ -27,7 +26,18 @@ export type Post = {
   likedByMe: boolean;
 };
 
-/** Shape returned by `GET /comments?postId=xxx` with author relation. */
+export type FeedPagination = {
+  page: number;
+  limit: number;
+  hasMore: boolean;
+  totalPosts: number;
+};
+
+export type PaginatedPostsResponse = {
+  posts: Post[];
+  pagination: FeedPagination;
+};
+
 export type PostComment = {
   id: string;
   content: string;

@@ -11,6 +11,7 @@ import { useOwnership } from "../hooks/useOwnership";
 import { useClickOutside } from "@/app/share/hooks/useClickOutside";
 import { fetchRepliesByCommentId } from "../api/postCommentApi";
 import { useFeedCacheUpdater } from "../hooks/useFeedCacheUpdater";
+import { Loader2 } from "lucide-react";
 
 function CommentItemComponent({
   postId,
@@ -27,9 +28,10 @@ function CommentItemComponent({
     handleDeleteComment,
     handleReportContent,
   } = useCommentActions(postId);
-  const { isCommentOwner } = useOwnership();
+  const { isCommentOwner, isPostOwner } = useOwnership();
   const cacheUpdater = useFeedCacheUpdater();
-  const canManageComment = isCommentOwner(postId, comment.id);
+  const canEditComment = isCommentOwner(postId, comment.id);
+  const canDeleteComment = isPostOwner(postId);
   const authorProfileKey = comment.author.handle || comment.author.id;
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -68,6 +70,7 @@ function CommentItemComponent({
   };
 
   const startReply = () => {
+    if (isReplyItem) return;
     setIsReplying(true);
     setIsMenuOpen(false);
   };
@@ -116,15 +119,19 @@ function CommentItemComponent({
         />
 
         <div className="flex-1">
-          <Link
-            className="text-xs font-semibold text-foreground transition-opacity hover:opacity-80"
-            href={`/profile/${authorProfileKey}`}
-          >
-            {comment.author.name}
-            <span className="ui-text-muted ml-2 text-2xs font-normal">
-              {formatRelativeTime(comment.createdAt)}
-            </span>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              className="text-xs font-semibold text-foreground transition-opacity hover:opacity-80"
+              href={`/profile/${authorProfileKey}`}
+            >
+              {comment.author.name}
+            </Link>
+            {!isReplyItem ? (
+              <span className="ui-text-muted text-2xs font-normal">
+                {formatRelativeTime(comment.createdAt)}
+              </span>
+            ) : null}
+          </div>
 
           {isEditing ? (
             <div className="mt-1 space-y-2">
@@ -151,8 +158,19 @@ function CommentItemComponent({
               </div>
             </div>
           ) : (
-            <p className="ui-text-muted text-xs">{comment.content}</p>
+            <p className="ui-text-muted mt-0.5 text-xs">{comment.content}</p>
           )}
+          {!isEditing && !isReplyItem ? (
+            <div className="mt-1">
+              <button
+                className="ui-text-muted text-2xs font-semibold uppercase tracking-wide transition-opacity hover:opacity-70"
+                onClick={startReply}
+                type="button"
+              >
+                Replies
+              </button>
+            </div>
+          ) : null}
 
           {isReplying && !isReplyItem ? (
             <div className="mt-2 space-y-2">
@@ -203,33 +221,25 @@ function CommentItemComponent({
           </button>
           {isMenuOpen ? (
             <div className=" absolute right-0 top-8 z-20 min-w-36 rounded-xl p-2">
-              {!isReplyItem ? (
+              {canEditComment ? (
                 <button
                   className="block w-full rounded-md px-2 py-1.5 text-left text-xs font-medium text-foreground transition-opacity hover:opacity-70"
-                  onClick={startReply}
+                  onClick={startEdit}
                   type="button"
                 >
-                  Reply comment
+                  Edit comment
                 </button>
               ) : null}
-              {canManageComment ? (
-                <>
-                  <button
-                    className="block w-full rounded-md px-2 py-1.5 text-left text-xs font-medium text-foreground transition-opacity hover:opacity-70"
-                    onClick={startEdit}
-                    type="button"
-                  >
-                    Edit comment
-                  </button>
-                  <button
-                    className="block w-full rounded-md px-2 py-1.5 text-left text-xs font-medium text-foreground transition-opacity hover:opacity-70"
-                    onClick={() => void handleDelete()}
-                    type="button"
-                  >
-                    Delete comment
-                  </button>
-                </>
-              ) : (
+              {canDeleteComment ? (
+                <button
+                  className="block w-full rounded-md px-2 py-1.5 text-left text-xs font-medium text-foreground transition-opacity hover:opacity-70"
+                  onClick={() => void handleDelete()}
+                  type="button"
+                >
+                  Delete comment
+                </button>
+              ) : null}
+              {!canEditComment && !canDeleteComment ? (
                 <button
                   className="block w-full rounded-md px-2 py-1.5 text-left text-xs font-medium text-foreground transition-opacity hover:opacity-70"
                   onClick={() => {
@@ -240,7 +250,7 @@ function CommentItemComponent({
                 >
                   Report comment
                 </button>
-              )}
+              ) : null}
             </div>
           ) : null}
         </div>
@@ -261,12 +271,20 @@ function CommentItemComponent({
               <span className="w-6 border-t border-border mr-2 inline-block"></span>
               <button
                 type="button"
-                className="text-xs font-semibold text-foreground hover:underline"
+                className="inline-flex items-center justify-center text-xs font-semibold text-foreground hover:underline disabled:no-underline"
                 onClick={() => void handleLoadMoreReplies()}
                 disabled={isLoadingReplies}
               >
                 {isLoadingReplies
-                  ? "Loading..."
+                  ? (
+                    <>
+                      <Loader2
+                        aria-hidden="true"
+                        className="h-3.5 w-3.5 animate-spin"
+                      />
+                      <span className="sr-only">Loading replies</span>
+                    </>
+                  )
                   : `Show more ${totalReplies - numLoadedReplies} comment${totalReplies - numLoadedReplies > 1 ? "s" : ""}`}
               </button>
             </div>

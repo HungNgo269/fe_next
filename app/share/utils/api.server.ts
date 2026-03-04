@@ -70,3 +70,53 @@ export const serverPostJson = async <T>(
     };
   }
 };
+
+export const serverGetJson = async <T>(
+  path: string,
+  options?: ServerRequestOptions,
+): Promise<ApiResponse<T>> => {
+  try {
+    const baseUrl = normalizeBaseUrl(API_BASE_URL);
+    const headers: Record<string, string> = {
+      ...JSON_HEADERS,
+      ...(options?.headers ?? {}),
+    };
+
+    if (options?.includeAuth !== false) {
+      const cookieStore = await cookies();
+      const cookieValue = cookieStore.toString();
+      if (cookieValue) {
+        headers.cookie = cookieValue;
+      }
+    }
+
+    const response = await fetch(`${baseUrl}${path}`, {
+      method: "GET",
+      headers,
+      credentials: "include",
+      cache: options?.cache ?? "no-store",
+    });
+
+    const payload = await parseResponseBody(response);
+    if (!response.ok) {
+      return {
+        ok: false,
+        error: {
+          status: response.status,
+          name: extractErrorName(payload),
+          messages: normalizeMessages(payload),
+        },
+      };
+    }
+
+    return { ok: true, data: payload as T };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Request failed.";
+    return {
+      ok: false,
+      error: {
+        messages: ["Unable to reach the server.", message],
+      },
+    };
+  }
+};

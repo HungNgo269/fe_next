@@ -21,7 +21,7 @@ export function useCommentActions(postId: string) {
   const currentUser = toAvatarFromProfile(authProfile);
   const { runIfAuth } = useRequireAuthAction();
   const cache = useFeedCacheUpdater();
-  const { isCommentOwner } = useOwnership();
+  const { isCommentOwner, isPostOwner } = useOwnership();
 
   const commentDraft = usePostUIStore(
     (state) => state.commentDrafts[postId] ?? "",
@@ -126,11 +126,11 @@ export function useCommentActions(postId: string) {
   const handleDeleteComment = useCallback(
     async (commentId: string): Promise<boolean> => {
       if (!runIfAuth(() => true)) return false;
-      if (!isCommentOwner(postId, commentId)) return false;
+      if (!isPostOwner(postId)) return false;
       deleteCommentMutation.mutate(commentId);
       return true;
     },
-    [deleteCommentMutation, isCommentOwner, postId, runIfAuth],
+    [deleteCommentMutation, isPostOwner, postId, runIfAuth],
   );
 
   const handleReportContent = useCallback((contentType: "post" | "comment") => {

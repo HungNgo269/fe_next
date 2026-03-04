@@ -6,10 +6,13 @@ import {
   clientDeleteJson,
 } from "@/app/share/utils/api";
 
-import type { Post } from "../types/api.types";
+import type { PaginatedPostsResponse, Post } from "../types/api.types";
 
-export const fetchPosts = async (): Promise<ApiResponse<Post[]>> =>
-  clientGetJson<Post[]>("/posts");
+export const fetchPosts = async (
+  page = 1,
+  limit = 5,
+): Promise<ApiResponse<PaginatedPostsResponse>> =>
+  clientGetJson<PaginatedPostsResponse>(`/posts?page=${page}&limit=${limit}`);
 
 export const createPostRequest = async (
   content: string,

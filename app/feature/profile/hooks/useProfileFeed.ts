@@ -5,7 +5,7 @@ import type { ApiResponse } from "@/app/share/utils/api-types";
 import type { ProfileFeedResponse } from "../types/api.types";
 import { useProfileData } from "./useProfileData";
 import type { FeedBootstrapData } from "@/app/feature/post/types/feed";
-import { FEED_QUERY_KEY } from "@/app/feature/post/hooks/useFeedQuery";
+import { FEED_QUERY_KEY } from "@/app/feature/post/hooks/feedQueryKeys";
 import { useState, useCallback, useEffect, useMemo } from "react";
 import type { UserProfile } from "../types/profile";
 import { buildInitials } from "./useProfileData";

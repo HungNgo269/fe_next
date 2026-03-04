@@ -10,7 +10,7 @@ import {
 } from "@/app/share/stores/appSessionStore";
 import { useRequireAuthAction } from "./useRequireAuthAction";
 import { useFeedCacheUpdater } from "./useFeedCacheUpdater";
-import { FEED_QUERY_KEY } from "./useFeedQuery";
+import { FEED_QUERY_KEY } from "./feedQueryKeys";
 
 export function useCreatePost() {
   const queryClient = useQueryClient();

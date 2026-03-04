@@ -2,6 +2,7 @@
 
 import { memo, useCallback, useState } from "react";
 import Link from "next/link";
+import { Loader2 } from "lucide-react";
 import type { PostComment } from "../types/api.types";
 import { useCommentActions } from "../hooks/useCommentActions";
 import { useOwnership } from "../hooks/useOwnership";
@@ -11,6 +12,10 @@ import Avatar from "./ui/Avatar";
 import { IconMoreVertical } from "@/app/share/components/icons";
 import { fetchRepliesByCommentId } from "../api/postCommentApi";
 import { useFeedCacheUpdater } from "../hooks/useFeedCacheUpdater";
+import ModalCommentMenu from "./modal/ModalCommentMenu";
+import ModalCommentEditForm from "./modal/ModalCommentEditForm";
+import ModalCommentReplyForm from "./modal/ModalCommentReplyForm";
+import { ModalCommentItemProvider } from "./modal/ModalCommentItemContext";
 
 function ModalCommentItemComponent({
   postId,
@@ -27,9 +32,11 @@ function ModalCommentItemComponent({
     handleDeleteComment,
     handleReportContent,
   } = useCommentActions(postId);
-  const { isCommentOwner } = useOwnership();
+  const { isCommentOwner, isPostOwner } = useOwnership();
   const cacheUpdater = useFeedCacheUpdater();
-  const canManage = isCommentOwner(postId, comment.id);
+
+  const canEditComment = isCommentOwner(postId, comment.id);
+  const canDeleteComment = isPostOwner(postId);
   const authorProfileKey = comment.author.handle || comment.author.id;
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -56,15 +63,20 @@ function ModalCommentItemComponent({
 
   const saveEdit = async () => {
     const ok = await handleSaveCommentEdit(comment.id, editingText);
-    if (ok) cancelEdit();
+    if (ok) {
+      cancelEdit();
+    }
   };
 
   const handleDelete = async () => {
     const ok = await handleDeleteComment(comment.id);
-    if (ok) setIsMenuOpen(false);
+    if (ok) {
+      setIsMenuOpen(false);
+    }
   };
 
   const startReply = () => {
+    if (isReplyItem) return;
     setIsReplying(true);
     setIsMenuOpen(false);
   };
@@ -76,7 +88,9 @@ function ModalCommentItemComponent({
 
   const submitReply = async () => {
     const ok = await handleAddReply(comment.id, replyText);
-    if (ok) cancelReply();
+    if (ok) {
+      cancelReply();
+    }
   };
 
   const numLoadedReplies = comment.replies?.length ?? 0;
@@ -85,6 +99,7 @@ function ModalCommentItemComponent({
 
   const handleLoadMoreReplies = async () => {
     if (isLoadingReplies || !hasMoreReplies) return;
+
     setIsLoadingReplies(true);
     try {
       const take = 10;
@@ -96,20 +111,42 @@ function ModalCommentItemComponent({
       if (result.ok && result.data.length > 0) {
         cacheUpdater.appendReplies(postId, comment.id, result.data);
       }
-    } catch (e) {
-      console.error("Failed to load replies", e);
+    } catch (error) {
+      console.error("Failed to load replies", error);
     } finally {
       setIsLoadingReplies(false);
     }
   };
 
   return (
-    <div>
-      <div className="group flex items-start gap-3 px-4 py-2">
+    <ModalCommentItemProvider
+      value={{
+        comment,
+        canEditComment,
+        canDeleteComment,
+        editingText,
+        setEditingText,
+        saveEdit: () => void saveEdit(),
+        cancelEdit,
+        replyText,
+        setReplyText,
+        submitReply: () => void submitReply(),
+        cancelReply,
+        startEdit,
+        deleteComment: () => void handleDelete(),
+        reportComment: () => {
+          setIsMenuOpen(false);
+          handleReportContent("comment");
+        },
+      }}
+    >
+      <div>
+        <div className="group flex items-start gap-3 px-4 py-2">
         <Avatar
           avatar={comment.author.avatarUrl ?? undefined}
           gender={comment.author.gender}
         />
+
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline gap-2">
             <Link
@@ -118,76 +155,32 @@ function ModalCommentItemComponent({
             >
               {comment.author.name}
             </Link>
-            <span className="ui-text-muted text-2xs">
-              {formatRelativeTime(comment.createdAt)}
-            </span>
+            {!isReplyItem ? (
+              <span className="ui-text-muted text-2xs">
+                {formatRelativeTime(comment.createdAt)}
+              </span>
+            ) : null}
           </div>
 
           {isEditing ? (
-            <div className="mt-1 space-y-2">
-              <input
-                className="ui-input w-full rounded-full px-3 py-1.5 text-xs outline-none transition-colors"
-                value={editingText}
-                onChange={(e) => setEditingText(e.target.value)}
-              />
-              <div className="flex items-center gap-3">
-                <button
-                  className="text-xs font-semibold text-foreground transition-opacity hover:opacity-70"
-                  onClick={() => void saveEdit()}
-                  type="button"
-                >
-                  Save
-                </button>
-                <button
-                  className="ui-text-muted text-xs font-semibold transition-opacity hover:opacity-70"
-                  onClick={cancelEdit}
-                  type="button"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
+            <ModalCommentEditForm />
           ) : (
-            <p className="ui-text-muted text-xs">{comment.content}</p>
+            <p className="ui-text-muted mt-0.5 text-xs">{comment.content}</p>
           )}
 
-          {isReplying && !isReplyItem ? (
-            <div className="mt-2 space-y-2">
-              <input
-                className="ui-input w-full rounded-full px-3 py-1.5 text-xs outline-none transition-colors"
-                placeholder={`Reply to ${comment.author.name}...`}
-                value={replyText}
-                onChange={(event) => setReplyText(event.target.value)}
-                onKeyDown={(event) => {
-                  if (
-                    event.key === "Enter" &&
-                    !event.shiftKey &&
-                    replyText.trim().length > 0
-                  ) {
-                    event.preventDefault();
-                    void submitReply();
-                  }
-                }}
-              />
-              <div className="flex items-center gap-3">
-                <button
-                  className="text-xs font-semibold text-foreground transition-opacity hover:opacity-70 disabled:opacity-40"
-                  disabled={replyText.trim().length === 0}
-                  onClick={() => void submitReply()}
-                  type="button"
-                >
-                  Reply
-                </button>
-                <button
-                  className="ui-text-muted text-xs font-semibold transition-opacity hover:opacity-70"
-                  onClick={cancelReply}
-                  type="button"
-                >
-                  Cancel
-                </button>
-              </div>
+          {!isEditing && !isReplyItem ? (
+            <div className="mt-1">
+              <button
+                className="ui-text-muted text-2xs font-semibold uppercase tracking-wide transition-opacity hover:opacity-70"
+                onClick={startReply}
+                type="button"
+              >
+                Replies
+              </button>
             </div>
           ) : null}
+
+          {isReplying && !isReplyItem ? <ModalCommentReplyForm /> : null}
         </div>
 
         <div className="relative ml-auto self-start" ref={menuRef}>
@@ -198,79 +191,50 @@ function ModalCommentItemComponent({
           >
             <IconMoreVertical />
           </button>
-          {isMenuOpen ? (
-            <div className="absolute right-0 top-8 z-20 min-w-36 rounded-xl border border-border bg-surface p-2">
-              {!isReplyItem ? (
-                <button
-                  className="block w-full rounded-md px-2 py-1.5 text-left text-xs font-medium text-foreground transition-opacity hover:opacity-70"
-                  onClick={startReply}
-                  type="button"
-                >
-                  Reply comment
-                </button>
-              ) : null}
-              {canManage ? (
-                <>
-                  <button
-                    className="block w-full rounded-md px-2 py-1.5 text-left text-xs font-medium text-foreground transition-opacity hover:opacity-70"
-                    onClick={startEdit}
-                    type="button"
-                  >
-                    Edit comment
-                  </button>
-                  <button
-                    className="block w-full rounded-md px-2 py-1.5 text-left text-xs font-medium text-foreground transition-opacity hover:opacity-70"
-                    onClick={() => void handleDelete()}
-                    type="button"
-                  >
-                    Delete comment
-                  </button>
-                </>
-              ) : (
-                <button
-                  className="block w-full rounded-md px-2 py-1.5 text-left text-xs font-medium text-foreground transition-opacity hover:opacity-70"
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    handleReportContent("comment");
-                  }}
-                  type="button"
-                >
-                  Report comment
-                </button>
-              )}
-            </div>
-          ) : null}
+
+          {isMenuOpen ? <ModalCommentMenu /> : null}
         </div>
       </div>
 
-      {!isReplyItem && (numLoadedReplies > 0 || hasMoreReplies) ? (
-        <div className="space-y-1 pl-10 pr-2 pb-2">
-          {comment.replies?.map((reply) => (
-            <ModalCommentItem
-              key={reply.id}
-              postId={postId}
-              comment={reply}
-              isReplyItem
-            />
-          ))}
-          {hasMoreReplies ? (
-            <div className="pt-1 flex items-center">
-              <span className="w-6 border-t border-border mr-2 inline-block"></span>
-              <button
-                type="button"
-                className="text-xs font-semibold text-foreground hover:underline"
-                onClick={() => void handleLoadMoreReplies()}
-                disabled={isLoadingReplies}
-              >
-                {isLoadingReplies
-                  ? "Loading..."
-                  : `Show more ${totalReplies - numLoadedReplies} comment${totalReplies - numLoadedReplies > 1 ? "s" : ""}`}
-              </button>
-            </div>
-          ) : null}
-        </div>
-      ) : null}
-    </div>
+        {!isReplyItem && (numLoadedReplies > 0 || hasMoreReplies) ? (
+          <div className="space-y-1 pb-2 pl-10 pr-2">
+            {comment.replies?.map((reply) => (
+              <ModalCommentItem
+                key={reply.id}
+                postId={postId}
+                comment={reply}
+                isReplyItem
+              />
+            ))}
+            {hasMoreReplies ? (
+              <div className="flex items-center pt-1">
+                <span className="mr-2 inline-block w-6 border-t border-border"></span>
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center text-xs font-semibold text-foreground hover:underline disabled:no-underline"
+                  onClick={() => void handleLoadMoreReplies()}
+                  disabled={isLoadingReplies}
+                >
+                  {isLoadingReplies ? (
+                    <>
+                      <Loader2
+                        aria-hidden="true"
+                        className="h-3.5 w-3.5 animate-spin"
+                      />
+                      <span className="sr-only">Loading replies</span>
+                    </>
+                  ) : (
+                    `Show more ${totalReplies - numLoadedReplies} comment${
+                      totalReplies - numLoadedReplies > 1 ? "s" : ""
+                    }`
+                  )}
+                </button>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+    </ModalCommentItemProvider>
   );
 }
 

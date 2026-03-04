@@ -11,5 +11,8 @@ export default function PostDetailModal() {
   const closeModal = usePostDetailModal((s) => s.closeModal);
 
   if (!selectedPost) return null;
-  return <ModalPostContent post={selectedPost} onClose={closeModal} />;
+  const modalKey = `${selectedPost.id}:${selectedPost.sourcePostId ?? ""}`;
+  return (
+    <ModalPostContent key={modalKey} post={selectedPost} onClose={closeModal} />
+  );
 }
