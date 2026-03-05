@@ -1,6 +1,6 @@
-import { clientGetJson } from "@/app/share/utils/api";
+import { clientGetJson, clientPostJson, clientDeleteJson, clientPatchJson } from "@/app/share/utils/api";
 import type { ApiResponse } from "@/app/share/utils/api-types";
-import type { UserListUser } from "../types/user-list.types";
+import type { FriendRequestUser, UserListUser } from "../types/user-list.types";
 
 export const fetchFollowers = async (
   userId: string,
@@ -18,4 +18,8 @@ export const fetchFriends = async (
   userId: string,
 ): Promise<ApiResponse<UserListUser[]>> => {
   return clientGetJson<UserListUser[]>(`/friends/${userId}`);
+};
+
+export const fetchFriendRequests = async (): Promise<ApiResponse<FriendRequestUser[]>> => {
+  return clientGetJson<FriendRequestUser[]>(`/friends/requests/pending`);
 };

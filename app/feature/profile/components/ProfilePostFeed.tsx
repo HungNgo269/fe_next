@@ -1,0 +1,106 @@
+"use client";
+
+import { useMemo } from "react";
+import { Loader2 } from "lucide-react";
+import FeedComposer from "@/app/feature/feed/components/FeedComposer";
+import PostCard from "@/app/feature/post/components/PostCard";
+import type { Post } from "@/app/feature/post/types/api.types";
+import { usePostDetailModal } from "@/app/feature/post/hooks/usePostDetailModal";
+import { useInfiniteScrollTrigger } from "@/app/share/hooks/useInfiniteScrollTrigger";
+import type { UserProfile } from "../types/profile";
+
+interface ProfilePostFeedProps {
+  posts: Post[];
+  profile: UserProfile;
+  canEditProfile: boolean;
+  postsLabel: string;
+  emptyMessage: string;
+  postsError?: string;
+  hasMorePosts: boolean;
+  isLoadingMore: boolean;
+  onLoadMore: () => void | Promise<void>;
+}
+
+export default function ProfilePostFeed({
+  posts,
+  profile,
+  canEditProfile,
+  postsLabel,
+  emptyMessage,
+  postsError,
+  hasMorePosts,
+  isLoadingMore,
+  onLoadMore,
+}: ProfilePostFeedProps) {
+  const openModal = usePostDetailModal((s) => s.openModal);
+
+  const loadMoreSentinelRef = useInfiniteScrollTrigger({
+    hasMore: hasMorePosts,
+    isLoading: isLoadingMore,
+    onLoadMore,
+  });
+
+  const composerUser = useMemo(
+    () => ({
+      id: profile.id ?? "",
+      name: profile.name,
+      email: profile.email ?? "",
+      avatarUrl: profile.avatar,
+      gender: profile.gender ?? undefined,
+    }),
+    [profile.id, profile.name, profile.email, profile.avatar, profile.gender],
+  );
+
+  return (
+    <section className="space-y-3">
+      <header className="mb-4 flex items-center justify-between gap-2">
+        <h2 className="text-lg font-semibold text-foreground">{postsLabel}</h2>
+      </header>
+
+      {postsError ? (
+        <div className="ui-alert-warning rounded-2xl px-4 py-3 text-sm">
+          {postsError}
+        </div>
+      ) : null}
+
+      {canEditProfile ? <FeedComposer currentUser={composerUser} /> : null}
+
+      {posts.length === 0 ? (
+        <p className="ui-text-muted text-sm">{emptyMessage}</p>
+      ) : (
+        <>
+          <div className="space-y-6">
+            {posts.map((post, index) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                index={index}
+                onOpenDetail={openModal}
+              />
+            ))}
+          </div>
+
+          {hasMorePosts ? (
+            <div className="flex flex-col items-center gap-3 pt-2">
+              <div aria-hidden="true" className="h-2 w-full" ref={loadMoreSentinelRef} />
+              {isLoadingMore ? (
+                <div aria-live="polite" className="inline-flex items-center justify-center">
+                  <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
+                  <span className="sr-only">Loading more posts</span>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className="ui-btn-primary inline-flex items-center justify-center rounded-full px-5 py-2 text-xs font-semibold transition-colors"
+                  onClick={() => void onLoadMore()}
+                >
+                  Load 5 more posts
+                </button>
+              )}
+            </div>
+          ) : null}
+        </>
+      )}
+    </section>
+  );
+}

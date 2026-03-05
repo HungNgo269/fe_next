@@ -32,6 +32,10 @@ const toUserProfile = (
   gender: user.gender ?? "",
   avatar: user.avatarUrl ?? "",
   friendsCount: user.friendsCount,
+  followersCount: user.followersCount,
+  followingCount: user.followingCount,
+  isFollowing: user.isFollowing,
+  friendshipStatus: user.friendshipStatus,
 });
 
 export function useProfileFeed({

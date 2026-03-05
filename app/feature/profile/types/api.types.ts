@@ -1,5 +1,7 @@
 import type { Post } from "@/app/feature/post/types/api.types";
 
+export type FriendshipStatus = "NONE" | "PENDING_SENT" | "PENDING_RECEIVED" | "ACCEPTED";
+
 export type ProfileResponse = {
   id: string;
   handle?: string | null;
@@ -11,6 +13,7 @@ export type ProfileResponse = {
   followersCount?: number;
   followingCount?: number;
   isFollowing?: boolean;
+  friendshipStatus?: FriendshipStatus;
 };
 
 export type ProfileFeedResponse = {
@@ -25,6 +28,7 @@ export type ProfileFeedResponse = {
     followersCount: number;
     followingCount: number;
     isFollowing: boolean;
+    friendshipStatus: FriendshipStatus;
   };
   posts: Post[];
   pagination: {

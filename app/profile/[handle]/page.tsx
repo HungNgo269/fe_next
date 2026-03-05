@@ -5,7 +5,6 @@ import { useCallback } from "react";
 import { useParams } from "next/navigation";
 import { getUserProfileFeed } from "../../feature/profile/api/profileApi";
 import { useProfileFeed } from "../../feature/profile/hooks/useProfileFeed";
-import { useFollowUser } from "../../feature/profile/hooks/useFollowUser";
 import ProfileFeedView from "../../feature/profile/views/ProfileFeedView";
 import ProfileShell from "../../feature/profile/components/ProfileShell";
 
@@ -18,10 +17,6 @@ export default function OtherUserProfilePage() {
   );
 
   const feed = useProfileFeed({ fetchFn, profileKey: handle });
-  const { followUser, unfollowUser, isFollowingLoading } = useFollowUser(
-    feed.profile.id ?? "",
-    handle,
-  );
 
   if (!feed.isLoading && (feed.profileError || feed.isUnauthorized)) {
     return (
@@ -54,6 +49,7 @@ export default function OtherUserProfilePage() {
     <ProfileShell>
       <ProfileFeedView
         {...feed}
+        profileKey={handle}
         postsLabel="Posts and shares"
         emptyMessage="This user has not created or shared any posts yet."
         headerActions={
@@ -63,24 +59,7 @@ export default function OtherUserProfilePage() {
               href="/profile/edit"
             >
             </Link>
-          ) : (
-            feed.profile.id && (
-              <button
-                type="button"
-                className={`rounded-lg px-6 py-1.5 text-sm font-semibold transition-colors ${
-                  feed.profile.isFollowing
-                    ? "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                    : "ui-btn-primary bg-blue-500 text-white hover:bg-blue-600"
-                }`}
-                disabled={isFollowingLoading}
-                onClick={() =>
-                  feed.profile.isFollowing ? unfollowUser() : followUser()
-                }
-              >
-                {feed.profile.isFollowing ? "Followed" : "Follow"}
-              </button>
-            )
-          )
+          ) : null
         }
       />
     </ProfileShell>

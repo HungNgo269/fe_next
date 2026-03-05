@@ -5,13 +5,10 @@ import { useEffect, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X, Search, Loader2 } from "lucide-react";
 import ProfileAvatarPreview from "./ProfileAvatarPreview";
-import type { UserListType, UserListUser } from "../types/user-list.types";
-import {
-  fetchFollowers,
-  fetchFollowing,
-  fetchFriends,
-} from "../api/userListApi";
+import type { UserListType } from "../types/user-list.types";
+import { fetchFollowers, fetchFollowing, fetchFriends } from "../api/userListApi";
 import { useAppSessionStore } from "@/app/share/stores/appSessionStore";
+import { useUserListFollow } from "../hooks/useUserListFollow";
 
 interface UserListModalProps {
   isOpen: boolean;
@@ -19,6 +16,12 @@ interface UserListModalProps {
   listType: UserListType | null;
   userId: string;
 }
+
+const LIST_TITLES: Record<UserListType, string> = {
+  followers: "Followers",
+  following: "Following",
+  friends: "Friends",
+};
 
 export default function UserListModal({
   isOpen,
@@ -29,35 +32,31 @@ export default function UserListModal({
   const [searchQuery, setSearchQuery] = useState("");
   const authProfile = useAppSessionStore((state) => state.authProfile);
 
-  // Reset search when modal opens/closes or listType changes
+  const queryKey = ["user-list", userId, listType] as const;
+
   useEffect(() => {
     setSearchQuery("");
   }, [isOpen, listType]);
 
   const { data: users, isLoading } = useQuery({
-    queryKey: ["user-list", userId, listType],
+    queryKey,
     queryFn: async () => {
       if (!listType || !userId) return [];
-      
-      let res;
       if (listType === "followers") {
-        res = await fetchFollowers(userId);
-      } else if (listType === "following") {
-        res = await fetchFollowing(userId);
-      } else {
-        res = await fetchFriends(userId);
+        const res = await fetchFollowers(userId);
+        return res.ok ? res.data : [];
       }
+      if (listType === "following") {
+        const res = await fetchFollowing(userId);
+        return res.ok ? res.data : [];
+      }
+      const res = await fetchFriends(userId);
       return res.ok ? res.data : [];
     },
     enabled: isOpen && !!listType && !!userId,
   });
 
-  const getTitle = () => {
-    if (listType === "followers") return "Followers";
-    if (listType === "following") return "Following";
-    if (listType === "friends") return "Friends";
-    return "";
-  };
+  const { toggle, isBusy } = useUserListFollow(queryKey);
 
   const filteredUsers =
     users?.filter(
@@ -72,7 +71,9 @@ export default function UserListModal({
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/60 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
         <Dialog.Content className="fixed left-[50%] top-[50%] z-50 w-full max-w-[400px] translate-x-[-50%] translate-y-[-50%] overflow-hidden rounded-xl bg-background shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
           <div className="flex items-center justify-between border-b border-border p-4">
-            <h2 className="text-lg font-semibold">{getTitle()}</h2>
+            <h2 className="text-lg font-semibold">
+              {listType ? LIST_TITLES[listType] : ""}
+            </h2>
             <Dialog.Close className="rounded-full p-1.5 hover:bg-muted transition-colors">
               <X className="h-5 w-5" />
             </Dialog.Close>
@@ -104,10 +105,7 @@ export default function UserListModal({
               ) : (
                 <div className="space-y-4">
                   {filteredUsers.map((user) => (
-                    <div
-                      key={user.id}
-                      className="flex items-center justify-between"
-                    >
+                    <div key={user.id} className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="h-10 w-10">
                           <ProfileAvatarPreview
@@ -117,21 +115,26 @@ export default function UserListModal({
                           />
                         </div>
                         <div className="flex flex-col">
-                          <span className="font-semibold text-sm">
-                            {user.handle || user.name}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {user.name}
-                          </span>
+                          <span className="font-semibold text-sm">{user.handle || user.name}</span>
+                          <span className="text-xs text-muted-foreground">{user.name}</span>
                         </div>
                       </div>
-                      
-                      {/* Follow Button Placeholder */}
-                      {authProfile?.id !== user.id && (
-                        <button className={`ui-btn-primary rounded-md px-3 py-1.5 text-xs font-semibold ${user.isFollowing ? 'bg-muted text-foreground hover:bg-muted/80 border border-border' : ''}`}>
+
+                      {authProfile?.id !== user.id ? (
+                        <button
+                          type="button"
+                          disabled={isBusy(user.id)}
+                          onClick={() => toggle(user)}
+                          className={`flex items-center gap-1 rounded-md px-3 py-1.5 text-xs font-semibold transition disabled:opacity-60 ${
+                            user.isFollowing
+                              ? "border border-border bg-muted text-foreground hover:bg-muted/80"
+                              : "ui-btn-primary"
+                          }`}
+                        >
+                          {isBusy(user.id) ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
                           {user.isFollowing ? "Following" : "Follow"}
                         </button>
-                      )}
+                      ) : null}
                     </div>
                   ))}
                 </div>

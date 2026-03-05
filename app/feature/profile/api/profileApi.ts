@@ -72,3 +72,18 @@ export const followUserApi = async (userId: string): Promise<ApiResponse<void>> 
 
 export const unfollowUserApi = async (userId: string): Promise<ApiResponse<void>> =>
   clientDeleteJson(`/follows/${userId}`);
+
+export const sendFriendRequestApi = async (userId: string): Promise<ApiResponse<void>> =>
+  clientPostJson(`/friends/${userId}/request`, {});
+
+export const cancelFriendRequestApi = async (userId: string): Promise<ApiResponse<void>> =>
+  clientDeleteJson(`/friends/${userId}/request`);
+
+export const acceptFriendRequestApi = async (userId: string): Promise<ApiResponse<void>> =>
+  clientPatchJson(`/friends/${userId}/accept`, {});
+
+export const declineFriendRequestApi = async (userId: string): Promise<ApiResponse<void>> =>
+  clientPatchJson(`/friends/${userId}/decline`, {});
+
+export const removeFriendApi = async (userId: string): Promise<ApiResponse<void>> =>
+  clientDeleteJson(`/friends/${userId}`);
