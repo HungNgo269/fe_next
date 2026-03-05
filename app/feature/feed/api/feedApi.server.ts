@@ -36,6 +36,9 @@ export const prefetchFeedPosts = async (): Promise<FeedBootstrapData> => {
           email: userResult.data.email,
           gender: userResult.data.gender ?? "",
           avatar: userResult.data.avatarUrl ?? "",
+          followersCount: 0,
+          followingCount: 0,
+          isFollowing: false,
         },
         isAuthenticated: true,
       }

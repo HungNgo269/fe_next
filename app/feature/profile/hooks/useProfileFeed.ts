@@ -31,6 +31,7 @@ const toUserProfile = (
   email: user.email ?? "",
   gender: user.gender ?? "",
   avatar: user.avatarUrl ?? "",
+  friendsCount: user.friendsCount,
 });
 
 export function useProfileFeed({

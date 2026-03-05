@@ -1,5 +1,5 @@
 import type { ApiResponse } from "@/app/share/utils/api-types";
-import { clientGetJson, clientPatchJson } from "@/app/share/utils/api";
+import { clientGetJson, clientPatchJson, clientPostJson, clientDeleteJson } from "@/app/share/utils/api";
 import type { EditableProfileField, UserProfile } from "../types/profile";
 import type {
   ProfileResponse,
@@ -8,13 +8,18 @@ import type {
 
 const PROFILE_PATH = "/users/me";
 
-const mapToUserProfile = (data: ProfileResponse): UserProfile => ({
+const mapToUserProfile = (
+  data: ProfileResponse | ProfileFeedResponse["user"]
+): UserProfile => ({
   id: data.id,
   handle: data.handle ?? null,
   name: data.name,
   email: data.email,
   gender: data.gender,
   avatar: data.avatarUrl ?? "",
+  followersCount: data.followersCount ?? 0,
+  followingCount: data.followingCount ?? 0,
+  isFollowing: data.isFollowing ?? false,
 });
 
 export const getCurrentUserProfile = async (): Promise<ApiResponse<UserProfile>> => {
@@ -61,3 +66,9 @@ export const updateCurrentUserProfile = async (
   if (!raw.ok) return raw;
   return { ok: true, data: mapToUserProfile(raw.data) };
 };
+
+export const followUserApi = async (userId: string): Promise<ApiResponse<void>> =>
+  clientPostJson(`/follows/${userId}`, {});
+
+export const unfollowUserApi = async (userId: string): Promise<ApiResponse<void>> =>
+  clientDeleteJson(`/follows/${userId}`);

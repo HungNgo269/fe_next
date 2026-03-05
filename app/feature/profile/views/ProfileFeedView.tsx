@@ -10,6 +10,9 @@ import type { Post } from "@/app/feature/post/types/api.types";
 import { usePostDetailModal } from "@/app/feature/post/hooks/usePostDetailModal";
 import { useInfiniteScrollTrigger } from "@/app/share/hooks/useInfiniteScrollTrigger";
 import { Loader2 } from "lucide-react";
+import UserListModal from "@/app/feature/profile/components/UserListModal";
+import type { UserListType } from "@/app/feature/profile/types/user-list.types";
+import { useState } from "react";
 
 type ProfileFeedState = ReturnType<typeof useProfileFeed>;
 
@@ -30,6 +33,7 @@ export default function ProfileFeedView({
   profileError,
   postsError,
   hasMorePosts,
+  totalPosts,
   isLoadingMore,
   handleLoadMore,
   headerActions,
@@ -38,6 +42,14 @@ export default function ProfileFeedView({
 }: ProfileFeedViewProps) {
   void currentUserAvatar;
   const openModal = usePostDetailModal((s) => s.openModal);
+  
+  const [listModalOpen, setListModalOpen] = useState(false);
+  const [listModalType, setListModalType] = useState<UserListType | null>(null);
+
+  const handleOpenListModal = (type: UserListType) => {
+    setListModalType(type);
+    setListModalOpen(true);
+  };
   const loadMoreSentinelRef = useInfiniteScrollTrigger({
     hasMore: hasMorePosts,
     isLoading: isLoadingMore,
@@ -90,28 +102,70 @@ export default function ProfileFeedView({
   return (
     <main className="relative mx-auto w-full max-w-5xl space-y-6 px-4 pb-16 pt-12 sm:px-6">
       <section className=" rounded-md p-6 sm:p-8">
-        <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-4">
-            <ProfileAvatarPreview
-              avatarUrl={profile.avatar}
-              fallbackInitials={initials}
-              name={profile.name}
-            />
-            <div>
-              <p className="text-xl font-semibold text-foreground">
-                {profile.name || "Unnamed user"}
-              </p>
-              <p className="ui-text-muted text-sm">
-                {profile.email || "No email"}
-              </p>
-              <p className="ui-text-muted text-xs uppercase tracking-wider">
-                {profile.gender || "Unknown"}
-              </p>
+        <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-center gap-6">
+            <div className="h-24 w-24 sm:h-32 sm:w-32">
+              <ProfileAvatarPreview
+                avatarUrl={profile.avatar}
+                fallbackInitials={initials}
+                name={profile.name}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-4">
+                <h1 className="text-xl font-bold text-foreground">
+                  {profile.handle || profile.name || "Unnamed user"}
+                </h1>
+                {headerActions ? (
+                  <div className="flex items-center gap-2">{headerActions}</div>
+                ) : null}
+              </div>
+              {profile.handle && (
+                <p className="ui-text-muted text-sm font-medium">
+                  {profile.name}
+                </p>
+              )}
+              <div className="mt-2 flex items-center gap-4 text-sm sm:gap-6">
+                <span>
+                  <span className="font-semibold text-foreground">
+                    {totalPosts ?? posts.length}
+                  </span>{" "}
+                  posts
+                </span>
+                <button
+                  type="button"
+                  className="hover:text-brand transition-colors"
+                  onClick={() => handleOpenListModal("friends")}
+                >
+                  <span className="font-semibold text-foreground">
+                    {profile.friendsCount ?? 0}
+                  </span>{" "}
+                  friends
+                </button>
+                <button
+                  type="button"
+                  className="hover:text-brand transition-colors"
+                  onClick={() => handleOpenListModal("followers")}
+                >
+                  <span className="font-semibold text-foreground">
+                    {profile.followersCount ?? 0}
+                  </span>{" "}
+                  followers
+                </button>
+                <button
+                  type="button"
+                  className="hover:text-brand transition-colors"
+                  onClick={() => handleOpenListModal("following")}
+                >
+                  following{" "}
+                  <span className="font-semibold text-foreground">
+                    {profile.followingCount ?? 0}
+                  </span>{" "}
+                  users
+                </button>
+              </div>
             </div>
           </div>
-          {headerActions ? (
-            <div className="flex items-center gap-2">{headerActions}</div>
-          ) : null}
         </div>
         {profileError ? (
           <p className="ui-alert-warning mt-4 rounded-2xl px-4 py-3 text-sm">
@@ -177,6 +231,12 @@ export default function ProfileFeedView({
       </section>
 
       <PostDetailModal />
+      <UserListModal
+        isOpen={listModalOpen}
+        onClose={() => setListModalOpen(false)}
+        listType={listModalType}
+        userId={profile.id!}
+      />
     </main>
   );
 }

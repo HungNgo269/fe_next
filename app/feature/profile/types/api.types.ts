@@ -1,6 +1,5 @@
 import type { Post } from "@/app/feature/post/types/api.types";
 
-/** Actual shape returned by the backend for GET/PATCH /users/me */
 export type ProfileResponse = {
   id: string;
   handle?: string | null;
@@ -8,6 +7,10 @@ export type ProfileResponse = {
   email: string;
   gender: string;
   avatarUrl: string | null;
+  friendsCount?: number;
+  followersCount?: number;
+  followingCount?: number;
+  isFollowing?: boolean;
 };
 
 export type ProfileFeedResponse = {
@@ -18,6 +21,10 @@ export type ProfileFeedResponse = {
     email: string;
     gender: string;
     avatarUrl: string | null;
+    friendsCount: number;
+    followersCount: number;
+    followingCount: number;
+    isFollowing: boolean;
   };
   posts: Post[];
   pagination: {

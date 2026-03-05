@@ -12,6 +12,9 @@ const EMPTY_PROFILE: UserProfile = {
   email: "",
   gender: "",
   avatar: "",
+  followersCount: 0,
+  followingCount: 0,
+  isFollowing: false,
 };
 
 export const buildInitials = (name: string): string => {
@@ -67,6 +70,9 @@ export function useProfileData(isOwnProfile: boolean): ProfileLoadingState {
           email: incoming.email,
           gender: incoming.gender,
           avatar: incoming.avatar,
+          followersCount: incoming.followersCount,
+          followingCount: incoming.followingCount,
+          isFollowing: incoming.isFollowing,
         });
       }
     },

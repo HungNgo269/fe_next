@@ -27,10 +27,9 @@ export default function UserProfilePage() {
         emptyMessage="You have not created or shared any posts yet."
         headerActions={
           <Link
-            className="ui-btn-primary rounded-full px-4 py-2 text-xs font-semibold transition-colors"
+            className="ui-btn-primary rounded-lg px-4 py-1.5 text-sm font-semibold transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/80"
             href="/profile/edit"
           >
-            Edit your profile
           </Link>
         }
       />

@@ -5,6 +5,10 @@ export type UserProfile = {
   email: string;
   gender: string;
   avatar: string;
+  friendsCount?: number;
+  followersCount?: number;
+  followingCount?: number;
+  isFollowing?: boolean;
 };
 
 export type EditableProfileField = "avatar" | "name" | "email" | "gender";
