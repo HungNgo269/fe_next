@@ -3,6 +3,7 @@ import {
   clientGetJson,
   clientPatchJson,
   clientPostJson,
+  clientPostForm,
   clientDeleteJson,
 } from "@/app/share/utils/api";
 
@@ -16,9 +17,20 @@ export const fetchPosts = async (
 
 export const createPostRequest = async (
   content: string,
-  authorId: string,
 ): Promise<ApiResponse<Post>> =>
-  clientPostJson<Post>("/posts", { content: content.trim(), authorId });
+  clientPostJson<Post>("/posts", { content: content.trim() });
+
+export const createPostWithImagesRequest = async (
+  content: string,
+  images: File[],
+): Promise<ApiResponse<Post>> => {
+  const formData = new FormData();
+  formData.append("content", content.trim());
+  for (const image of images) {
+    formData.append("images", image);
+  }
+  return clientPostForm<Post>("/posts/with-images", formData);
+};
 
 export const updatePostRequest = async (
   postId: string,

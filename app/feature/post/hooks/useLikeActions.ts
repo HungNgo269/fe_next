@@ -72,7 +72,7 @@ export function useLikeActions(postId: string) {
         return;
       }
 
-      const result = await createLikeRequest(postId, currentUserId);
+      const result = await createLikeRequest(postId);
       if (!result.ok)
         throw new Error(result.error.messages[0] ?? "Unable to like.");
     },

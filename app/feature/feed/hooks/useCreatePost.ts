@@ -2,7 +2,10 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
-import { createPostRequest } from "@/app/feature/post/api/postApi";
+import {
+  createPostRequest,
+  createPostWithImagesRequest,
+} from "@/app/feature/post/api/postApi";
 import type { Post } from "@/app/feature/post/types/api.types";
 import {
   useAppSessionStore,
@@ -21,9 +24,11 @@ export function useCreatePost() {
   const currentUser = toAvatarFromProfile(authProfile);
 
   const createMutation = useMutation({
-    mutationFn: (content: string) =>
-      createPostRequest(content, currentUser!.id),
-    onSuccess: async (result, content) => {
+    mutationFn: (payload: { content: string; images: File[] }) =>
+      payload.images.length > 0
+        ? createPostWithImagesRequest(payload.content, payload.images)
+        : createPostRequest(payload.content),
+    onSuccess: async (result, payload) => {
       if (!result.ok) return;
       const newPost: Post = {
         id: result.data.id,
@@ -35,12 +40,12 @@ export function useCreatePost() {
           gender: currentUser!.gender,
         },
         createdAt: new Date().toISOString(),
-        content: content.trim(),
+        content: payload.content.trim(),
         likesCount: 0,
         likedByMe: false,
         commentsCount: 0,
         sharesCount: 0,
-        mediaUrls: [],
+        mediaUrls: result.data.mediaUrls ?? [],
       };
       cache.prependPost(newPost);
       await Promise.all([
@@ -51,11 +56,11 @@ export function useCreatePost() {
   });
 
   const handleCreatePost = useCallback(
-    (content: string) => {
+    (content: string, images: File[] = []) => {
       runIfAuth(() => {
         const trimmed = content.trim();
         if (!trimmed) return;
-        createMutation.mutate(trimmed);
+        createMutation.mutate({ content: trimmed, images });
       });
     },
     [runIfAuth, createMutation],

@@ -135,6 +135,29 @@ export const clientPostJson = async <T>(
     options,
   );
 
+export const clientPostForm = async <T>(
+  path: string,
+  body: FormData,
+  options?: ClientRequestOptions,
+): Promise<ApiResponse<T>> =>
+  executeClientRequest(
+    async (requestConfig) => {
+      const headers = { ...(requestConfig.headers ?? {}) } as Record<
+        string,
+        string
+      >;
+      delete headers["Content-Type"];
+      delete headers["content-type"];
+
+      const response = await apiClient.post<T>(normalizePath(path), body, {
+        ...requestConfig,
+        headers,
+      });
+      return response.data as T;
+    },
+    options,
+  );
+
 export const clientGetJson = async <T>(
   path: string,
   options?: ClientRequestOptions,

@@ -4,9 +4,8 @@ import { clientDeleteJson, clientPostJson } from "@/app/share/utils/api";
 
 export const createLikeRequest = async (
   postId: string,
-  userId: string,
 ): Promise<ApiResponse<Like>> =>
-  clientPostJson<Like>("/likes", { postId, userId });
+  clientPostJson<Like>("/likes", { postId });
 
 export const deleteLikeRequest = async (
   likeId: string,

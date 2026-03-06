@@ -9,13 +9,11 @@ import type { Comment, PostComment } from "../types/api.types";
 
 export const createCommentRequest = async (
   postId: string,
-  authorId: string,
   content: string,
   parentId?: string,
 ): Promise<ApiResponse<Comment>> =>
   clientPostJson<Comment>("/comments", {
     postId,
-    authorId,
     content: content.trim(),
     ...(parentId ? { parentId } : {}),
   });

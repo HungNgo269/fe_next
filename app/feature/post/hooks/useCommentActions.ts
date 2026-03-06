@@ -35,7 +35,7 @@ export function useCommentActions(postId: string) {
     }: {
       content: string;
       parentId?: string;
-    }) => createCommentRequest(postId, currentUser!.id, content, parentId),
+    }) => createCommentRequest(postId, content, parentId),
     onSuccess: (result, variables) => {
       if (!result.ok || !currentUser) return;
       cache.appendComment(postId, {
