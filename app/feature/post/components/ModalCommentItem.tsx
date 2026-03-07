@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { memo, useCallback, useState } from "react";
 import Link from "next/link";
@@ -141,63 +141,65 @@ function ModalCommentItemComponent({
       }}
     >
       <div>
-        <div className="group flex items-start gap-3 px-4 py-2">
-        <Avatar
-          avatar={comment.author.avatarUrl ?? undefined}
-          gender={comment.author.gender}
-        />
+        <div className="group flex items-start gap-2.5 px-4 py-1.5">
+          <Avatar
+            avatar={comment.author.avatarUrl ?? undefined}
+            gender={comment.author.gender}
+          />
 
-        <div className="min-w-0 flex-1">
-          <div className="flex items-baseline gap-2">
-            <Link
-              className="text-xs font-semibold text-foreground transition-opacity hover:opacity-80"
-              href={`/profile/${authorProfileKey}`}
-            >
-              {comment.author.name}
-            </Link>
-            {!isReplyItem ? (
-              <span className="ui-text-muted text-2xs">
-                {formatRelativeTime(comment.createdAt)}
-              </span>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <Link
+                className="text-xs font-semibold text-foreground transition-opacity hover:opacity-80"
+                href={`/profile/${authorProfileKey}`}
+              >
+                {comment.author.name}
+              </Link>
+              {!isReplyItem ? (
+                <span className="ui-text-muted text-2xs">
+                  {formatRelativeTime(comment.createdAt)}
+                </span>
+              ) : null}
+            </div>
+
+            {isEditing ? (
+              <ModalCommentEditForm />
+            ) : (
+              <p className="mt-0.5 text-xs leading-5 text-foreground/90">
+                {comment.content}
+              </p>
+            )}
+
+            {!isEditing && !isReplyItem ? (
+              <div className="mt-0.5 flex items-center gap-3">
+                <button
+                  className="ui-text-muted text-2xs font-semibold transition-opacity hover:opacity-70"
+                  onClick={startReply}
+                  type="button"
+                >
+                  Reply
+                </button>
+              </div>
             ) : null}
+
+            {isReplying && !isReplyItem ? <ModalCommentReplyForm /> : null}
           </div>
 
-          {isEditing ? (
-            <ModalCommentEditForm />
-          ) : (
-            <p className="ui-text-muted mt-0.5 text-xs">{comment.content}</p>
-          )}
+          <div className="relative ml-auto self-start" ref={menuRef}>
+            <button
+              className="ui-text-muted rounded-full p-1.5 opacity-0 transition-opacity hover:opacity-70 group-hover:opacity-100 focus:opacity-100"
+              onClick={() => setIsMenuOpen((prev) => !prev)}
+              type="button"
+            >
+              <IconMoreVertical />
+            </button>
 
-          {!isEditing && !isReplyItem ? (
-            <div className="mt-1">
-              <button
-                className="ui-text-muted text-2xs font-semibold uppercase tracking-wide transition-opacity hover:opacity-70"
-                onClick={startReply}
-                type="button"
-              >
-                Replies
-              </button>
-            </div>
-          ) : null}
-
-          {isReplying && !isReplyItem ? <ModalCommentReplyForm /> : null}
+            {isMenuOpen ? <ModalCommentMenu /> : null}
+          </div>
         </div>
-
-        <div className="relative ml-auto self-start" ref={menuRef}>
-          <button
-            className="ui-text-muted rounded-full p-1.5 opacity-0 transition-opacity hover:opacity-70 group-hover:opacity-100 focus:opacity-100"
-            onClick={() => setIsMenuOpen((prev) => !prev)}
-            type="button"
-          >
-            <IconMoreVertical />
-          </button>
-
-          {isMenuOpen ? <ModalCommentMenu /> : null}
-        </div>
-      </div>
 
         {!isReplyItem && (numLoadedReplies > 0 || hasMoreReplies) ? (
-          <div className="space-y-1 pb-2 pl-10 pr-2">
+          <div className="space-y-1 pb-1 pl-9 pr-2">
             {comment.replies?.map((reply) => (
               <ModalCommentItem
                 key={reply.id}
@@ -208,10 +210,10 @@ function ModalCommentItemComponent({
             ))}
             {hasMoreReplies ? (
               <div className="flex items-center pt-1">
-                <span className="mr-2 inline-block w-6 border-t border-border"></span>
+                <span className="mr-2 inline-block w-6 "></span>
                 <button
                   type="button"
-                  className="inline-flex items-center justify-center text-xs font-semibold text-foreground hover:underline disabled:no-underline"
+                  className="inline-flex items-center justify-center text-xs font-semibold text-foreground/80 hover:underline disabled:no-underline"
                   onClick={() => void handleLoadMoreReplies()}
                   disabled={isLoadingReplies}
                 >
@@ -221,12 +223,9 @@ function ModalCommentItemComponent({
                         aria-hidden="true"
                         className="h-3.5 w-3.5 animate-spin"
                       />
-                      <span className="sr-only">Loading replies</span>
                     </>
                   ) : (
-                    `Show more ${totalReplies - numLoadedReplies} comment${
-                      totalReplies - numLoadedReplies > 1 ? "s" : ""
-                    }`
+                    `Show more ${totalReplies - numLoadedReplies} replies`
                   )}
                 </button>
               </div>

@@ -59,7 +59,7 @@ export default function ModalPostContent({
 
   const { contentRef } = useModalLifecycle(onClose);
 
-  const { handleToggleLike } = useLikeActions(postId);
+  const { handleToggleLike } = useLikeActions(postId, post.likedByMe);
   const { handleCopyShareLink } = useSharePost(postId);
   const {
     isEditing,

@@ -85,8 +85,10 @@ export default function FeedPage() {
                     aria-live="polite"
                     className="inline-flex items-center justify-center"
                   >
-                    <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
-                    <span className="sr-only">Loading more posts</span>
+                    <Loader2
+                      aria-hidden="true"
+                      className="h-4 w-4 animate-spin"
+                    />
                   </div>
                 ) : (
                   <button

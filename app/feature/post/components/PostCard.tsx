@@ -2,7 +2,6 @@ import type { Post } from "../types/api.types";
 import PostActions from "./PostActions";
 import PostBody from "./PostBody";
 import PostHeader from "./PostHeader";
-import PostStats from "./PostStats";
 
 export default function PostCard({
   post,
@@ -13,6 +12,7 @@ export default function PostCard({
   index: number;
   onOpenDetail?: (post: Post) => void;
 }) {
+  void index;
   const interactionPostId = post.sourcePostId ?? post.id;
   const openDetail = () => onOpenDetail?.(post);
 
@@ -29,20 +29,16 @@ export default function PostCard({
       <PostBody
         postId={interactionPostId}
         content={post.content}
-        media={undefined}
+        mediaUrls={post.mediaUrls}
         onClickContent={openDetail}
-      />
-
-      <PostStats
-        likes={post.likesCount}
-        commentsCount={post.commentsCount}
-        shares={post.sharesCount}
-        onClickComments={openDetail}
       />
 
       <PostActions
         postId={interactionPostId}
         likedByMe={post.likedByMe}
+        likesCount={post.likesCount}
+        commentsCount={post.commentsCount}
+        sharesCount={post.sharesCount}
         onClickComment={openDetail}
       />
     </article>

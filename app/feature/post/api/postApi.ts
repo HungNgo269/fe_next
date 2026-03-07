@@ -2,7 +2,6 @@ import type { ApiResponse } from "@/app/share/utils/api-types";
 import {
   clientGetJson,
   clientPatchJson,
-  clientPostJson,
   clientPostForm,
   clientDeleteJson,
 } from "@/app/share/utils/api";
@@ -17,19 +16,17 @@ export const fetchPosts = async (
 
 export const createPostRequest = async (
   content: string,
-): Promise<ApiResponse<Post>> =>
-  clientPostJson<Post>("/posts", { content: content.trim() });
-
-export const createPostWithImagesRequest = async (
-  content: string,
-  images: File[],
+  mediaFiles: File[],
 ): Promise<ApiResponse<Post>> => {
   const formData = new FormData();
-  formData.append("content", content.trim());
-  for (const image of images) {
-    formData.append("images", image);
+  const trimmed = content.trim();
+  if (trimmed) {
+    formData.append("content", trimmed);
   }
-  return clientPostForm<Post>("/posts/with-images", formData);
+  for (const file of mediaFiles) {
+    formData.append("media", file);
+  }
+  return clientPostForm<Post>("/posts", formData);
 };
 
 export const updatePostRequest = async (

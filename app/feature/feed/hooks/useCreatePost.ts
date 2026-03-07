@@ -2,10 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
-import {
-  createPostRequest,
-  createPostWithImagesRequest,
-} from "@/app/feature/post/api/postApi";
+import { createPostRequest } from "@/app/feature/post/api/postApi";
 import type { Post } from "@/app/feature/post/types/api.types";
 import {
   useAppSessionStore,
@@ -24,10 +21,8 @@ export function useCreatePost() {
   const currentUser = toAvatarFromProfile(authProfile);
 
   const createMutation = useMutation({
-    mutationFn: (payload: { content: string; images: File[] }) =>
-      payload.images.length > 0
-        ? createPostWithImagesRequest(payload.content, payload.images)
-        : createPostRequest(payload.content),
+    mutationFn: (payload: { content: string; mediaFiles: File[] }) =>
+      createPostRequest(payload.content, payload.mediaFiles),
     onSuccess: async (result, payload) => {
       if (!result.ok) return;
       const newPost: Post = {
@@ -56,11 +51,11 @@ export function useCreatePost() {
   });
 
   const handleCreatePost = useCallback(
-    (content: string, images: File[] = []) => {
+    (content: string, mediaFiles: File[] = []) => {
       runIfAuth(() => {
         const trimmed = content.trim();
-        if (!trimmed) return;
-        createMutation.mutate({ content: trimmed, images });
+        if (!trimmed && mediaFiles.length === 0) return;
+        createMutation.mutate({ content: trimmed, mediaFiles });
       });
     },
     [runIfAuth, createMutation],

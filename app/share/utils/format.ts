@@ -1,4 +1,4 @@
-export const toText = (value: unknown): string => {
+﻿export const toText = (value: unknown): string => {
   if (typeof value === "string") {
     return value.trim();
   }
@@ -7,8 +7,6 @@ export const toText = (value: unknown): string => {
   }
   return "";
 };
-
-
 
 export const formatRelativeTime = (value?: string): string => {
   if (!value) {
@@ -28,4 +26,19 @@ export const formatRelativeTime = (value?: string): string => {
   }
   const deltaDays = Math.floor(deltaHours / 24);
   return `${deltaDays}d`;
+};
+
+export const formatPostDate = (value?: string): string => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const now = new Date();
+  const sameYear = now.getFullYear() === date.getFullYear();
+
+  return new Intl.DateTimeFormat("en-US", {
+    day: "numeric",
+    month: "short",
+    ...(sameYear ? {} : { year: "numeric" }),
+  }).format(date);
 };

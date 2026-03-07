@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useModalCommentEditContext } from "./ModalCommentItemContext";
 
@@ -9,7 +9,7 @@ export default function ModalCommentEditForm() {
   return (
     <div className="mt-1 space-y-2">
       <input
-        className="ui-input w-full rounded-full px-3 py-1.5 text-xs outline-none transition-colors"
+        className="ui-input w-full rounded-full border border-border/70 px-3 py-1.5 text-xs outline-none transition-colors"
         value={editingText}
         onChange={(event) => setEditingText(event.target.value)}
       />
@@ -32,6 +32,3 @@ export default function ModalCommentEditForm() {
     </div>
   );
 }
-
-
-

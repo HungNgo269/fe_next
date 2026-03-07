@@ -81,7 +81,7 @@ export default function LeftSidebar({
             ))}
           </nav>
 
-          <div className="space-y-1 border-t border-border/70 px-1 pt-2">
+          <div className="space-y-1  px-1 pt-2">
             {isAuthenticated ? (
               <Link
                 href={`/profile/${currentUser!.handle || currentUser!.id}`}
@@ -196,7 +196,7 @@ export default function LeftSidebar({
         </div>
       </aside>
 
-      <aside className="fixed inset-x-0 bottom-0 z-40 border-t border-border/70 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 lg:hidden">
+      <aside className="fixed inset-x-0 bottom-0 z-40 /70 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 lg:hidden">
         <nav className="mx-auto flex h-16 w-full max-w-2xl items-center gap-1 overflow-x-auto px-2">
           {navItems.map((item) => (
             <button

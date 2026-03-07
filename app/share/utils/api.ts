@@ -96,6 +96,13 @@ apiClient.interceptors.request.use((config) => {
   if (config.url && !isAbsoluteUrl(config.url)) {
     config.url = normalizePath(config.url);
   }
+  if (config.data instanceof FormData) {
+    const headers = config.headers as Record<string, unknown> | undefined;
+    if (headers) {
+      delete headers["Content-Type"];
+      delete headers["content-type"];
+    }
+  }
   return config;
 });
 
@@ -151,7 +158,11 @@ export const clientPostForm = async <T>(
 
       const response = await apiClient.post<T>(normalizePath(path), body, {
         ...requestConfig,
-        headers,
+        headers: {
+          ...headers,
+          "Content-Type": undefined,
+          "content-type": undefined,
+        },
       });
       return response.data as T;
     },

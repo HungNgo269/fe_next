@@ -2,7 +2,6 @@ import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import ProfileStatusCard from "@/app/feature/profile/components/ProfileStatusCard";
 import ProfileHeader from "@/app/feature/profile/components/ProfileHeader";
-import ProfileActions from "@/app/feature/profile/components/ProfileActions";
 import ProfilePostFeed from "@/app/feature/profile/components/ProfilePostFeed";
 import PostDetailModal from "@/app/feature/post/components/PostDetailModal";
 import UserListModal from "@/app/feature/profile/components/UserListModal";
@@ -14,6 +13,7 @@ import { useFriendActions } from "@/app/feature/profile/hooks/useFriendActions";
 import { useQuery } from "@tanstack/react-query";
 import { fetchFriendRequests } from "@/app/feature/profile/api/userListApi";
 import type { useProfileFeed } from "@/app/feature/profile/hooks/useProfileFeed";
+import ProfileActions from "../components/ProfileActions";
 
 type ProfileFeedState = ReturnType<typeof useProfileFeed>;
 
@@ -53,8 +53,14 @@ export default function ProfileFeedView({
     profile.id ?? "",
     profileKey,
   );
-  const { sendRequest, cancelRequest, acceptRequest, declineRequest, removeFriend, isFriendActionLoading } =
-    useFriendActions(profile.id ?? "", profileKey);
+  const {
+    sendRequest,
+    cancelRequest,
+    acceptRequest,
+    declineRequest,
+    removeFriend,
+    isFriendActionLoading,
+  } = useFriendActions(profile.id ?? "", profileKey);
 
   const { data: pendingRequests = [] } = useQuery({
     queryKey: ["friend-requests"],
@@ -64,7 +70,9 @@ export default function ProfileFeedView({
     },
     enabled: canEditProfile,
   });
-  const incomingCount = pendingRequests.filter((r) => r.direction === "incoming").length;
+  const incomingCount = pendingRequests.filter(
+    (r) => r.direction === "incoming",
+  ).length;
 
   if (isLoading) {
     return (

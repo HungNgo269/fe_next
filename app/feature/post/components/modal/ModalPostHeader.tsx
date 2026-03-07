@@ -39,7 +39,9 @@ export default function ModalPostHeader() {
               @{userHandle}
             </span>
           </Link>
-          <p className="ui-text-muted text-xs">{formatRelativeTime(post.createdAt)}</p>
+          <p className="ui-text-muted text-xs">
+            {formatRelativeTime(post.createdAt)}
+          </p>
         </div>
       </div>
 
@@ -64,6 +66,3 @@ export default function ModalPostHeader() {
     </div>
   );
 }
-
-
-

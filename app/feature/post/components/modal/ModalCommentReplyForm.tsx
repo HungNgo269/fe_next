@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import {
   useModalCommentDataContext,
@@ -13,7 +13,7 @@ export default function ModalCommentReplyForm() {
   return (
     <div className="mt-2 space-y-2">
       <input
-        className="ui-input w-full rounded-full px-3 py-1.5 text-xs outline-none transition-colors"
+        className="ui-input w-full rounded-full border border-border/70 px-3 py-1.5 text-xs outline-none transition-colors"
         placeholder={`Reply to ${comment.author.name}...`}
         value={replyText}
         onChange={(event) => setReplyText(event.target.value)}
@@ -48,6 +48,3 @@ export default function ModalCommentReplyForm() {
     </div>
   );
 }
-
-
-

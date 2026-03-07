@@ -2,21 +2,25 @@
 
 import { usePostActions } from "../hooks/usePostActions";
 
-type PostMedia = {
-  gradientClass: string;
-  title: string;
-  subtitle?: string;
+const VIDEO_EXTENSIONS = [".mp4", ".webm", ".mov", ".m4v", ".avi", ".mkv"];
+
+const isVideoUrl = (url: string) => {
+  const normalized = url.toLowerCase();
+  return (
+    VIDEO_EXTENSIONS.some((ext) => normalized.includes(ext)) ||
+    normalized.includes("/video/upload/")
+  );
 };
 
 export default function PostBody({
   postId,
   content,
-  media,
+  mediaUrls,
   onClickContent,
 }: {
   postId: string;
   content: string;
-  media?: PostMedia;
+  mediaUrls?: string[];
   onClickContent?: () => void;
 }) {
   const {
@@ -67,7 +71,7 @@ export default function PostBody({
         </p>
       )}
 
-      {media ? (
+      {mediaUrls && mediaUrls.length > 0 ? (
         <div
           className="mt-4 cursor-pointer overflow-hidden rounded-2xl border border-border"
           onClick={onClickContent}
@@ -77,14 +81,21 @@ export default function PostBody({
             if (e.key === "Enter" || e.key === " ") onClickContent?.();
           }}
         >
-          <div
-            className={`flex h-44 flex-col items-start justify-end bg-cover p-4 text-sm text-foreground ${media.gradientClass}`}
-          >
-            <p className="text-sm font-semibold">{media.title}</p>
-            {media.subtitle ? (
-              <p className="ui-text-muted text-xs">{media.subtitle}</p>
-            ) : null}
-          </div>
+          {isVideoUrl(mediaUrls[0]) ? (
+            <video
+              className="h-72 w-full bg-black object-cover sm:h-96"
+              controls
+              preload="metadata"
+              src={mediaUrls[0]}
+            />
+          ) : (
+            <img
+              alt="Post media"
+              className="h-72 w-full object-cover sm:h-96"
+              loading="lazy"
+              src={mediaUrls[0]}
+            />
+          )}
         </div>
       ) : null}
     </div>

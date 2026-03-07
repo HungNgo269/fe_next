@@ -11,6 +11,7 @@ import ProfileShell from "../../feature/profile/components/ProfileShell";
 import ProfileStatusCard from "../../feature/profile/components/ProfileStatusCard";
 import type { UserProfile } from "../../feature/profile/types/profile";
 import { useAppSessionStore } from "../../share/stores/appSessionStore";
+import { Loader2 } from "lucide-react";
 
 const BASE_GENDER_OPTIONS = ["MALE", "FEMALE"];
 
@@ -207,7 +208,7 @@ export default function EditProfilePage() {
     <ProfileShell>
       {isLoading ? (
         <main className="relative mx-auto w-full max-w-3xl px-4 pb-16 pt-12 sm:px-6">
-          <ProfileStatusCard message="Loading profile editor..." />
+          <Loader2 aria-hidden="true" className="h-10 w-10 animate-spin" />
         </main>
       ) : isUnauthorized ? (
         <main className="relative mx-auto w-full max-w-3xl px-4 pb-16 pt-12 sm:px-6">

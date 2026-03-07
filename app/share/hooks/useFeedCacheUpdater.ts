@@ -5,12 +5,42 @@ import { useQueryClient } from "@tanstack/react-query";
 import type { Post, PostComment } from "@/app/feature/post/types/api.types";
 import type { FeedBootstrapData } from "@/app/feature/feed/types/feed";
 import { FEED_QUERY_KEY } from "./feedQueryKeys";
+import { usePostDetailModal } from "@/app/feature/post/hooks/usePostDetailModal";
 
 const matchPost = (post: Post, postId: string) =>
   post.id === postId || post.sourcePostId === postId;
 
 export function useFeedCacheUpdater() {
   const queryClient = useQueryClient();
+
+  const syncModalSelectedPost = useCallback(() => {
+    const selectedPost = usePostDetailModal.getState().selectedPost;
+    if (!selectedPost) return;
+
+    const interactionPostId = selectedPost.sourcePostId ?? selectedPost.id;
+    const feedData = queryClient.getQueryData<FeedBootstrapData>(FEED_QUERY_KEY);
+    const fromFeed =
+      feedData?.posts.find((p) => p.id === selectedPost.id) ??
+      feedData?.posts.find((p) => matchPost(p, interactionPostId));
+
+    if (fromFeed) {
+      usePostDetailModal.setState({ selectedPost: fromFeed });
+      return;
+    }
+
+    const profileCaches = queryClient.getQueriesData<{ posts: Post[] }>({
+      queryKey: ["profile-feed"],
+    });
+    for (const [, data] of profileCaches) {
+      const fromProfile =
+        data?.posts.find((p) => p.id === selectedPost.id) ??
+        data?.posts.find((p) => matchPost(p, interactionPostId));
+      if (fromProfile) {
+        usePostDetailModal.setState({ selectedPost: fromProfile });
+        return;
+      }
+    }
+  }, [queryClient]);
 
   const updateAll = useCallback(
     (updater: (posts: Post[]) => Post[]) => {
@@ -22,8 +52,9 @@ export function useFeedCacheUpdater() {
         { queryKey: ["profile-feed"] },
         (old) => (old ? { ...old, posts: updater(old.posts) } : old),
       );
+      syncModalSelectedPost();
     },
-    [queryClient],
+    [queryClient, syncModalSelectedPost],
   );
 
   const toggleLike = useCallback(
@@ -32,7 +63,9 @@ export function useFeedCacheUpdater() {
         posts.map((post) => {
           if (!matchPost(post, postId)) return post;
           const likedByMe = nextLiked ?? !post.likedByMe;
-          const likesCount = post.likesCount + (likedByMe ? 1 : -1);
+          const delta =
+            likedByMe === post.likedByMe ? 0 : likedByMe ? 1 : -1;
+          const likesCount = Math.max(0, post.likesCount + delta);
           return { ...post, likedByMe, likesCount };
         }),
       );

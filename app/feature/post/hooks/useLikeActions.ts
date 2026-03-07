@@ -1,96 +1,112 @@
-"use client";
+﻿"use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useCallback } from "react";
-import type { FeedBootstrapData } from "@/app/feature/feed/types/feed";
-import { FEED_QUERY_KEY } from "@/app/share/hooks/feedQueryKeys";
-import { clientGetJson } from "@/app/share/utils/api";
-import { useOwnership } from "./useOwnership";
+import { useCallback, useEffect, useRef } from "react";
 import { useRequireAuthAction } from "./useRequireAuthAction";
 import { useFeedCacheUpdater } from "@/app/share/hooks/useFeedCacheUpdater";
-import type { Post } from "../types/api.types";
 import { createLikeRequest, deleteLikeRequest } from "../api/postLikeApi";
+import { findPostInCaches } from "../utils/postCache";
 
-type LikeEntry = { id: string; postId: string; userId: string };
-
-function findPostInCaches(
-  queryClient: ReturnType<typeof useQueryClient>,
-  postId: string,
-): Post | undefined {
-  const feedData = queryClient.getQueryData<FeedBootstrapData>(FEED_QUERY_KEY);
-  const fromFeed = feedData?.posts.find(
-    (p) => p.id === postId || p.sourcePostId === postId,
-  );
-  if (fromFeed) return fromFeed;
-
-  const profileCaches = queryClient.getQueriesData<{ posts: Post[] }>({
-    queryKey: ["profile-feed"],
-  });
-  for (const [, data] of profileCaches) {
-    const found = data?.posts.find(
-      (p) => p.id === postId || p.sourcePostId === postId,
-    );
-    if (found) return found;
-  }
-
-  return undefined;
-}
-
-export function useLikeActions(postId: string) {
+export function useLikeActions(postId: string, currentLiked?: boolean) {
   const queryClient = useQueryClient();
-  const { currentUserId } = useOwnership();
   const { runIfAuth } = useRequireAuthAction();
   const cache = useFeedCacheUpdater();
+  const DEBOUNCE_MS = 1000;
+  const confirmedLikedRef = useRef<boolean>(currentLiked ?? false);
+  const optimisticLikedRef = useRef<boolean>(currentLiked ?? false);
+  const desiredLikedRef = useRef<boolean>(currentLiked ?? false);
+  const debounceTimerRef = useRef<number | null>(null);
+  const inFlightRef = useRef(false);
+  const needsFlushAfterInFlightRef = useRef(false);
 
-  const findLikeIdForPost = async (): Promise<string | undefined> => {
-    if (!currentUserId) return undefined;
-    const result = await clientGetJson<LikeEntry[]>(
-      `/likes?postId=${postId}&userId=${currentUserId}`,
-    );
-    if (!result.ok) return undefined;
-    return result.data[0]?.id;
-  };
+  const readCurrentLiked = useCallback(() => {
+    const post = findPostInCaches(queryClient, postId);
+    return currentLiked ?? post?.likedByMe ?? false;
+  }, [currentLiked, postId, queryClient]);
+
+  useEffect(() => {
+    const latestLiked = readCurrentLiked();
+    if (!inFlightRef.current) {
+      confirmedLikedRef.current = latestLiked;
+    }
+    optimisticLikedRef.current = latestLiked;
+    desiredLikedRef.current = latestLiked;
+  }, [readCurrentLiked]);
+
+  useEffect(
+    () => () => {
+      if (debounceTimerRef.current !== null) {
+        window.clearTimeout(debounceTimerRef.current);
+      }
+    },
+    [],
+  );
 
   const likeMutation = useMutation({
-    // Optimistic update
-    onMutate: async () => {
-      const post = findPostInCaches(queryClient, postId);
-      const wasLiked = post?.likedByMe ?? false;
-
-      cache.toggleLike(postId);
-
-      return { wasLiked };
-    },
-    // API call
-    mutationFn: async (wasLiked: boolean) => {
-      if (wasLiked) {
-        const likeId = await findLikeIdForPost();
-        if (!likeId) throw new Error("Unable to unlike post.");
-        const result = await deleteLikeRequest(likeId);
-        if (!result.ok)
+    mutationFn: async (variables: { nextLiked: boolean }) => {
+      if (!variables.nextLiked) {
+        const result = await deleteLikeRequest(postId);
+        if (!result.ok && result.error.status !== 404) {
           throw new Error(result.error.messages[0] ?? "Unable to unlike.");
+        }
         return;
       }
 
       const result = await createLikeRequest(postId);
-      if (!result.ok)
+      if (!result.ok) {
+        if (result.error.status === 409) return;
         throw new Error(result.error.messages[0] ?? "Unable to like.");
-    },
-    // Rollback on error
-    onError: (_error, _variables, context) => {
-      if (context) {
-        cache.toggleLike(postId, context.wasLiked);
       }
+    },
+    onSuccess: (_data, variables) => {
+      confirmedLikedRef.current = variables.nextLiked;
+    },
+    onError: () => {
+      optimisticLikedRef.current = confirmedLikedRef.current;
+      desiredLikedRef.current = confirmedLikedRef.current;
+      cache.toggleLike(postId, confirmedLikedRef.current);
+    },
+    onSettled: () => {
+      inFlightRef.current = false;
+      if (!needsFlushAfterInFlightRef.current) return;
+      needsFlushAfterInFlightRef.current = false;
+      const target = desiredLikedRef.current;
+      if (target === confirmedLikedRef.current) return;
+      inFlightRef.current = true;
+      likeMutation.mutate({ nextLiked: target });
     },
   });
 
+  const flushDesiredLike = useCallback(() => {
+    const target = desiredLikedRef.current;
+    if (target === confirmedLikedRef.current) return;
+    if (inFlightRef.current || likeMutation.isPending) {
+      needsFlushAfterInFlightRef.current = true;
+      return;
+    }
+    inFlightRef.current = true;
+    likeMutation.mutate({ nextLiked: target });
+  }, [likeMutation]);
+
+  const scheduleFlush = useCallback(() => {
+    if (debounceTimerRef.current !== null) {
+      window.clearTimeout(debounceTimerRef.current);
+    }
+    debounceTimerRef.current = window.setTimeout(() => {
+      flushDesiredLike();
+    }, DEBOUNCE_MS);
+  }, [DEBOUNCE_MS, flushDesiredLike]);
+
   const handleToggleLike = useCallback(() => {
     runIfAuth(() => {
-      const post = findPostInCaches(queryClient, postId);
-      const wasLiked = post?.likedByMe ?? false;
-      likeMutation.mutate(wasLiked);
+      const baseLiked = optimisticLikedRef.current;
+      const nextLiked = !baseLiked;
+      optimisticLikedRef.current = nextLiked;
+      desiredLikedRef.current = nextLiked;
+      cache.toggleLike(postId, nextLiked);
+      scheduleFlush();
     });
-  }, [likeMutation, runIfAuth, queryClient, postId]);
+  }, [cache, postId, runIfAuth, scheduleFlush]);
 
   return { handleToggleLike, isLiking: likeMutation.isPending };
 }

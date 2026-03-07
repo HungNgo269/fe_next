@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { CirclePlus } from "lucide-react";
 import ModalCommentItem from "../ModalCommentItem";
@@ -21,16 +21,16 @@ export default function ModalPostComments() {
         </div>
       ) : visibleRootComments.length === 0 ? (
         <p className="ui-text-muted py-8 text-center text-xs">
-          No comments yet. Be the first!
+          No comments yet.
         </p>
       ) : (
-        <div className="space-y-1">
+        <div className="space-y-0.5 py-1">
           {visibleRootComments.map((comment) => (
             <ModalCommentItem key={comment.id} postId={postId} comment={comment} />
           ))}
           {hasMoreRootComments ? (
             <button
-              className="flex w-full flex-row items-center justify-center gap-1.5 px-4 pt-2 text-xs font-semibold text-foreground transition-opacity hover:opacity-70"
+              className="flex w-full flex-row items-center justify-center gap-1.5 px-4 pb-2 pt-2 text-xs font-semibold text-foreground transition-opacity hover:opacity-70"
               onClick={showMoreRootComments}
               type="button"
             >
@@ -42,6 +42,3 @@ export default function ModalPostComments() {
     </div>
   );
 }
-
-
-

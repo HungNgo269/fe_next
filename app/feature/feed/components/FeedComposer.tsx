@@ -4,47 +4,45 @@ import { memo, useCallback, useEffect, useRef, useState } from "react";
 import type { User } from "@/app/feature/post/types/api.types";
 import ActionChip from "@/app/feature/post/components/ui/ActionChip";
 import Avatar from "@/app/feature/post/components/ui/Avatar";
-import { IconImage, IconSmile, IconVideo } from "@/app/share/components/icons";
+import { IconImage, IconVideo } from "@/app/share/components/icons";
 import { usePostUIStore } from "@/app/feature/post/stores/postStore";
 import { useCreatePost } from "@/app/feature/feed/hooks/useCreatePost";
 
-type SelectedComposerImage = {
+type SelectedComposerMedia = {
   id: string;
   file: File;
   previewUrl: string;
 };
 
-const MAX_POST_IMAGE_FILES = 10;
+const MAX_POST_MEDIA_FILES = 10;
 
 function FeedComposer({ currentUser }: { currentUser: User }) {
   const composerText = usePostUIStore((s) => s.composerText);
   const setComposerText = usePostUIStore((s) => s.setComposerText);
   const { handleCreatePost } = useCreatePost();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [selectedImages, setSelectedImages] = useState<SelectedComposerImage[]>(
-    [],
-  );
-  const selectedImagesRef = useRef<SelectedComposerImage[]>([]);
+  const [selectedMedia, setSelectedMedia] = useState<SelectedComposerMedia[]>([]);
+  const selectedMediaRef = useRef<SelectedComposerMedia[]>([]);
 
   useEffect(() => {
-    selectedImagesRef.current = selectedImages;
-  }, [selectedImages]);
+    selectedMediaRef.current = selectedMedia;
+  }, [selectedMedia]);
 
   useEffect(
     () => () => {
-      for (const image of selectedImagesRef.current) {
-        URL.revokeObjectURL(image.previewUrl);
+      for (const media of selectedMediaRef.current) {
+        URL.revokeObjectURL(media.previewUrl);
       }
     },
     [],
   );
 
-  const canPost = composerText.trim().length > 0;
+  const canPost = composerText.trim().length > 0 || selectedMedia.length > 0;
 
-  const clearImages = useCallback(() => {
-    setSelectedImages((prev) => {
-      for (const image of prev) {
-        URL.revokeObjectURL(image.previewUrl);
+  const clearMedia = useCallback(() => {
+    setSelectedMedia((prev) => {
+      for (const media of prev) {
+        URL.revokeObjectURL(media.previewUrl);
       }
       return [];
     });
@@ -53,15 +51,18 @@ function FeedComposer({ currentUser }: { currentUser: User }) {
     }
   }, []);
 
-  const addImages = useCallback((files: FileList | null) => {
+  const addMedia = useCallback((files: FileList | null) => {
     if (!files) return;
 
-    setSelectedImages((prev) => {
-      const availableSlots = MAX_POST_IMAGE_FILES - prev.length;
+    setSelectedMedia((prev) => {
+      const availableSlots = MAX_POST_MEDIA_FILES - prev.length;
       if (availableSlots <= 0) return prev;
 
-      const nextImages = Array.from(files)
-        .filter((file) => file.type.startsWith("image/"))
+      const nextMedia = Array.from(files)
+        .filter(
+          (file) =>
+            file.type.startsWith("image/") || file.type.startsWith("video/"),
+        )
         .slice(0, availableSlots)
         .map((file) => ({
           id: `${file.name}-${file.lastModified}-${Math.random().toString(36).slice(2, 9)}`,
@@ -69,15 +70,15 @@ function FeedComposer({ currentUser }: { currentUser: User }) {
           previewUrl: URL.createObjectURL(file),
         }));
 
-      return [...prev, ...nextImages];
+      return [...prev, ...nextMedia];
     });
   }, []);
 
-  const removeImage = useCallback((id: string) => {
-    setSelectedImages((prev) => {
-      const image = prev.find((item) => item.id === id);
-      if (image) {
-        URL.revokeObjectURL(image.previewUrl);
+  const removeMedia = useCallback((id: string) => {
+    setSelectedMedia((prev) => {
+      const media = prev.find((item) => item.id === id);
+      if (media) {
+        URL.revokeObjectURL(media.previewUrl);
       }
       return prev.filter((item) => item.id !== id);
     });
@@ -86,20 +87,20 @@ function FeedComposer({ currentUser }: { currentUser: User }) {
   const onSubmit = () => {
     handleCreatePost(
       composerText,
-      selectedImages.map((image) => image.file),
+      selectedMedia.map((item) => item.file),
     );
     setComposerText("");
-    clearImages();
+    clearMedia();
   };
 
   return (
     <div className=" rounded-md p-5">
       <input
         ref={fileInputRef}
-        accept="image/*"
+        accept="image/*,video/*"
         className="hidden"
         multiple
-        onChange={(event) => addImages(event.target.files)}
+        onChange={(event) => addMedia(event.target.files)}
         type="file"
       />
       <div className="flex items-start gap-4">
@@ -116,21 +117,28 @@ function FeedComposer({ currentUser }: { currentUser: User }) {
           />
         </div>
       </div>
-      {selectedImages.length > 0 ? (
+      {selectedMedia.length > 0 ? (
         <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
-          {selectedImages.map((image) => (
+          {selectedMedia.map((item) => (
             <div
-              key={image.id}
+              key={item.id}
               className="relative overflow-hidden rounded-xl border border-border/50"
             >
-              <img
-                alt={image.file.name || "Selected image"}
-                className="h-24 w-full object-cover"
-                src={image.previewUrl}
-              />
+              {item.file.type.startsWith("video/") ? (
+                <video
+                  className="h-24 w-full object-cover"
+                  src={item.previewUrl}
+                />
+              ) : (
+                <img
+                  alt={item.file.name || "Selected media"}
+                  className="h-24 w-full object-cover"
+                  src={item.previewUrl}
+                />
+              )}
               <button
                 className="absolute right-1 top-1 rounded-full bg-black/60 px-2 py-0.5 text-xs text-white"
-                onClick={() => removeImage(image.id)}
+                onClick={() => removeMedia(item.id)}
                 type="button"
               >
                 x
@@ -143,11 +151,10 @@ function FeedComposer({ currentUser }: { currentUser: User }) {
         <div className="ui-text-muted flex flex-wrap items-center gap-2 text-xs">
           <ActionChip label="Live video" icon={<IconVideo />} />
           <ActionChip
-            label={`Photo${selectedImages.length > 0 ? ` (${selectedImages.length})` : ""}`}
+            label={`Photo/Video${selectedMedia.length > 0 ? ` (${selectedMedia.length})` : ""}`}
             icon={<IconImage />}
             onClick={() => fileInputRef.current?.click()}
           />
-          <ActionChip label="Feeling" icon={<IconSmile />} />
         </div>
         <div className="flex items-center gap-3">
           <span className="ui-text-soft text-xs">

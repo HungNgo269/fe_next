@@ -82,11 +82,20 @@ export default function ProfilePostFeed({
 
           {hasMorePosts ? (
             <div className="flex flex-col items-center gap-3 pt-2">
-              <div aria-hidden="true" className="h-2 w-full" ref={loadMoreSentinelRef} />
+              <div
+                aria-hidden="true"
+                className="h-2 w-full"
+                ref={loadMoreSentinelRef}
+              />
               {isLoadingMore ? (
-                <div aria-live="polite" className="inline-flex items-center justify-center">
-                  <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
-                  <span className="sr-only">Loading more posts</span>
+                <div
+                  aria-live="polite"
+                  className="inline-flex items-center justify-center"
+                >
+                  <Loader2
+                    aria-hidden="true"
+                    className="h-4 w-4 animate-spin"
+                  />
                 </div>
               ) : (
                 <button

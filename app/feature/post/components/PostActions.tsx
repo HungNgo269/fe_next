@@ -10,13 +10,19 @@ import { useClickOutside } from "@/app/share/hooks/useClickOutside";
 export default function PostActions({
   postId,
   likedByMe,
+  likesCount,
+  commentsCount,
+  sharesCount,
   onClickComment,
 }: {
   postId: string;
   likedByMe: boolean;
+  likesCount: number;
+  commentsCount: number;
+  sharesCount: number;
   onClickComment?: () => void;
 }) {
-  const { handleToggleLike } = useLikeActions(postId);
+  const { handleToggleLike } = useLikeActions(postId, likedByMe);
   const { handleShareToProfile, handleCopyShareLink, isSharingToProfile } =
     useSharePost(postId);
   const [isShareMenuOpen, setIsShareMenuOpen] = useState(false);
@@ -25,22 +31,22 @@ export default function PostActions({
   );
 
   return (
-    <div className="mt-3 flex flex-wrap gap-2 border-t border-border pt-3">
+    <div className="flex flex-wrap gap-4 pt-3">
       <ActionButton
         active={likedByMe}
         icon={<IconLike />}
-        label="Like"
+        count={likesCount}
         onClick={handleToggleLike}
       />
       <ActionButton
         icon={<IconComment />}
-        label="Comment"
+        count={commentsCount}
         onClick={onClickComment}
       />
       <div className="relative" ref={shareMenuRef}>
         <ActionButton
           icon={<IconShare />}
-          label="Share"
+          count={sharesCount}
           onClick={() => setIsShareMenuOpen((prev) => !prev)}
         />
         {isShareMenuOpen ? (
