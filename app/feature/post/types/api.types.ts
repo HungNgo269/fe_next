@@ -62,6 +62,7 @@ export type User = {
   email: string;
   gender?: string;
   avatarUrl?: string | null;
+  bio?: string | null;
 };
 
 export type Like = {
@@ -84,4 +85,14 @@ export type Comment = {
   authorId: string;
   parentId?: string | null;
   createdAt?: string;
+};
+
+export type Report = {
+  id: string;
+  reporterId: string;
+  postId?: string | null;
+  commentId?: string | null;
+  text?: string | null;
+  createdAt: string;
+  updatedAt: string;
 };

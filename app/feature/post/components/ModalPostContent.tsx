@@ -70,12 +70,22 @@ export default function ModalPostContent({
     isOwner,
     handleStartEdit,
     handleDeletePost,
+    isReportingPost,
+    handleReportPost,
   } = usePostActions(postId);
 
   const { commentDraft, setCommentDraft, handleAddComment } =
     useCommentActions(postId);
 
-  const author = post.author;
+  const author = post.author ?? {
+    id: "unknown-user",
+    name: "Unknown user",
+    email: "unknown@example.com",
+    handle: null,
+    avatarUrl: null,
+    gender: undefined,
+  };
+  const normalizedPost: Post = { ...post, author };
   const fallback = author.email.split("@")[0] ?? "user";
   const userHandle = author.handle || fallback;
   const profileKey = author.handle || author.id;
@@ -89,7 +99,7 @@ export default function ModalPostContent({
       <div className="post-detail-container" ref={contentRef}>
         <ModalPostContentProvider
           value={{
-            post,
+            post: normalizedPost,
             postId,
             profileKey,
             userHandle,
@@ -105,12 +115,14 @@ export default function ModalPostContent({
               handleDeletePost();
               onClose();
             },
+            handleReportPost,
+            isReportingPost,
             commentsLoading,
             visibleRootComments,
             hasMoreRootComments,
             showMoreRootComments,
-            likesCount: post.likesCount,
-            likedByMe: post.likedByMe,
+            likesCount: normalizedPost.likesCount,
+            likedByMe: normalizedPost.likedByMe,
             totalComments,
             handleToggleLike,
             handleShare: () => void handleCopyShareLink(),

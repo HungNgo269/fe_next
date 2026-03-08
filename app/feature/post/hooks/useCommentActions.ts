@@ -7,6 +7,7 @@ import {
   updateCommentRequest,
   deleteCommentRequest,
 } from "../api/postCommentApi";
+import { createCommentReportRequest } from "../api/postReportApi";
 import { usePostUIStore } from "../stores/postStore";
 import {
   useAppSessionStore,
@@ -84,6 +85,16 @@ export function useCommentActions(postId: string) {
     },
   });
 
+  const reportCommentMutation = useMutation({
+    mutationFn: ({
+      commentId,
+      text,
+    }: {
+      commentId: string;
+      text?: string;
+    }) => createCommentReportRequest(commentId, text),
+  });
+
   const handleAddComment = useCallback(() => {
     runIfAuth(() => {
       if (!currentUser) return;
@@ -133,21 +144,30 @@ export function useCommentActions(postId: string) {
     [deleteCommentMutation, isPostOwner, postId, runIfAuth],
   );
 
-  const handleReportContent = useCallback((contentType: "post" | "comment") => {
-    const message =
-      contentType === "post"
-        ? "Report submitted for this post (demo)."
-        : "Report submitted for this comment (demo).";
-    console.info(message);
-  }, []);
+  const handleReportComment = useCallback(
+    async (commentId: string, text?: string): Promise<boolean> => {
+      if (!runIfAuth(() => true)) return false;
+      try {
+        const result = await reportCommentMutation.mutateAsync({
+          commentId,
+          text,
+        });
+        return result.ok;
+      } catch {
+        return false;
+      }
+    },
+    [reportCommentMutation, runIfAuth],
+  );
 
   return {
     commentDraft,
     setCommentDraft: (value: string) => setCommentDraft(postId, value),
+    isReportingComment: reportCommentMutation.isPending,
     handleAddComment,
     handleAddReply,
     handleSaveCommentEdit,
     handleDeleteComment,
-    handleReportContent,
+    handleReportComment,
   };
 }

@@ -8,6 +8,7 @@ import Avatar from "./ui/Avatar";
 import { IconMoreVertical } from "@/app/share/components/icons";
 import { usePostActions } from "../hooks/usePostActions";
 import { useClickOutside } from "@/app/share/hooks/useClickOutside";
+import ReportReasonModal from "./ui/ReportReasonModal";
 
 export default function PostHeader({
   postId,
@@ -28,20 +29,31 @@ export default function PostHeader({
     avatarUrl?: string | null;
   };
 }) {
-  const { isOwner, handleStartEdit, handleDeletePost } = usePostActions(postId);
+  const {
+    isOwner,
+    handleStartEdit,
+    handleDeletePost,
+    isReportingPost,
+    handleReportPost,
+  } = usePostActions(postId);
 
   const fallback = author.email.split("@")[0] ?? "user";
   const userHandle = author.handle || fallback;
   const profileKey = author.handle || author.id;
   const displayTime = formatRelativeTime(time);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isReportOpen, setIsReportOpen] = useState(false);
+  const [reportText, setReportText] = useState("");
   const menuRef = useClickOutside<HTMLDivElement>(
     useCallback(() => setIsMenuOpen(false), []),
   );
 
-  const handleReport = () => {
-    setIsMenuOpen(false);
-    console.info("Report submitted for this post (demo).");
+  const handleReport = async () => {
+    const trimmed = reportText.trim();
+    const ok = await handleReportPost(trimmed ? trimmed : undefined);
+    if (!ok) return;
+    setIsReportOpen(false);
+    setReportText("");
   };
 
   return (
@@ -82,7 +94,7 @@ export default function PostHeader({
           <IconMoreVertical />
         </button>
         {isMenuOpen ? (
-          <div className=" absolute right-0 top-10 z-20 min-w-36 rounded-xl p-2">
+          <div className=" absolute right-0 top-10 z-20 min-w-36 rounded-xl border border-border bg-surface p-2">
             {isOwner ? (
               <>
                 <button
@@ -109,7 +121,10 @@ export default function PostHeader({
             ) : (
               <button
                 className="block w-full rounded-md px-2 py-1.5 text-left text-xs font-medium text-foreground transition-opacity hover:opacity-70"
-                onClick={handleReport}
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  setIsReportOpen(true);
+                }}
                 type="button"
               >
                 Report post
@@ -118,6 +133,19 @@ export default function PostHeader({
           </div>
         ) : null}
       </div>
+      <ReportReasonModal
+        isSubmitting={isReportingPost}
+        onChange={setReportText}
+        onClose={() => {
+          if (isReportingPost) return;
+          setIsReportOpen(false);
+          setReportText("");
+        }}
+        onSubmit={() => void handleReport()}
+        open={isReportOpen}
+        title="Report post"
+        value={reportText}
+      />
     </header>
   );
 }

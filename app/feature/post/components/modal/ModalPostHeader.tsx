@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import Avatar from "../ui/Avatar";
 import { formatRelativeTime } from "@/app/share/utils/format";
 import {
@@ -8,12 +9,24 @@ import {
   useModalPostEditContext,
   useModalPostActionsContext,
 } from "./ModalPostContentContext";
+import ReportReasonModal from "../ui/ReportReasonModal";
 
 export default function ModalPostHeader() {
   const { post, profileKey, userHandle, isOwner } = useModalPostDataContext();
   const { handleStartEdit } = useModalPostEditContext();
-  const { onClose, handleDeletePostAndClose } = useModalPostActionsContext();
+  const { onClose, handleDeletePostAndClose, handleReportPost, isReportingPost } =
+    useModalPostActionsContext();
   const author = post.author;
+  const [isReportOpen, setIsReportOpen] = useState(false);
+  const [reportText, setReportText] = useState("");
+
+  const onReportPost = async () => {
+    const trimmed = reportText.trim();
+    const ok = await handleReportPost(trimmed ? trimmed : undefined);
+    if (!ok) return;
+    setIsReportOpen(false);
+    setReportText("");
+  };
 
   return (
     <div className="post-detail-header">
@@ -62,7 +75,28 @@ export default function ModalPostHeader() {
             Delete
           </button>
         </div>
-      ) : null}
+      ) : (
+        <button
+          className="rounded-full p-1.5 text-xs text-foreground transition-opacity hover:opacity-70"
+          onClick={() => setIsReportOpen(true)}
+          type="button"
+        >
+          Report
+        </button>
+      )}
+      <ReportReasonModal
+        isSubmitting={isReportingPost}
+        onChange={setReportText}
+        onClose={() => {
+          if (isReportingPost) return;
+          setIsReportOpen(false);
+          setReportText("");
+        }}
+        onSubmit={() => void onReportPost()}
+        open={isReportOpen}
+        title="Report post"
+        value={reportText}
+      />
     </div>
   );
 }

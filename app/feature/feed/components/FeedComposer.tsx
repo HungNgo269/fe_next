@@ -21,7 +21,9 @@ function FeedComposer({ currentUser }: { currentUser: User }) {
   const setComposerText = usePostUIStore((s) => s.setComposerText);
   const { handleCreatePost } = useCreatePost();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [selectedMedia, setSelectedMedia] = useState<SelectedComposerMedia[]>([]);
+  const [selectedMedia, setSelectedMedia] = useState<SelectedComposerMedia[]>(
+    [],
+  );
   const selectedMediaRef = useRef<SelectedComposerMedia[]>([]);
 
   useEffect(() => {
@@ -149,7 +151,6 @@ function FeedComposer({ currentUser }: { currentUser: User }) {
       ) : null}
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <div className="ui-text-muted flex flex-wrap items-center gap-2 text-xs">
-          <ActionChip label="Live video" icon={<IconVideo />} />
           <ActionChip
             label={`Photo/Video${selectedMedia.length > 0 ? ` (${selectedMedia.length})` : ""}`}
             icon={<IconImage />}

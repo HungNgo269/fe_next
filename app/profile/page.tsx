@@ -30,6 +30,7 @@ export default function UserProfilePage() {
             className="ui-btn-primary rounded-lg px-4 py-1.5 text-sm font-semibold transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/80"
             href="/profile/edit"
           >
+            Edit profile
           </Link>
         }
       />

@@ -17,6 +17,7 @@ const mapToUserProfile = (
   email: data.email,
   gender: data.gender,
   avatar: data.avatarUrl ?? "",
+  bio: data.bio ?? "",
   followersCount: data.followersCount ?? 0,
   followingCount: data.followingCount ?? 0,
   isFollowing: data.isFollowing ?? false,
@@ -55,13 +56,14 @@ export const updateCurrentUserProfileField = async (
 };
 
 export const updateCurrentUserProfile = async (
-  draft: Pick<UserProfile, "name" | "email" | "gender" | "avatar">,
+  draft: Pick<UserProfile, "name" | "email" | "gender" | "avatar" | "bio">,
 ): Promise<ApiResponse<UserProfile>> => {
   const raw = await clientPatchJson<ProfileResponse>(PROFILE_PATH, {
     name: draft.name.trim(),
     email: draft.email.trim(),
     gender: draft.gender.trim().toUpperCase(),
     avatarUrl: draft.avatar.trim(),
+    bio: (draft.bio ?? "").trim(),
   });
   if (!raw.ok) return raw;
   return { ok: true, data: mapToUserProfile(raw.data) };

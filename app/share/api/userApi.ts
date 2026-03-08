@@ -24,6 +24,7 @@ export const fetchCurrentUser = async (): Promise<
         email: user.email,
         gender: user.gender ?? "",
         avatar: user.avatarUrl ?? "",
+        bio: user.bio ?? "",
         followersCount: 0,
         followingCount: 0,
         isFollowing: false,

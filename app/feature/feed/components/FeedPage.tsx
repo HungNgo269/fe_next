@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback } from "react";
 import LoginRequiredDialog from "@/app/share/components/LoginRequiredDialog";
 import RightSidebar from "@/app/components/layout/RightSidebar";
 import { useFeedQuery } from "@/app/feature/feed/hooks/useFeedQuery";
@@ -31,6 +32,10 @@ export default function FeedPage() {
   const showLoginDialog = usePostUIStore((s) => s.showLoginDialog);
   const setShowLoginDialog = usePostUIStore((s) => s.setShowLoginDialog);
   const openModal = usePostDetailModal((s) => s.openModal);
+  const handleOpenDetail = useCallback(
+    (post: Post) => openModal(post, { syncUrl: true }),
+    [openModal],
+  );
   const loadMoreSentinelRef = useInfiniteScrollTrigger({
     hasMore: hasMorePosts,
     isLoading: isLoadingMore,
@@ -63,7 +68,7 @@ export default function FeedPage() {
                 key={post.id}
                 post={post}
                 index={index}
-                onOpenDetail={openModal}
+                onOpenDetail={handleOpenDetail}
               />
             ))}
 

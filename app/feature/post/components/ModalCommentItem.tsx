@@ -16,6 +16,7 @@ import ModalCommentMenu from "./modal/ModalCommentMenu";
 import ModalCommentEditForm from "./modal/ModalCommentEditForm";
 import ModalCommentReplyForm from "./modal/ModalCommentReplyForm";
 import { ModalCommentItemProvider } from "./modal/ModalCommentItemContext";
+import ReportReasonModal from "./ui/ReportReasonModal";
 
 function ModalCommentItemComponent({
   postId,
@@ -27,10 +28,11 @@ function ModalCommentItemComponent({
   isReplyItem?: boolean;
 }) {
   const {
+    isReportingComment,
     handleAddReply,
     handleSaveCommentEdit,
     handleDeleteComment,
-    handleReportContent,
+    handleReportComment,
   } = useCommentActions(postId);
   const { isCommentOwner, isPostOwner } = useOwnership();
   const cacheUpdater = useFeedCacheUpdater();
@@ -44,6 +46,8 @@ function ModalCommentItemComponent({
   const [editingText, setEditingText] = useState("");
   const [isReplying, setIsReplying] = useState(false);
   const [replyText, setReplyText] = useState("");
+  const [isReportOpen, setIsReportOpen] = useState(false);
+  const [reportText, setReportText] = useState("");
   const [isLoadingReplies, setIsLoadingReplies] = useState(false);
 
   const menuRef = useClickOutside<HTMLDivElement>(
@@ -118,6 +122,14 @@ function ModalCommentItemComponent({
     }
   };
 
+  const submitReport = async () => {
+    const trimmed = reportText.trim();
+    const ok = await handleReportComment(comment.id, trimmed ? trimmed : undefined);
+    if (!ok) return;
+    setIsReportOpen(false);
+    setReportText("");
+  };
+
   return (
     <ModalCommentItemProvider
       value={{
@@ -136,7 +148,7 @@ function ModalCommentItemComponent({
         deleteComment: () => void handleDelete(),
         reportComment: () => {
           setIsMenuOpen(false);
-          handleReportContent("comment");
+          setIsReportOpen(true);
         },
       }}
     >
@@ -232,6 +244,19 @@ function ModalCommentItemComponent({
             ) : null}
           </div>
         ) : null}
+        <ReportReasonModal
+          isSubmitting={isReportingComment}
+          onChange={setReportText}
+          onClose={() => {
+            if (isReportingComment) return;
+            setIsReportOpen(false);
+            setReportText("");
+          }}
+          onSubmit={() => void submitReport()}
+          open={isReportOpen}
+          title="Report comment"
+          value={reportText}
+        />
       </div>
     </ModalCommentItemProvider>
   );

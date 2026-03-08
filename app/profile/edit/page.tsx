@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import {
   getCurrentUserProfile,
   updateCurrentUserProfile,
@@ -12,6 +13,8 @@ import ProfileStatusCard from "../../feature/profile/components/ProfileStatusCar
 import type { UserProfile } from "../../feature/profile/types/profile";
 import { useAppSessionStore } from "../../share/stores/appSessionStore";
 import { Loader2 } from "lucide-react";
+import type { ApiError } from "../../share/utils/api-types";
+import { toast } from "sonner";
 
 const BASE_GENDER_OPTIONS = ["MALE", "FEMALE"];
 
@@ -20,6 +23,7 @@ const EMPTY_PROFILE: UserProfile = {
   email: "",
   gender: "",
   avatar: "",
+  bio: "",
 };
 
 const normalizeFieldValue = (
@@ -47,10 +51,33 @@ const validateForm = (form: UserProfile): string | null => {
     }
   }
 
+  if ((form.bio ?? "").trim().length > 500) {
+    return "Bio must be 500 characters or fewer.";
+  }
+
   return null;
 };
 
+const formatFriendlyError = (
+  error: ApiError | undefined,
+  fallback: string,
+): string => {
+  const firstMessage = error?.messages?.[0]?.trim() ?? "";
+  if (!firstMessage) return fallback;
+
+  if (/^Cannot\s+(GET|POST|PATCH|PUT|DELETE)\s+/i.test(firstMessage)) {
+    return "A server route is not available yet. Please try again after backend restart.";
+  }
+
+  if (error?.status === 401 || error?.status === 403) {
+    return "Your session expired. Please sign in again.";
+  }
+
+  return firstMessage;
+};
+
 export default function EditProfilePage() {
+  const router = useRouter();
   const authProfile = useAppSessionStore((state) => state.authProfile);
   const setAuthenticatedProfile = useAppSessionStore(
     (state) => state.setAuthenticatedProfile,
@@ -63,6 +90,7 @@ export default function EditProfilePage() {
           email: authProfile.email,
           gender: authProfile.gender,
           avatar: authProfile.avatar,
+          bio: authProfile.bio ?? "",
         }
       : EMPTY_PROFILE,
   );
@@ -74,6 +102,7 @@ export default function EditProfilePage() {
           email: authProfile.email,
           gender: authProfile.gender,
           avatar: authProfile.avatar,
+          bio: authProfile.bio ?? "",
         }
       : EMPTY_PROFILE,
   );
@@ -81,7 +110,6 @@ export default function EditProfilePage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isUnauthorized, setIsUnauthorized] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -94,6 +122,7 @@ export default function EditProfilePage() {
           email: authProfile.email,
           gender: authProfile.gender,
           avatar: authProfile.avatar,
+          bio: authProfile.bio ?? "",
         };
         setProfile(nextProfile);
         setForm(nextProfile);
@@ -126,6 +155,7 @@ export default function EditProfilePage() {
           email: result.data.email,
           gender: result.data.gender,
           avatar: result.data.avatar,
+          bio: result.data.bio ?? "",
         });
       }
       setIsUnauthorized(false);
@@ -148,7 +178,9 @@ export default function EditProfilePage() {
     normalizeFieldValue("gender", form.gender) !==
       normalizeFieldValue("gender", profile.gender) ||
     normalizeFieldValue("avatar", form.avatar) !==
-      normalizeFieldValue("avatar", profile.avatar);
+      normalizeFieldValue("avatar", profile.avatar) ||
+    normalizeFieldValue("bio", form.bio ?? "") !==
+      normalizeFieldValue("bio", profile.bio ?? "");
 
   const normalizedGender = normalizeFieldValue("gender", form.gender);
   const genderOptions =
@@ -165,28 +197,27 @@ export default function EditProfilePage() {
     const validationError = validateForm(form);
     if (validationError) {
       setError(validationError);
-      setSuccess("");
       return;
     }
 
     setIsSaving(true);
     setError("");
-    setSuccess("");
 
     const result = await updateCurrentUserProfile({
       name: form.name,
       email: form.email,
       gender: form.gender,
       avatar: form.avatar,
+      bio: form.bio ?? "",
     });
 
     if (!result.ok) {
-      setError(result.error.messages[0] ?? "Update failed.");
+      setError(formatFriendlyError(result.error, "Update failed."));
       setIsSaving(false);
       return;
     }
 
-    const mergedProfile = { ...form, ...result.data };
+    const mergedProfile: UserProfile = { ...form, ...result.data };
 
     setProfile(mergedProfile);
     setForm(mergedProfile);
@@ -198,10 +229,12 @@ export default function EditProfilePage() {
         email: mergedProfile.email,
         gender: mergedProfile.gender,
         avatar: mergedProfile.avatar,
+        bio: mergedProfile.bio,
       });
     }
-    setSuccess("Profile updated successfully.");
+    toast.success("Profile updated");
     setIsSaving(false);
+    router.push("/profile");
   };
 
   return (
@@ -252,6 +285,24 @@ export default function EditProfilePage() {
 
             <div>
               <label className="ui-text-muted block text-xs font-semibold uppercase tracking-widest-xl">
+                Bio
+              </label>
+              <textarea
+                className="ui-input mt-2 min-h-24 w-full rounded-2xl px-4 py-3 text-sm outline-none transition-colors"
+                maxLength={500}
+                onChange={(event) =>
+                  setForm((prev) => ({ ...prev, bio: event.target.value }))
+                }
+                placeholder="Tell people about yourself..."
+                value={form.bio ?? ""}
+              />
+              <p className="ui-text-muted mt-1 text-xs">
+                {(form.bio ?? "").trim().length}/500
+              </p>
+            </div>
+
+            <div>
+              <label className="ui-text-muted block text-xs font-semibold uppercase tracking-widest-xl">
                 Full name
               </label>
               <input
@@ -275,6 +326,7 @@ export default function EditProfilePage() {
                   setForm((prev) => ({ ...prev, email: event.target.value }))
                 }
                 placeholder="you@example.com"
+                readOnly
                 type="email"
                 value={form.email}
               />
@@ -301,17 +353,20 @@ export default function EditProfilePage() {
             </div>
 
             {error ? (
-              <p className="rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              <p className="text-base text-red-600">
                 {error}
-              </p>
-            ) : null}
-            {success ? (
-              <p className="rounded-xl border border-success/35 bg-success/10 px-3 py-2 text-sm text-success">
-                {success}
               </p>
             ) : null}
 
             <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                className="ui-btn-ghost rounded-full px-5 py-2 text-xs font-semibold transition-colors disabled:opacity-50"
+                disabled={isSaving || !(form.bio ?? "").trim()}
+                onClick={() => setForm((prev) => ({ ...prev, bio: "" }))}
+                type="button"
+              >
+                Clear bio
+              </button>
               <button
                 className="ui-btn-primary rounded-full px-5 py-2 text-xs font-semibold transition-colors disabled:opacity-50"
                 disabled={isSaving || !hasChanges}

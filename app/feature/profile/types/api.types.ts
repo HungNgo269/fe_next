@@ -9,6 +9,7 @@ export type ProfileResponse = {
   email: string;
   gender: string;
   avatarUrl: string | null;
+  bio?: string | null;
   friendsCount?: number;
   followersCount?: number;
   followingCount?: number;
@@ -24,6 +25,7 @@ export type ProfileFeedResponse = {
     email: string;
     gender: string;
     avatarUrl: string | null;
+    bio?: string | null;
     friendsCount: number;
     followersCount: number;
     followingCount: number;

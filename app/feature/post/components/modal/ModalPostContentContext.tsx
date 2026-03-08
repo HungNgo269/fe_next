@@ -59,6 +59,8 @@ export function useModalPostEditContext() {
 type ModalPostActionsContextValue = {
   onClose: () => void;
   handleDeletePostAndClose: () => void;
+  handleReportPost: (text?: string) => Promise<boolean>;
+  isReportingPost: boolean;
   handleToggleLike: () => void;
   handleShare: () => void;
   commentDraft: string;
@@ -145,6 +147,8 @@ export function ModalPostContentProvider({
     () => ({
       onClose: value.onClose,
       handleDeletePostAndClose: value.handleDeletePostAndClose,
+      handleReportPost: value.handleReportPost,
+      isReportingPost: value.isReportingPost,
       handleToggleLike: value.handleToggleLike,
       handleShare: value.handleShare,
       commentDraft: value.commentDraft,
@@ -154,6 +158,8 @@ export function ModalPostContentProvider({
     [
       value.onClose,
       value.handleDeletePostAndClose,
+      value.handleReportPost,
+      value.isReportingPost,
       value.handleToggleLike,
       value.handleShare,
       value.commentDraft,

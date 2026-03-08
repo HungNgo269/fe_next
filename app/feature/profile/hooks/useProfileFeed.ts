@@ -31,6 +31,7 @@ const toUserProfile = (
   email: user.email ?? "",
   gender: user.gender ?? "",
   avatar: user.avatarUrl ?? "",
+  bio: user.bio ?? "",
   friendsCount: user.friendsCount,
   followersCount: user.followersCount,
   followingCount: user.followingCount,

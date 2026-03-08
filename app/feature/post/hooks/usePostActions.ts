@@ -3,6 +3,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { updatePostRequest, deletePostRequest } from "../api/postApi";
+import { createPostReportRequest } from "../api/postReportApi";
 import { usePostUIStore } from "../stores/postStore";
 import type { FeedBootstrapData } from "@/app/feature/feed/types/feed";
 import { FEED_QUERY_KEY } from "@/app/share/hooks/feedQueryKeys";
@@ -43,6 +44,11 @@ export function usePostActions(postId: string) {
     },
   });
 
+  const reportMutation = useMutation({
+    mutationFn: ({ text }: { text?: string }) =>
+      createPostReportRequest(postId, text),
+  });
+
   const handleStartEdit = useCallback(() => {
     runIfAuth(() => {
       const post = queryClient
@@ -65,6 +71,19 @@ export function usePostActions(postId: string) {
     runIfAuth(() => deleteMutation.mutate());
   }, [deleteMutation, runIfAuth]);
 
+  const handleReportPost = useCallback(
+    async (text?: string): Promise<boolean> => {
+      if (!runIfAuth(() => true)) return false;
+      try {
+        const result = await reportMutation.mutateAsync({ text });
+        return result.ok;
+      } catch {
+        return false;
+      }
+    },
+    [reportMutation, runIfAuth],
+  );
+
   return {
     isEditing,
     editingText,
@@ -74,5 +93,7 @@ export function usePostActions(postId: string) {
     handleSaveEdit,
     handleCancelEdit: clearEditing,
     handleDeletePost,
+    isReportingPost: reportMutation.isPending,
+    handleReportPost,
   };
 }

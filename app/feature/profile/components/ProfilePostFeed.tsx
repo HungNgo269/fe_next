@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { Loader2 } from "lucide-react";
 import FeedComposer from "@/app/feature/feed/components/FeedComposer";
 import PostCard from "@/app/feature/post/components/PostCard";
@@ -33,6 +33,10 @@ export default function ProfilePostFeed({
   onLoadMore,
 }: ProfilePostFeedProps) {
   const openModal = usePostDetailModal((s) => s.openModal);
+  const handleOpenDetail = useCallback(
+    (post: Post) => openModal(post, { syncUrl: true }),
+    [openModal],
+  );
 
   const loadMoreSentinelRef = useInfiniteScrollTrigger({
     hasMore: hasMorePosts,
@@ -75,7 +79,7 @@ export default function ProfilePostFeed({
                 key={post.id}
                 post={post}
                 index={index}
-                onOpenDetail={openModal}
+                onOpenDetail={handleOpenDetail}
               />
             ))}
           </div>

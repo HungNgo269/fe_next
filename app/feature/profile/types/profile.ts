@@ -7,6 +7,7 @@ export type UserProfile = {
   email: string;
   gender: string;
   avatar: string;
+  bio?: string;
   friendsCount?: number;
   followersCount?: number;
   followingCount?: number;
@@ -14,6 +15,6 @@ export type UserProfile = {
   friendshipStatus?: FriendshipStatus;
 };
 
-export type EditableProfileField = "avatar" | "name" | "email" | "gender";
+export type EditableProfileField = "avatar" | "name" | "email" | "gender" | "bio";
 
 export type EditableProfileDrafts = Record<EditableProfileField, string>;
