@@ -1,5 +1,12 @@
 import type { ReactNode } from "react";
-import { Bell, Compass, MessageCircle, Search, Users } from "lucide-react";
+import {
+  Bell,
+  Compass,
+  Home,
+  MessageCircle,
+  Search,
+  Users,
+} from "lucide-react";
 
 export type NavItem = {
   key: string;
@@ -30,6 +37,27 @@ export const navItems: NavItem[] = [
     key: "explore",
     label: "Explore",
     icon: <Compass className="h-5 w-5" />,
+  },
+  {
+    key: "notification",
+    label: "Notifications",
+    badge: true,
+    icon: <Bell className="h-5 w-5" />,
+  },
+];
+
+export const mobileNavItems: NavItem[] = [
+  {
+    key: "home",
+    label: "Home",
+    href: "/",
+    icon: <Home className="h-5 w-5" />,
+  },
+  {
+    key: "messages",
+    label: "Messages",
+    badge: true,
+    icon: <MessageCircle className="h-5 w-5" />,
   },
   {
     key: "notification",

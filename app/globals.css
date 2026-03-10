@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --brand-50: #eef4ff;
-  --brand-100: #dbeafe;
-  --brand-200: #bfdbfe;
-  --brand-300: #93c5fd;
-  --brand-400: #60a5fa;
-  --brand-500: #3b82f6;
-  --brand-600: #2563eb;
-  --brand-700: #1d4ed8;
-  --brand-950: #172554;
+  --brand-50: #eef2ff;
+  --brand-100: #e0e7ff;
+  --brand-200: #c7d2fe;
+  --brand-300: #a5b4fc;
+  --brand-400: #818cf8;
+  --brand-500: #6366f1;
+  --brand-600: #4f46e5;
+  --brand-700: #4338ca;
+  --brand-950: #1e1b4b;
 
   --background: #ffffff;
 
@@ -21,7 +21,9 @@
   --foreground-muted: #475569;
   --foreground-soft: #64748b;
 
-  --brand: var(--brand-600);
+  --brand: var(--brand-500);
+  --brand-hover: var(--brand-700);
+
   --brand-foreground: #ffffff;
 
   --border: #d7dee8;
@@ -209,11 +211,6 @@ button:disabled {
 }
 
 @layer utilities {
-  .ui-subtle {
-    background-color: color-mix(in oklab, var(--surface) 90%, transparent);
-    border: 1px solid var(--border);
-  }
-
   .ui-input {
     border: 1px solid var(--border);
     background: var(--auth-field);
@@ -236,14 +233,20 @@ button:disabled {
   .ui-btn-primary:hover {
     filter: brightness(0.95);
   }
+  .ui-btn-primary-nobg {
+    color: var(--brand);
+  }
 
+  .ui-btn-primary-nobg:hover {
+    color: var(--brand-hover);
+    filter: brightness(0.95);
+  }
   .ui-btn-primary:disabled {
     cursor: not-allowed;
     opacity: 0.55;
   }
 
   .ui-btn-ghost {
-    border: 1px solid var(--border);
     color: var(--foreground-muted);
     background: transparent;
   }
@@ -544,7 +547,8 @@ button:disabled {
     align-items: center;
     justify-content: space-between;
     padding: 14px 16px;
-    border-bottom: 0.5px solid color-mix(in srgb, var(--border) 60%, transparent);
+    border-bottom: 0.5px solid
+      color-mix(in srgb, var(--border) 60%, transparent);
   }
 
   .post-detail-body {

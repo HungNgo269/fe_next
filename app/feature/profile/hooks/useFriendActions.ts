@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   sendFriendRequestApi,
   cancelFriendRequestApi,
@@ -10,6 +10,7 @@ import {
 } from "../api/profileApi";
 import type { ProfileFeedResponse } from "../types/api.types";
 import type { FriendshipStatus } from "../types/api.types";
+import { useSafeOptimisticMutation } from "@/app/share/hooks/useSafeOptimisticMutation";
 
 const updateFriendshipStatus = (
   queryClient: ReturnType<typeof useQueryClient>,
@@ -35,45 +36,105 @@ const updateFriendshipStatus = (
 
 export const useFriendActions = (userId: string, profileKey: string) => {
   const queryClient = useQueryClient();
+  const profileQueryKey = ["profile-feed", "other", profileKey] as const;
 
-  const invalidate = () => {
-    void queryClient.invalidateQueries({ queryKey: ["profile-feed"] });
+  const invalidateFriendRequests = () => {
     void queryClient.invalidateQueries({ queryKey: ["friend-requests"] });
   };
 
-  const sendRequest = useMutation({
-    mutationFn: () => sendFriendRequestApi(userId),
-    onMutate: () => updateFriendshipStatus(queryClient, profileKey, "PENDING_SENT"),
-    onError: () => updateFriendshipStatus(queryClient, profileKey, "NONE"),
-    onSettled: invalidate,
+  const sendRequest = useSafeOptimisticMutation<void, void, ProfileFeedResponse | undefined>({
+    queryKey: profileQueryKey,
+    mutationFn: async () => {
+      const result = await sendFriendRequestApi(userId);
+      if (!result.ok && result.error.status !== 409) {
+        throw new Error(result.error.messages[0] ?? "Unable to send friend request.");
+      }
+    },
+    getSnapshot: () => queryClient.getQueryData<ProfileFeedResponse>(profileQueryKey),
+    applyOptimistic: () => {
+      updateFriendshipStatus(queryClient, profileKey, "PENDING_SENT");
+    },
+    rollback: (snapshot) => {
+      queryClient.setQueryData(profileQueryKey, snapshot);
+    },
+    onSettled: invalidateFriendRequests,
+    refetchType: "inactive",
   });
 
-  const cancelRequest = useMutation({
-    mutationFn: () => cancelFriendRequestApi(userId),
-    onMutate: () => updateFriendshipStatus(queryClient, profileKey, "NONE"),
-    onError: () => updateFriendshipStatus(queryClient, profileKey, "PENDING_SENT"),
-    onSettled: invalidate,
+  const cancelRequest = useSafeOptimisticMutation<void, void, ProfileFeedResponse | undefined>({
+    queryKey: profileQueryKey,
+    mutationFn: async () => {
+      const result = await cancelFriendRequestApi(userId);
+      if (!result.ok && result.error.status !== 404) {
+        throw new Error(result.error.messages[0] ?? "Unable to cancel friend request.");
+      }
+    },
+    getSnapshot: () => queryClient.getQueryData<ProfileFeedResponse>(profileQueryKey),
+    applyOptimistic: () => {
+      updateFriendshipStatus(queryClient, profileKey, "NONE");
+    },
+    rollback: (snapshot) => {
+      queryClient.setQueryData(profileQueryKey, snapshot);
+    },
+    onSettled: invalidateFriendRequests,
+    refetchType: "inactive",
   });
 
-  const acceptRequest = useMutation({
-    mutationFn: () => acceptFriendRequestApi(userId),
-    onMutate: () => updateFriendshipStatus(queryClient, profileKey, "ACCEPTED", +1),
-    onError: () => updateFriendshipStatus(queryClient, profileKey, "PENDING_RECEIVED", -1),
-    onSettled: invalidate,
+  const acceptRequest = useSafeOptimisticMutation<void, void, ProfileFeedResponse | undefined>({
+    queryKey: profileQueryKey,
+    mutationFn: async () => {
+      const result = await acceptFriendRequestApi(userId);
+      if (!result.ok && result.error.status !== 404 && result.error.status !== 409) {
+        throw new Error(result.error.messages[0] ?? "Unable to accept friend request.");
+      }
+    },
+    getSnapshot: () => queryClient.getQueryData<ProfileFeedResponse>(profileQueryKey),
+    applyOptimistic: () => {
+      updateFriendshipStatus(queryClient, profileKey, "ACCEPTED", +1);
+    },
+    rollback: (snapshot) => {
+      queryClient.setQueryData(profileQueryKey, snapshot);
+    },
+    onSettled: invalidateFriendRequests,
+    refetchType: "inactive",
   });
 
-  const declineRequest = useMutation({
-    mutationFn: () => declineFriendRequestApi(userId),
-    onMutate: () => updateFriendshipStatus(queryClient, profileKey, "NONE"),
-    onError: () => updateFriendshipStatus(queryClient, profileKey, "PENDING_RECEIVED"),
-    onSettled: invalidate,
+  const declineRequest = useSafeOptimisticMutation<void, void, ProfileFeedResponse | undefined>({
+    queryKey: profileQueryKey,
+    mutationFn: async () => {
+      const result = await declineFriendRequestApi(userId);
+      if (!result.ok && result.error.status !== 404 && result.error.status !== 409) {
+        throw new Error(result.error.messages[0] ?? "Unable to decline friend request.");
+      }
+    },
+    getSnapshot: () => queryClient.getQueryData<ProfileFeedResponse>(profileQueryKey),
+    applyOptimistic: () => {
+      updateFriendshipStatus(queryClient, profileKey, "NONE");
+    },
+    rollback: (snapshot) => {
+      queryClient.setQueryData(profileQueryKey, snapshot);
+    },
+    onSettled: invalidateFriendRequests,
+    refetchType: "inactive",
   });
 
-  const removeFriend = useMutation({
-    mutationFn: () => removeFriendApi(userId),
-    onMutate: () => updateFriendshipStatus(queryClient, profileKey, "NONE", -1),
-    onError: () => updateFriendshipStatus(queryClient, profileKey, "ACCEPTED", +1),
-    onSettled: invalidate,
+  const removeFriend = useSafeOptimisticMutation<void, void, ProfileFeedResponse | undefined>({
+    queryKey: profileQueryKey,
+    mutationFn: async () => {
+      const result = await removeFriendApi(userId);
+      if (!result.ok && result.error.status !== 404) {
+        throw new Error(result.error.messages[0] ?? "Unable to remove friend.");
+      }
+    },
+    getSnapshot: () => queryClient.getQueryData<ProfileFeedResponse>(profileQueryKey),
+    applyOptimistic: () => {
+      updateFriendshipStatus(queryClient, profileKey, "NONE", -1);
+    },
+    rollback: (snapshot) => {
+      queryClient.setQueryData(profileQueryKey, snapshot);
+    },
+    onSettled: invalidateFriendRequests,
+    refetchType: "inactive",
   });
 
   const isLoading =

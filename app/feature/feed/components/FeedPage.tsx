@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import LoginRequiredDialog from "@/app/share/components/LoginRequiredDialog";
 import RightSidebar from "@/app/components/layout/RightSidebar";
 import { useFeedQuery } from "@/app/feature/feed/hooks/useFeedQuery";
@@ -19,6 +19,9 @@ import { useInfiniteScrollTrigger } from "@/app/share/hooks/useInfiniteScrollTri
 import { Loader2 } from "lucide-react";
 
 export default function FeedPage() {
+  const storiesSectionRef = useRef<HTMLDivElement | null>(null);
+  const postComposerRef = useRef<HTMLDivElement | null>(null);
+  const postsSectionRef = useRef<HTMLDivElement | null>(null);
   const {
     data,
     error,
@@ -36,6 +39,15 @@ export default function FeedPage() {
     (post: Post) => openModal(post, { syncUrl: true }),
     [openModal],
   );
+  const scrollToSection = (section: "stories" | "post" | "posts") => {
+    const target =
+      section === "stories"
+        ? storiesSectionRef.current
+        : section === "post"
+          ? postComposerRef.current
+          : postsSectionRef.current;
+    target?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
   const loadMoreSentinelRef = useInfiniteScrollTrigger({
     hasMore: hasMorePosts,
     isLoading: isLoadingMore,
@@ -52,17 +64,47 @@ export default function FeedPage() {
         <div className="lg:col-span-2"></div>
 
         <section className="col-span-12 min-w-0 space-y-6 lg:col-span-6">
+          <div className="sticky top-2 z-20 rounded-full border border-border/70 bg-background/90 px-2 py-1 backdrop-blur lg:hidden">
+            <div className="grid grid-cols-3 gap-1">
+              <button
+                type="button"
+                className="rounded-full px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-surface-hover"
+                onClick={() => scrollToSection("stories")}
+              >
+                Stories
+              </button>
+              <button
+                type="button"
+                className="rounded-full px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-surface-hover"
+                onClick={() => scrollToSection("post")}
+              >
+                Post
+              </button>
+              <button
+                type="button"
+                className="rounded-full px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-surface-hover"
+                onClick={() => scrollToSection("posts")}
+              >
+                Posts
+              </button>
+            </div>
+          </div>
+
           {feedError ? (
             <div className="rounded-2xl border border-amber-200/70 bg-amber-50/80 px-4 py-3 text-sm text-amber-700">
               {feedError}
             </div>
           ) : null}
 
-          <StoryList />
+          <div ref={storiesSectionRef}>
+            <StoryList />
+          </div>
 
-          {currentUser ? <FeedComposer currentUser={currentUser} /> : null}
+          <div ref={postComposerRef}>
+            {currentUser ? <FeedComposer currentUser={currentUser} /> : null}
+          </div>
 
-          <div className="space-y-6">
+          <div ref={postsSectionRef} className="space-y-6">
             {feedPosts.map((post, index) => (
               <PostCard
                 key={post.id}

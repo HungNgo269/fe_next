@@ -102,7 +102,7 @@ export default function ProfileActions(props: ProfileActionsProps) {
           {isFriendActionLoading ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
           ) : null}
-          Requested
+          Remove request
         </button>
       );
     }

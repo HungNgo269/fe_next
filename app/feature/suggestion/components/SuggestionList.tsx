@@ -16,7 +16,7 @@ export default function SuggestionList({
           <p className="ui-text-muted text-xs">Follow creators in your niche</p>
         </div>
         <button
-          className="ui-btn-ghost rounded-full px-3 py-1 text-xs font-semibold transition-colors"
+          className="ui-btn-ghost rounded-full px-3 py-1 text-xs font-semibold transition-colors "
           type="button"
         >
           See all

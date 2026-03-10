@@ -4,7 +4,7 @@ import Avatar from "@/app/feature/post/components/ui/Avatar";
 
 export default function SuggestionCard({ person }: { person: Suggestion }) {
   return (
-    <div className="ui-subtle flex items-center justify-between gap-3 rounded-2xl px-3 py-3">
+    <div className="flex items-center justify-between gap-3 px-3 py-3">
       <Link
         className="flex min-w-0 items-center gap-3 transition-opacity hover:opacity-80"
         href={`/profile/${person.handle || person.id}`}
@@ -16,7 +16,7 @@ export default function SuggestionCard({ person }: { person: Suggestion }) {
         </div>
       </Link>
       <button
-        className="ui-btn-ghost rounded-full px-3 py-1 text-xs font-semibold transition-colors"
+        className="ui-btn-primary-nobg px-3 py-1 text-xs font-semibold transition-colors"
         type="button"
       >
         Follow

@@ -12,12 +12,14 @@ type UseLeftSidebarOptions = {
   isAuthenticated: boolean;
   messageCount: number;
   notificationCount: number;
+  onNotificationSelect?: () => void;
 };
 
 export function useLeftSidebar({
   isAuthenticated,
   messageCount,
   notificationCount,
+  onNotificationSelect,
 }: UseLeftSidebarOptions) {
   const pathname = usePathname();
   const router = useRouter();
@@ -33,6 +35,8 @@ export function useLeftSidebar({
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [showThemeMenu, setShowThemeMenu] = useState(false);
+  const [showNotificationPanel, setShowNotificationPanel] = useState(false);
+  const prevNotificationPanelOpenRef = useRef(false);
   const themeMenuRef = useRef<HTMLDivElement | null>(null);
 
   const badgeCounts = {
@@ -54,6 +58,20 @@ export function useLeftSidebar({
     return () => document.removeEventListener("mousedown", handleDocumentClick);
   }, [showThemeMenu]);
 
+  useEffect(() => {
+    if (showNotificationPanel) {
+      setExpanded(false);
+    }
+  }, [showNotificationPanel]);
+
+  useEffect(() => {
+    const wasOpen = prevNotificationPanelOpenRef.current;
+    if (!wasOpen && showNotificationPanel) {
+      onNotificationSelect?.();
+    }
+    prevNotificationPanelOpenRef.current = showNotificationPanel;
+  }, [onNotificationSelect, showNotificationPanel]);
+
   const handleThemeChange = (theme: "light" | "dark") => {
     setThemePreference(theme);
     setTheme(theme);
@@ -67,6 +85,11 @@ export function useLeftSidebar({
     if (!isAuthenticated) {
       setShowLoginDialog(true);
       return;
+    }
+    if (item.key === "notification") {
+      setShowNotificationPanel((prev) => !prev);
+    } else {
+      setShowNotificationPanel(false);
     }
     setActiveLabel(item.label);
   };
@@ -92,7 +115,10 @@ export function useLeftSidebar({
     showLoginDialog,
     setShowLoginDialog,
     showThemeMenu,
+    showNotificationPanel,
+    setShowNotificationPanel,
     toggleThemeMenu: () => setShowThemeMenu((prev) => !prev),
+    closeNotificationPanel: () => setShowNotificationPanel(false),
     badgeCounts,
     handleThemeChange,
     toggleTheme,

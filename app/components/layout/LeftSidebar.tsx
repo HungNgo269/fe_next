@@ -7,10 +7,12 @@ import type {
   SidebarNotificationItem,
 } from "@/app/feature/feed/types/feed";
 import type { User } from "@/app/feature/post/types/api.types";
-import { navItems } from "./left-sidebar/constants";
+import { mobileNavItems, navItems } from "./left-sidebar/constants";
 import SidebarBrand from "./left-sidebar/SidebarBrand";
 import SidebarNavItem from "./left-sidebar/SidebarNavItem";
 import Avatar from "@/app/feature/post/components/ui/Avatar";
+import NotificationPanel from "./left-sidebar/NotificationPanel";
+import { Sheet, SheetContent } from "@/app/share/components/ui/sheet";
 
 import LoginRequiredDialog from "@/app/share/components/LoginRequiredDialog";
 import { useLeftSidebar } from "./hooks/useLeftSidebar";
@@ -21,6 +23,9 @@ type LeftSidebarProps = {
   onRequireAuth: () => void;
   messages: SidebarMessagePreview[];
   notifications: SidebarNotificationItem[];
+  notificationCount: number;
+  notificationLoading: boolean;
+  onNotificationSelect: () => void;
 };
 
 export default function LeftSidebar({
@@ -29,6 +34,9 @@ export default function LeftSidebar({
   onRequireAuth,
   messages,
   notifications,
+  notificationCount,
+  notificationLoading,
+  onNotificationSelect,
 }: LeftSidebarProps) {
   const {
     pathname,
@@ -41,23 +49,27 @@ export default function LeftSidebar({
     showLoginDialog,
     setShowLoginDialog,
     showThemeMenu,
+    showNotificationPanel,
+    setShowNotificationPanel,
     toggleThemeMenu,
     badgeCounts,
     handleThemeChange,
-    toggleTheme,
     handleProtectedSelect,
     handleLogout,
   } = useLeftSidebar({
     isAuthenticated,
     messageCount: messages.length,
-    notificationCount: notifications.length,
+    notificationCount,
+    onNotificationSelect,
   });
   return (
     <>
       <aside className="fixed left-0 top-0 z-30 hidden h-screen lg:block">
         <div
           className={`flex h-screen flex-col overflow-hidden border-r border-border/70 bg-background px-2 py-3 shadow-soft transition-[width] duration-300 ease-out ${expanded ? "w-60" : "w-18"}`}
-          onMouseEnter={() => setExpanded(true)}
+          onMouseEnter={() => {
+            if (!showNotificationPanel) setExpanded(true);
+          }}
           onMouseLeave={() => setExpanded(false)}
         >
           <SidebarBrand expanded={expanded} />
@@ -197,36 +209,58 @@ export default function LeftSidebar({
       </aside>
 
       <aside className="fixed inset-x-0 bottom-0 z-40 /70 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 lg:hidden">
-        <nav className="mx-auto flex h-16 w-full max-w-2xl items-center gap-1 overflow-x-auto px-2">
-          {navItems.map((item) => (
-            <button
-              key={item.key}
-              type="button"
-              onClick={() => handleProtectedSelect(item)}
-              className={`relative flex min-w-12 flex-col items-center justify-center gap-1 rounded-md px-2 text-xs ${
-                activeLabel === item.label
-                  ? "text-foreground"
-                  : "text-foreground-muted"
-              }`}
-            >
-              {item.icon}
-              {item.badge &&
-              (badgeCounts[item.key as keyof typeof badgeCounts] ?? 0) > 0 ? (
-                <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-like ring-2 ring-background" />
-              ) : null}
-            </button>
-          ))}
+        <nav className="mx-auto flex h-14 w-full max-w-md items-center justify-around px-1.5 [&_svg]:h-4 [&_svg]:w-4">
+          {mobileNavItems.map((item) => {
+            const isActive = item.href
+              ? pathname === item.href
+              : activeLabel === item.label;
+            const badge =
+              badgeCounts[item.key as keyof typeof badgeCounts] ?? 0;
+
+            if (item.href) {
+              return (
+                <Link
+                  key={item.key}
+                  href={item.href}
+                  className={`relative flex min-w-10 flex-col items-center justify-center gap-0.5 rounded-md px-1.5 text-[11px] ${
+                    isActive ? "text-foreground" : "text-foreground-muted"
+                  }`}
+                >
+                  {item.icon}
+                  {item.badge && badge > 0 ? (
+                    <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-like ring-2 ring-background" />
+                  ) : null}
+                </Link>
+              );
+            }
+
+            return (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => handleProtectedSelect(item)}
+                className={`relative flex min-w-10 flex-col items-center justify-center gap-0.5 rounded-md px-1.5 text-[11px] ${
+                  isActive ? "text-foreground" : "text-foreground-muted"
+                }`}
+              >
+                {item.icon}
+                {item.badge && badge > 0 ? (
+                  <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-like ring-2 ring-background" />
+                ) : null}
+              </button>
+            );
+          })}
 
           {isAuthenticated ? (
             <Link
               href={`/profile/${currentUser!.handle || currentUser!.id}`}
-              className={`flex min-w-12 flex-col items-center justify-center gap-1 rounded-md px-2 text-xs ${
+              className={`flex min-w-10 flex-col items-center justify-center gap-0.5 rounded-md px-1.5 text-[11px] ${
                 pathname.startsWith("/profile")
                   ? "text-foreground"
                   : "text-foreground-muted"
               }`}
             >
-              <span className="scale-90">
+              <span className="scale-75">
                 <Avatar
                   avatar={currentUser!.avatarUrl ?? undefined}
                   gender={currentUser!.gender}
@@ -237,38 +271,30 @@ export default function LeftSidebar({
             <button
               type="button"
               onClick={onRequireAuth}
-              className="flex min-w-12 flex-col items-center justify-center gap-1 rounded-md px-2 text-xs text-foreground-muted"
+              className="flex min-w-10 flex-col items-center justify-center gap-0.5 rounded-md px-1.5 text-[11px] text-foreground-muted"
             >
-              <span className="scale-90">
+              <span className="scale-75">
                 <Avatar />
               </span>
             </button>
           )}
-
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="flex min-w-12 flex-col items-center justify-center gap-1 rounded-md px-2 text-xs text-foreground-muted"
-          >
-            {themePreference === "light" ? (
-              <Moon className="h-4 w-4" />
-            ) : (
-              <Sun className="h-4 w-4" />
-            )}
-          </button>
-
-          {isAuthenticated ? (
-            <button
-              type="button"
-              onClick={handleLogout}
-              disabled={isLoggingOut}
-              className="flex min-w-12 flex-col items-center justify-center gap-1 rounded-md px-2 text-xs text-foreground-muted disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {isLoggingOut ? "..." : "Out"}
-            </button>
-          ) : null}
         </nav>
       </aside>
+
+      <Sheet open={showNotificationPanel} onOpenChange={setShowNotificationPanel}>
+        <SheetContent
+          side="left"
+          overlayClassName="lg:left-[4.5rem]"
+          closeClassName="hidden lg:inline-flex"
+          className="w-[100vw] border-border/70 p-0 sm:w-[430px] lg:left-[4.5rem] lg:w-[390px]"
+        >
+          <NotificationPanel
+            notifications={notifications}
+            loading={notificationLoading}
+            onBack={() => setShowNotificationPanel(false)}
+          />
+        </SheetContent>
+      </Sheet>
 
       <LoginRequiredDialog
         open={showLoginDialog}

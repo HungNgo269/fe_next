@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
+import { Settings } from "lucide-react";
 import ProfileStatusCard from "@/app/feature/profile/components/ProfileStatusCard";
 import ProfileHeader from "@/app/feature/profile/components/ProfileHeader";
 import ProfilePostFeed from "@/app/feature/profile/components/ProfilePostFeed";
@@ -11,9 +13,13 @@ import type { Post } from "@/app/feature/post/types/api.types";
 import { useFollowUser } from "@/app/feature/profile/hooks/useFollowUser";
 import { useFriendActions } from "@/app/feature/profile/hooks/useFriendActions";
 import { useQuery } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { fetchFriendRequests } from "@/app/feature/profile/api/userListApi";
 import type { useProfileFeed } from "@/app/feature/profile/hooks/useProfileFeed";
 import ProfileActions from "../components/ProfileActions";
+import ProfileSettingsModal from "../components/ProfileSettingsModal";
+import { logout } from "@/app/feature/auth/api/authApi";
+import { useAppSessionStore } from "@/app/share/stores/appSessionStore";
 
 type ProfileFeedState = ReturnType<typeof useProfileFeed>;
 
@@ -44,10 +50,17 @@ export default function ProfileFeedView({
   profileKey = "default",
 }: ProfileFeedViewProps) {
   void currentUserAvatar;
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const clearAuthenticatedProfile = useAppSessionStore(
+    (state) => state.clearAuthenticatedProfile,
+  );
 
   const [listModalType, setListModalType] = useState<UserListType | null>(null);
   const [listModalOpen, setListModalOpen] = useState(false);
   const [friendRequestsModalOpen, setFriendRequestsModalOpen] = useState(false);
+  const [settingsModalOpen, setSettingsModalOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const { followUser, unfollowUser, isFollowingLoading } = useFollowUser(
     profile.id ?? "",
@@ -73,6 +86,33 @@ export default function ProfileFeedView({
   const incomingCount = pendingRequests.filter(
     (r) => r.direction === "incoming",
   ).length;
+
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    await logout();
+    clearAuthenticatedProfile();
+    queryClient.clear();
+    setSettingsModalOpen(false);
+    router.replace("/login");
+    setIsLoggingOut(false);
+  };
+
+  const resolvedHeaderActions = (
+    <>
+      {headerActions}
+      {canEditProfile ? (
+        <button
+          type="button"
+          onClick={() => setSettingsModalOpen(true)}
+          className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-border/70 text-foreground-muted transition hover:bg-surface-hover hover:text-foreground"
+          aria-label="Open profile settings"
+        >
+          <Settings className="h-4 w-4" />
+        </button>
+      ) : null}
+    </>
+  );
 
   if (isLoading) {
     return (
@@ -109,7 +149,7 @@ export default function ProfileFeedView({
         initials={initials}
         name={profile.name}
         handle={profile.handle}
-        headerActions={headerActions}
+        headerActions={resolvedHeaderActions}
         postsCount={totalPosts ?? posts.length}
         friendsCount={profile.friendsCount ?? 0}
         followersCount={profile.followersCount ?? 0}
@@ -166,6 +206,12 @@ export default function ProfileFeedView({
       <FriendRequestsModal
         isOpen={friendRequestsModalOpen}
         onClose={() => setFriendRequestsModalOpen(false)}
+      />
+      <ProfileSettingsModal
+        open={settingsModalOpen}
+        onClose={() => setSettingsModalOpen(false)}
+        onLogout={handleLogout}
+        loggingOut={isLoggingOut}
       />
     </main>
   );

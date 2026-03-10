@@ -1,15 +1,17 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { followUserApi, unfollowUserApi } from "../api/profileApi";
 import type { ProfileFeedResponse } from "../types/api.types";
+import { useSafeOptimisticMutation } from "@/app/share/hooks/useSafeOptimisticMutation";
 
 export const useFollowUser = (userId: string, profileKey: string) => {
   const queryClient = useQueryClient();
+  const profileQueryKey = ["profile-feed", "other", profileKey] as const;
 
   const handleOptimisticUpdate = (isFollowing: boolean) => {
     queryClient.setQueryData(
-      ["profile-feed", "other", profileKey],
+      profileQueryKey,
       (old: ProfileFeedResponse | undefined) => {
         if (!old) return old;
         return {
@@ -18,36 +20,46 @@ export const useFollowUser = (userId: string, profileKey: string) => {
             ...old.user,
             isFollowing,
             followersCount: Math.max(0, old.user.followersCount + (isFollowing ? 1 : -1)),
-          },
+          }
         };
-      }
+      },
     );
   };
 
-  const followMutation = useMutation({
-    mutationFn: () => followUserApi(userId),
-    onMutate: () => {
+  const followMutation = useSafeOptimisticMutation<void, void, ProfileFeedResponse | undefined>({
+    queryKey: profileQueryKey,
+    mutationFn: async () => {
+      const result = await followUserApi(userId);
+      if (!result.ok && result.error.status !== 409) {
+        throw new Error(result.error.messages[0] ?? "Unable to follow user.");
+      }
+    },
+    getSnapshot: () => queryClient.getQueryData<ProfileFeedResponse>(profileQueryKey),
+    applyOptimistic: () => {
       handleOptimisticUpdate(true);
     },
-    onError: () => {
-      handleOptimisticUpdate(false);
+    rollback: (snapshot) => {
+      queryClient.setQueryData(profileQueryKey, snapshot);
     },
-    onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: ["profile-feed"] });
-    },
+    refetchType: "inactive",
   });
 
-  const unfollowMutation = useMutation({
-    mutationFn: () => unfollowUserApi(userId),
-    onMutate: () => {
+  const unfollowMutation = useSafeOptimisticMutation<void, void, ProfileFeedResponse | undefined>({
+    queryKey: profileQueryKey,
+    mutationFn: async () => {
+      const result = await unfollowUserApi(userId);
+      if (!result.ok && result.error.status !== 404) {
+        throw new Error(result.error.messages[0] ?? "Unable to unfollow user.");
+      }
+    },
+    getSnapshot: () => queryClient.getQueryData<ProfileFeedResponse>(profileQueryKey),
+    applyOptimistic: () => {
       handleOptimisticUpdate(false);
     },
-    onError: () => {
-      handleOptimisticUpdate(true);
+    rollback: (snapshot) => {
+      queryClient.setQueryData(profileQueryKey, snapshot);
     },
-    onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: ["profile-feed"] });
-    },
+    refetchType: "inactive",
   });
 
   return {

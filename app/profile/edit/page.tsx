@@ -212,7 +212,9 @@ export default function EditProfilePage() {
     });
 
     if (!result.ok) {
-      setError(formatFriendlyError(result.error, "Update failed."));
+      const friendlyError = formatFriendlyError(result.error, "Update failed.");
+      setError(friendlyError);
+      toast.error(friendlyError);
       setIsSaving(false);
       return;
     }
@@ -232,7 +234,6 @@ export default function EditProfilePage() {
         bio: mergedProfile.bio,
       });
     }
-    toast.success("Profile updated");
     setIsSaving(false);
     router.push("/profile");
   };

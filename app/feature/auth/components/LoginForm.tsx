@@ -35,7 +35,6 @@ export default function LoginForm() {
   );
   const [serverErrors, setServerErrors] = useState<string[]>([]);
   const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const {
     register,
@@ -53,7 +52,6 @@ export default function LoginForm() {
   const onSubmit = async (values: LoginFormValues) => {
     setServerErrors([]);
     setErrorTitle(undefined);
-    setSuccessMessage(null);
 
     const result = await login(values);
     if (!result.ok) {
@@ -71,7 +69,6 @@ export default function LoginForm() {
       avatar: authUser.avatarUrl ?? "",
     });
     await queryClient.invalidateQueries();
-    setSuccessMessage("Signed in successfully. Redirecting...");
     router.replace("/");
   };
 
@@ -123,11 +120,6 @@ export default function LoginForm() {
                 title={errorTitle}
                 messages={serverErrors}
                 variant="error"
-              />
-              <FormAlert
-                title="Success"
-                messages={successMessage ? [successMessage] : []}
-                variant="success"
               />
             </div>
 

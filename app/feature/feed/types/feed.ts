@@ -27,7 +27,17 @@ export type SidebarMessagePreview = {
 
 export type SidebarNotificationItem = {
   id: string;
+  type:
+    | "LIKE"
+    | "COMMENT"
+    | "FRIEND_REQUEST"
+    | "FRIEND_ACCEPTED"
+    | "NEW_FOLLOWER"
+    | "NEW_MESSAGE";
   title: string;
+  unreadEvents: number;
+  uniqueActors: number;
+  referenceId: string | null;
   time: string;
 };
 

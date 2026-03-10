@@ -27,9 +27,4 @@ export type LoginResponse = {
   user: AuthUser;
 };
 
-export type RegisterResponse = {
-  id: string;
-  name: string;
-  email: string;
-  gender: Gender;
-};
+export type RegisterResponse = LoginResponse;
