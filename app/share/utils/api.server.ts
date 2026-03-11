@@ -17,6 +17,12 @@ type ServerRequestOptions = {
   includeAuth?: boolean;
   headers?: Record<string, string>;
   cache?: RequestCache;
+  next?: NextFetchRequestConfig;
+};
+
+type NextFetchRequestConfig = {
+  revalidate?: number | false;
+  tags?: string[];
 };
 
 export const serverPostJson = async <T>(
@@ -45,6 +51,7 @@ export const serverPostJson = async <T>(
       body: body === undefined ? undefined : JSON.stringify(body),
       credentials: "include",
       cache: options?.cache ?? "no-store",
+      next: options?.next,
     });
 
     const payload = await parseResponseBody(response);
@@ -95,6 +102,7 @@ export const serverGetJson = async <T>(
       headers,
       credentials: "include",
       cache: options?.cache ?? "no-store",
+      next: options?.next,
     });
 
     const payload = await parseResponseBody(response);

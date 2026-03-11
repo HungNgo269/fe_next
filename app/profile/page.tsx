@@ -1,39 +1,21 @@
-"use client";
+import UserProfilePageClient from "./UserProfilePageClient";
+import { getCurrentUserProfileFeedServer } from "../feature/profile/api/profileApi.server";
+import { HydrationBoundary, QueryClient, dehydrate } from "@tanstack/react-query";
+import type { ProfileFeedResponse } from "../feature/profile/types/api.types";
 
-import Link from "next/link";
-import { useCallback } from "react";
-import { getCurrentUserProfileFeed } from "../feature/profile/api/profileApi";
-import { useProfileFeed } from "../feature/profile/hooks/useProfileFeed";
-import ProfileFeedView from "../feature/profile/views/ProfileFeedView";
-import ProfileShell from "../feature/profile/components/ProfileShell";
+const PROFILE_ME_QUERY_KEY = ["profile-feed", "me", "me"] as const;
 
-export default function UserProfilePage() {
-  const fetchFn = useCallback(
-    (page: number, limit: number) => getCurrentUserProfileFeed(page, limit),
-    [],
-  );
+export default async function UserProfilePage() {
+  const queryClient = new QueryClient();
+  const initialFeed = await getCurrentUserProfileFeedServer(1, 5);
 
-  const feed = useProfileFeed({
-    fetchFn,
-    isOwnProfile: true,
-    profileKey: "me",
-  });
+  if (initialFeed.ok) {
+    queryClient.setQueryData<ProfileFeedResponse>(PROFILE_ME_QUERY_KEY, initialFeed.data);
+  }
 
   return (
-    <ProfileShell>
-      <ProfileFeedView
-        {...feed}
-        postsLabel="Posts"
-        emptyMessage="You have not created or shared any posts yet."
-        headerActions={
-          <Link
-            className="ui-btn-primary rounded-lg px-4 py-1.5 text-sm font-semibold transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/80"
-            href="/profile/edit"
-          >
-            Edit profile
-          </Link>
-        }
-      />
-    </ProfileShell>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <UserProfilePageClient />
+    </HydrationBoundary>
   );
 }

@@ -1,9 +1,6 @@
-"use client";
-
 import Link from "next/link";
 import type { User } from "@/app/feature/post/types/api.types";
 import Avatar from "@/app/feature/post/components/ui/Avatar";
-
 
 const labelClassName = "whitespace-nowrap transition-opacity duration-200";
 
@@ -32,7 +29,8 @@ export default function SidebarProfileItem({
       >
         <span className="shrink-0">
           <Avatar
-            avatar={currentUser.avatarUrl ?? undefined} gender={currentUser.gender}
+            avatar={currentUser.avatarUrl ?? undefined}
+            gender={currentUser.gender}
           />
         </span>
         <span

@@ -1,4 +1,4 @@
-"use client";
+// "use client";
 
 import Link from "next/link";
 import type { NavItem } from "./constants";
@@ -52,11 +52,7 @@ export default function SidebarNavItem({
   }
 
   return (
-    <button
-      type="button"
-      onClick={() => onSelect(item)}
-      className={className}
-    >
+    <button type="button" onClick={() => onSelect(item)} className={className}>
       {content}
     </button>
   );

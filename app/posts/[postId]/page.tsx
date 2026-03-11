@@ -5,9 +5,9 @@ import Link from "next/link";
 export default async function PostPermalinkPage({
   params,
 }: {
-  params: Promise<{ postId: string }>;
+  params: { postId: string };
 }) {
-  const { postId } = await params;
+  const { postId } = params;
   const result = await fetchPostByIdServer(postId);
 
   if (!result.ok) {

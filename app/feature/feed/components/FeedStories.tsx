@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import { useStories } from "@/app/feature/story/hooks/useStories";
 import Image from "next/image";
