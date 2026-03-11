@@ -7,7 +7,7 @@ export default async function PostPermalinkPage({
 }: {
   params: { postId: string };
 }) {
-  const { postId } = params;
+  const { postId } = await params;
   const result = await fetchPostByIdServer(postId);
 
   if (!result.ok) {

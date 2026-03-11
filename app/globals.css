@@ -499,10 +499,8 @@ button:disabled {
     max-width: 1000px;
     height: 85vh;
     max-height: 700px;
-    border-radius: 8px;
+    border-radius: 4px;
     overflow: hidden;
-    background: var(--surface-elevated);
-    border: 0.5px solid color-mix(in srgb, var(--border) 70%, transparent);
     box-shadow: 0 24px 64px -16px rgba(0, 0, 0, 0.4);
     animation: modal-scale-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
@@ -547,12 +545,6 @@ button:disabled {
     align-items: center;
     justify-content: space-between;
     padding: 14px 16px;
-    border-bottom: 0.5px solid
-      color-mix(in srgb, var(--border) 60%, transparent);
-  }
-
-  .post-detail-body {
-    padding: 12px 16px;
   }
 
   .post-detail-comments {

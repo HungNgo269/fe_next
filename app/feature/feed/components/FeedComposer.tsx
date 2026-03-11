@@ -7,6 +7,7 @@ import Avatar from "@/app/feature/post/components/ui/Avatar";
 import { IconImage, IconVideo } from "@/app/share/components/icons";
 import { usePostUIStore } from "@/app/feature/post/stores/postStore";
 import { useCreatePost } from "@/app/feature/feed/hooks/useCreatePost";
+import { useAutoResizeTextarea } from "@/app/share/hooks/useAutoResizeTextarea";
 
 type SelectedComposerMedia = {
   id: string;
@@ -21,6 +22,10 @@ function FeedComposer({ currentUser }: { currentUser: User }) {
   const setComposerText = usePostUIStore((s) => s.setComposerText);
   const { handleCreatePost } = useCreatePost();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const composerTextareaRef = useAutoResizeTextarea<HTMLTextAreaElement>(
+    composerText,
+    { minHeight: 96, maxHeight: 320 },
+  );
   const [selectedMedia, setSelectedMedia] = useState<SelectedComposerMedia[]>(
     [],
   );
@@ -114,6 +119,8 @@ function FeedComposer({ currentUser }: { currentUser: User }) {
           <textarea
             className="ui-input min-h-composer w-full resize-none rounded-2xl px-4 py-3 text-sm outline-none transition-colors"
             placeholder="Share something with your circle..."
+            ref={composerTextareaRef}
+            rows={3}
             value={composerText}
             onChange={(event) => setComposerText(event.target.value)}
           />

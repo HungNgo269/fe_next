@@ -1,5 +1,6 @@
 "use client";
 
+import { useAutoResizeTextarea } from "@/app/share/hooks/useAutoResizeTextarea";
 import { usePostActions } from "../hooks/usePostActions";
 
 const VIDEO_EXTENSIONS = [".mp4", ".webm", ".mov", ".m4v", ".avi", ".mkv"];
@@ -30,6 +31,10 @@ export default function PostBody({
     handleSaveEdit,
     handleCancelEdit,
   } = usePostActions(postId);
+  const editTextareaRef = useAutoResizeTextarea<HTMLTextAreaElement>(
+    editingText,
+    { minHeight: 96, maxHeight: 320 },
+  );
 
   return (
     <div className="mt-4">
@@ -37,8 +42,20 @@ export default function PostBody({
         <div className="space-y-3">
           <textarea
             className="ui-input min-h-composer w-full resize-none rounded-2xl px-4 py-3 text-sm outline-none transition-colors"
+            ref={editTextareaRef}
+            rows={3}
             value={editingText}
             onChange={(event) => setEditingText(event.target.value)}
+            onKeyDown={(event) => {
+              if (
+                event.key === "Enter" &&
+                !event.shiftKey &&
+                editingText.trim().length > 0
+              ) {
+                event.preventDefault();
+                handleSaveEdit();
+              }
+            }}
           />
           <div className="flex items-center gap-2">
             <button
@@ -59,7 +76,7 @@ export default function PostBody({
         </div>
       ) : (
         <p
-          className="ui-text-muted cursor-pointer text-sm leading-6"
+          className="ui-text-muted cursor-pointer whitespace-pre-line break-words text-sm leading-6"
           onClick={onClickContent}
           role="button"
           tabIndex={0}

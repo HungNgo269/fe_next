@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import { useAutoResizeTextarea } from "@/app/share/hooks/useAutoResizeTextarea";
 import {
   useModalCommentDataContext,
   useModalCommentReplyContext,
@@ -9,12 +10,18 @@ export default function ModalCommentReplyForm() {
   const { comment } = useModalCommentDataContext();
   const { replyText, setReplyText, submitReply, cancelReply } =
     useModalCommentReplyContext();
+  const replyTextareaRef = useAutoResizeTextarea<HTMLTextAreaElement>(replyText, {
+    minHeight: 34,
+    maxHeight: 160,
+  });
 
   return (
     <div className="mt-2 space-y-2">
-      <input
-        className="ui-input w-full rounded-full border border-border/70 px-3 py-1.5 text-xs outline-none transition-colors"
+      <textarea
+        className="ui-input w-full resize-none rounded-2xl border border-border/70 px-3 py-1.5 text-xs outline-none transition-colors"
         placeholder={`Reply to ${comment.author.name}...`}
+        ref={replyTextareaRef}
+        rows={1}
         value={replyText}
         onChange={(event) => setReplyText(event.target.value)}
         onKeyDown={(event) => {

@@ -90,10 +90,8 @@ export default function FeedPageClient({ initialSuggestedUsers }: FeedPageClient
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
-      <main className="relative grid min-w-0 w-full grid-cols-12 gap-6 px-4 pb-24 pt-10 sm:px-6 lg:pb-16">
-        <div className="lg:col-span-2"></div>
-
-        <section className="col-span-12 min-w-0 space-y-6 lg:col-span-6">
+      <main className="relative mx-auto flex min-w-0 w-full flex-col gap-8 px-4 py-8 sm:px-6 lg:flex-row lg:items-start lg:justify-center lg:gap-16 lg:px-8 lg:py-10">
+        <section className="min-w-0 w-full space-y-6 lg:w-[630px] lg:flex-none">
           <div className="sticky top-2 z-20 rounded-full border border-border/70 bg-background/90 px-2 py-1 backdrop-blur lg:hidden">
             <div className="grid grid-cols-3 gap-1">
               <button
@@ -205,7 +203,7 @@ export default function FeedPageClient({ initialSuggestedUsers }: FeedPageClient
           </div>
         </section>
 
-        <aside className="col-span-12 space-y-6 lg:col-span-3">
+        <aside className="w-full space-y-6 lg:w-[320px] lg:flex-none">
           <SuggestionList suggestions={suggestions} />
         </aside>
       </main>

@@ -9,7 +9,7 @@ const isVideoUrl = (url: string) =>
 
 export default function ModalPostLeftPane() {
   const { post } = useModalPostDataContext();
-  const { content, mediaUrls } = post;
+  const { mediaUrls } = post;
 
   if (mediaUrls && mediaUrls.length > 0) {
     const firstMediaUrl = mediaUrls[0];
@@ -18,19 +18,15 @@ export default function ModalPostLeftPane() {
         {isVideoUrl(firstMediaUrl) ? (
           <video className="post-detail-media" controls src={firstMediaUrl} />
         ) : (
-          <img className="post-detail-media" src={firstMediaUrl} alt="Post media" />
+          <img
+            className="post-detail-media"
+            src={firstMediaUrl}
+            alt="Post media"
+          />
         )}
       </div>
     );
   }
 
-  return (
-    <div className="post-detail-left">
-      <div className="post-detail-text-content">
-        <p className="text-lg leading-7 text-foreground">{content}</p>
-      </div>
-    </div>
-  );
+  return <></>;
 }
-
-

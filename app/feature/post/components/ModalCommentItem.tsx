@@ -124,7 +124,10 @@ function ModalCommentItemComponent({
 
   const submitReport = async () => {
     const trimmed = reportText.trim();
-    const ok = await handleReportComment(comment.id, trimmed ? trimmed : undefined);
+    const ok = await handleReportComment(
+      comment.id,
+      trimmed ? trimmed : undefined,
+    );
     if (!ok) return;
     setIsReportOpen(false);
     setReportText("");
@@ -177,7 +180,7 @@ function ModalCommentItemComponent({
             {isEditing ? (
               <ModalCommentEditForm />
             ) : (
-              <p className="mt-0.5 text-xs leading-5 text-foreground/90">
+              <p className="mt-0.5 whitespace-pre-line break-words text-sm leading-5 text-foreground/90">
                 {comment.content}
               </p>
             )}
