@@ -12,6 +12,7 @@ import SidebarBrand from "./left-sidebar/SidebarBrand";
 import SidebarNavItem from "./left-sidebar/SidebarNavItem";
 import Avatar from "@/app/feature/post/components/ui/Avatar";
 import NotificationPanel from "./left-sidebar/NotificationPanel";
+import SearchPanel from "./left-sidebar/SearchPanel";
 import { Sheet, SheetContent } from "@/app/share/components/ui/sheet";
 
 import LoginRequiredDialog from "@/app/share/components/LoginRequiredDialog";
@@ -41,19 +42,18 @@ export default function LeftSidebar({
   const {
     pathname,
     themePreference,
-    themeMenuRef,
     expanded,
     setExpanded,
     activeLabel,
     isLoggingOut,
     showLoginDialog,
     setShowLoginDialog,
-    showThemeMenu,
+    showSearchPanel,
+    handleSearchPanelOpenChange,
     showNotificationPanel,
-    setShowNotificationPanel,
-    toggleThemeMenu,
+    handleNotificationPanelOpenChange,
     badgeCounts,
-    handleThemeChange,
+    toggleTheme,
     handleProtectedSelect,
     handleLogout,
   } = useLeftSidebar({
@@ -68,7 +68,7 @@ export default function LeftSidebar({
         <div
           className={`flex h-screen flex-col overflow-hidden border-r border-border/70 bg-background px-2 py-3 shadow-soft transition-[width] duration-300 ease-out ${expanded ? "w-60" : "w-18"}`}
           onMouseEnter={() => {
-            if (!showNotificationPanel) setExpanded(true);
+            if (!showNotificationPanel && !showSearchPanel) setExpanded(true);
           }}
           onMouseLeave={() => setExpanded(false)}
         >
@@ -83,7 +83,11 @@ export default function LeftSidebar({
                 isActive={
                   item.href
                     ? pathname === item.href
-                    : activeLabel === item.label
+                    : item.key === "search"
+                      ? showSearchPanel
+                      : item.key === "notification"
+                        ? showNotificationPanel
+                        : activeLabel === item.label
                 }
                 badgeCount={
                   badgeCounts[item.key as keyof typeof badgeCounts] ?? 0
@@ -136,56 +140,24 @@ export default function LeftSidebar({
               </button>
             )}
 
-            <div ref={themeMenuRef} className="relative">
-              <button
-                type="button"
-                onClick={toggleThemeMenu}
-                className="group relative flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition text-foreground-muted hover:bg-surface-hover hover:text-foreground"
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="group relative flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition text-foreground-muted hover:bg-surface-hover hover:text-foreground"
+            >
+              <span className="shrink-0">
+                {themePreference === "light" ? (
+                  <Moon className="h-5 w-5" />
+                ) : (
+                  <Sun className="h-5 w-5" />
+                )}
+              </span>
+              <span
+                className={`whitespace-nowrap transition-opacity duration-200 ${expanded ? "opacity-100" : "opacity-0"}`}
               >
-                <span className="shrink-0">
-                  {themePreference === "light" ? (
-                    <Moon className="h-5 w-5" />
-                  ) : (
-                    <Sun className="h-5 w-5" />
-                  )}
-                </span>
-                <span
-                  className={`whitespace-nowrap transition-opacity duration-200 ${expanded ? "opacity-100" : "opacity-0"}`}
-                >
-                  Theme
-                </span>
-              </button>
-
-              {showThemeMenu ? (
-                <div
-                  className={`absolute z-40 w-36 rounded-xl border border-border/70 bg-background p-1.5 shadow-soft ${
-                    expanded
-                      ? "bottom-full left-3 mb-1.5"
-                      : "left-[4.25rem] top-1/2 -translate-y-1/2"
-                  }`}
-                >
-                  {(["light", "dark"] as const).map((t) => (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => handleThemeChange(t)}
-                      className={`flex w-full items-center justify-between rounded-md px-2 py-1.5 text-xs font-semibold transition first:mb-0 last:mt-1 ${
-                        themePreference === t
-                          ? "bg-brand text-brand-foreground"
-                          : "text-foreground-muted hover:bg-surface-hover hover:text-foreground"
-                      }`}
-                    >
-                      {t.charAt(0).toUpperCase() + t.slice(1)}
-                      {t === "light" ? (
-                        <Sun className="h-3.5 w-3.5" />
-                      ) : (
-                        <Moon className="h-3.5 w-3.5" />
-                      )}
-                    </button>
-                  ))}
-                </div>
-              ) : null}
-            </div>
+                {themePreference === "light" ? "Dark mode" : "Light mode"}
+              </span>
+            </button>
 
             {isAuthenticated ? (
               <button
@@ -213,7 +185,11 @@ export default function LeftSidebar({
           {mobileNavItems.map((item) => {
             const isActive = item.href
               ? pathname === item.href
-              : activeLabel === item.label;
+              : item.key === "search"
+                ? showSearchPanel
+                : item.key === "notification"
+                  ? showNotificationPanel
+                  : activeLabel === item.label;
             const badge =
               badgeCounts[item.key as keyof typeof badgeCounts] ?? 0;
 
@@ -281,7 +257,25 @@ export default function LeftSidebar({
         </nav>
       </aside>
 
-      <Sheet open={showNotificationPanel} onOpenChange={setShowNotificationPanel}>
+      <Sheet open={showSearchPanel} onOpenChange={handleSearchPanelOpenChange}>
+        <SheetContent
+          side="left"
+          overlayClassName="lg:left-[4.5rem]"
+          closeClassName="hidden lg:inline-flex"
+          className="w-[100vw] border-border/70 p-0 sm:w-[430px] lg:left-[4.5rem] lg:w-[390px]"
+        >
+          <SearchPanel
+            open={showSearchPanel}
+            onBack={() => handleSearchPanelOpenChange(false)}
+            onResultSelect={() => handleSearchPanelOpenChange(false)}
+          />
+        </SheetContent>
+      </Sheet>
+
+      <Sheet
+        open={showNotificationPanel}
+        onOpenChange={handleNotificationPanelOpenChange}
+      >
         <SheetContent
           side="left"
           overlayClassName="lg:left-[4.5rem]"
@@ -291,7 +285,7 @@ export default function LeftSidebar({
           <NotificationPanel
             notifications={notifications}
             loading={notificationLoading}
-            onBack={() => setShowNotificationPanel(false)}
+            onBack={() => handleNotificationPanelOpenChange(false)}
           />
         </SheetContent>
       </Sheet>

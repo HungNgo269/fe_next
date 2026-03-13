@@ -31,38 +31,17 @@ export function useLeftSidebar({
   const clearAuthenticatedProfile = useAppSessionStore((state) => state.clearAuthenticatedProfile);
 
   const [expanded, setExpanded] = useState(false);
-  const [activeLabel, setActiveLabel] = useState("Search");
+  const [activeLabel, setActiveLabel] = useState("");
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [showLoginDialog, setShowLoginDialog] = useState(false);
-  const [showThemeMenu, setShowThemeMenu] = useState(false);
+  const [showSearchPanel, setShowSearchPanel] = useState(false);
   const [showNotificationPanel, setShowNotificationPanel] = useState(false);
   const prevNotificationPanelOpenRef = useRef(false);
-  const themeMenuRef = useRef<HTMLDivElement | null>(null);
 
   const badgeCounts = {
     messages: messageCount,
     notification: notificationCount,
   };
-
-  useEffect(() => {
-    if (!showThemeMenu) return;
-
-    const handleDocumentClick = (event: MouseEvent) => {
-      const target = event.target;
-      if (!(target instanceof Node)) return;
-      if (themeMenuRef.current?.contains(target)) return;
-      setShowThemeMenu(false);
-    };
-
-    document.addEventListener("mousedown", handleDocumentClick);
-    return () => document.removeEventListener("mousedown", handleDocumentClick);
-  }, [showThemeMenu]);
-
-  useEffect(() => {
-    if (showNotificationPanel) {
-      setExpanded(false);
-    }
-  }, [showNotificationPanel]);
 
   useEffect(() => {
     const wasOpen = prevNotificationPanelOpenRef.current;
@@ -72,24 +51,42 @@ export function useLeftSidebar({
     prevNotificationPanelOpenRef.current = showNotificationPanel;
   }, [onNotificationSelect, showNotificationPanel]);
 
-  const handleThemeChange = (theme: "light" | "dark") => {
-    setThemePreference(theme);
-    setTheme(theme);
-    setShowThemeMenu(false);
+  const toggleTheme = () => {
+    const nextTheme = themePreference === "light" ? "dark" : "light";
+    setThemePreference(nextTheme);
+    setTheme(nextTheme);
   };
 
-  const toggleTheme = () =>
-    handleThemeChange(themePreference === "light" ? "dark" : "light");
+  const handleSearchPanelOpenChange = (open: boolean) => {
+    setShowSearchPanel(open);
+    if (open) {
+      setShowNotificationPanel(false);
+      setExpanded(false);
+      setActiveLabel("Search");
+    }
+  };
+
+  const handleNotificationPanelOpenChange = (open: boolean) => {
+    setShowNotificationPanel(open);
+    if (open) {
+      setShowSearchPanel(false);
+      setExpanded(false);
+      setActiveLabel("Notifications");
+    }
+  };
 
   const handleProtectedSelect = (item: NavItem) => {
     if (!isAuthenticated) {
       setShowLoginDialog(true);
       return;
     }
-    if (item.key === "notification") {
-      setShowNotificationPanel((prev) => !prev);
+    if (item.key === "search") {
+      handleSearchPanelOpenChange(!showSearchPanel);
+    } else if (item.key === "notification") {
+      handleNotificationPanelOpenChange(!showNotificationPanel);
     } else {
-      setShowNotificationPanel(false);
+      handleSearchPanelOpenChange(false);
+      handleNotificationPanelOpenChange(false);
     }
     setActiveLabel(item.label);
   };
@@ -107,20 +104,20 @@ export function useLeftSidebar({
   return {
     pathname,
     themePreference,
-    themeMenuRef,
     expanded,
     setExpanded,
     activeLabel,
     isLoggingOut,
     showLoginDialog,
     setShowLoginDialog,
-    showThemeMenu,
+    showSearchPanel,
+    setShowSearchPanel,
+    handleSearchPanelOpenChange,
     showNotificationPanel,
     setShowNotificationPanel,
-    toggleThemeMenu: () => setShowThemeMenu((prev) => !prev),
+    handleNotificationPanelOpenChange,
     closeNotificationPanel: () => setShowNotificationPanel(false),
     badgeCounts,
-    handleThemeChange,
     toggleTheme,
     handleProtectedSelect,
     handleLogout,
