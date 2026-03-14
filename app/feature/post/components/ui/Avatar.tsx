@@ -1,38 +1,63 @@
+"use client";
+
 import Image from "next/image";
+import { useMemo } from "react";
+import { useAppSessionStore } from "@/app/share/stores/appSessionStore";
+import {
+  getAvatarFallbackColor,
+  getInitialsFromLastTwoWords,
+} from "@/app/share/utils/avatarFallback";
+import { firstNonEmpty, normalizeNullableText } from "@/app/share/utils/helper";
 
 type AvatarProps = {
   initials?: string;
   avatar?: string;
-  gender?: string;
   online?: boolean;
 };
 
-export default function Avatar({ avatar, online, gender }: AvatarProps) {
-  const normalizedAvatar = avatar?.trim();
+export default function Avatar({ avatar, online, initials }: AvatarProps) {
+  const currentUserName = useAppSessionStore(
+    (state) => state.authProfile?.name ?? "",
+  );
+  const normalizedAvatar = normalizeNullableText(avatar);
   const hasAvatar = Boolean(normalizedAvatar);
-  const isExternalAvatar = Boolean(normalizedAvatar && /^https?:\/\//i.test(normalizedAvatar));
+  const isExternalAvatar = Boolean(
+    normalizedAvatar && /^https?:\/\//i.test(normalizedAvatar),
+  );
+  const fallbackName = firstNonEmpty(initials, currentUserName) ?? "";
+  const fallbackInitials = useMemo(
+    () => getInitialsFromLastTwoWords(fallbackName),
+    [fallbackName],
+  );
+  const fallbackColor = useMemo(
+    () => getAvatarFallbackColor(fallbackName),
+    [fallbackName],
+  );
 
   return (
     <div className="relative">
-      <div className="relative flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400">
+      <div
+        className={`relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full ${
+          hasAvatar
+            ? "bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400"
+            : "text-white"
+        }`}
+        style={!hasAvatar ? { backgroundColor: fallbackColor } : undefined}
+      >
         {hasAvatar ? (
           <Image
             src={normalizedAvatar!}
             alt="Avatar"
-            width={32}
-            height={32}
-            className="object-cover h-full w-full"
+            width={40}
+            height={40}
+            className="h-full w-full object-cover"
             loader={isExternalAvatar ? ({ src }) => src : undefined}
             unoptimized={isExternalAvatar}
           />
         ) : (
-          <Image
-            src={gender?.toUpperCase() === "FEMALE" ? "/avatars/female.svg" : "/avatars/male.svg"}
-            alt="Default Avatar"
-            width={32}
-            height={32}
-            className="object-cover h-full w-full opacity-60 dark:opacity-80"
-          />
+          <span className="text-xs font-semibold tracking-wide text-white">
+            {fallbackInitials}
+          </span>
         )}
       </div>
       {online ? (

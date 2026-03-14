@@ -450,10 +450,6 @@ button:disabled {
     font-size: 11px;
   }
 
-  .tracking-widest-xl {
-    letter-spacing: 0.2em;
-  }
-
   /* Grid */
   .grid-cols-auth {
     grid-template-columns: 1.1fr 0.9fr;

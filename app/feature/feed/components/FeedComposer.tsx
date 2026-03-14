@@ -1,10 +1,11 @@
 "use client";
 
+import Image from "next/image";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import type { User } from "@/app/feature/post/types/api.types";
 import ActionChip from "@/app/feature/post/components/ui/ActionChip";
 import Avatar from "@/app/feature/post/components/ui/Avatar";
-import { IconImage, IconVideo } from "@/app/share/components/icons";
+import { IconImage } from "@/app/share/components/icons";
 import { usePostUIStore } from "@/app/feature/post/stores/postStore";
 import { useCreatePost } from "@/app/feature/feed/hooks/useCreatePost";
 import { useAutoResizeTextarea } from "@/app/share/hooks/useAutoResizeTextarea";
@@ -113,7 +114,7 @@ function FeedComposer({ currentUser }: { currentUser: User }) {
       <div className="flex items-start gap-4">
         <Avatar
           avatar={currentUser.avatarUrl ?? undefined}
-          gender={currentUser.gender}
+          initials={currentUser.name}
         />
         <div className="flex-1">
           <textarea
@@ -139,10 +140,13 @@ function FeedComposer({ currentUser }: { currentUser: User }) {
                   src={item.previewUrl}
                 />
               ) : (
-                <img
+                <Image
                   alt={item.file.name || "Selected media"}
                   className="h-24 w-full object-cover"
                   src={item.previewUrl}
+                  width={240}
+                  height={96}
+                  unoptimized
                 />
               )}
               <button

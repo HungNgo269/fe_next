@@ -14,7 +14,7 @@ export default function ModalPostComments() {
   } = useModalPostDataContext();
 
   return (
-    <div className="post-detail-comments">
+    <div className="post-detail-comments max-h-full">
       {commentsLoading ? (
         <div className="flex items-center justify-center py-8">
           <span className="h-5 w-5 animate-spin rounded-full border-2 border-border border-t-brand" />
@@ -26,7 +26,11 @@ export default function ModalPostComments() {
       ) : (
         <div className="space-y-0.5 py-1">
           {visibleRootComments.map((comment) => (
-            <ModalCommentItem key={comment.id} postId={postId} comment={comment} />
+            <ModalCommentItem
+              key={comment.id}
+              postId={postId}
+              comment={comment}
+            />
           ))}
           {hasMoreRootComments ? (
             <button

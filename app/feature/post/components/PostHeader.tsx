@@ -59,10 +59,12 @@ export default function PostHeader({
   return (
     <header className="flex items-start justify-between gap-3">
       <div className="flex items-start gap-3">
-        <Avatar
-          avatar={sharedBy?.avatarUrl ?? author.avatarUrl ?? undefined}
-          gender={author.gender}
-        />
+        <Link className="cursor-pointer" href={`/profile/${profileKey}`}>
+          <Avatar
+            avatar={sharedBy?.avatarUrl ?? author.avatarUrl ?? undefined}
+            initials={sharedBy?.name ?? author.name}
+          />
+        </Link>
         <div>
           {sharedBy ? (
             <p className="ui-text-muted text-[11px] font-medium">

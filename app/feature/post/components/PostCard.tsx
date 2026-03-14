@@ -1,20 +1,18 @@
+"use client";
+
+import { useCallback } from "react";
+import { usePostDetailModal } from "../hooks/usePostDetailModal";
 import type { Post } from "../types/api.types";
 import PostActions from "./PostActions";
 import PostBody from "./PostBody";
 import PostHeader from "./PostHeader";
 
-export default function PostCard({
-  post,
-  index,
-  onOpenDetail,
-}: {
-  post: Post;
-  index: number;
-  onOpenDetail?: (post: Post) => void;
-}) {
-  void index;
+export default function PostCard({ post }: { post: Post }) {
+  const openModal = usePostDetailModal((s) => s.openModal);
   const interactionPostId = post.sourcePostId ?? post.id;
-  const openDetail = () => onOpenDetail?.(post);
+  const openDetail = useCallback(() => {
+    openModal(post, { syncUrl: true });
+  }, [openModal, post]);
 
   return (
     <article className="rounded-md p-5">

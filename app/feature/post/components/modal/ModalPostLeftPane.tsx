@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useModalPostDataContext } from "./ModalPostContentContext";
 
 const VIDEO_EXTENSIONS = [".mp4", ".webm", ".mov", ".m4v", ".avi"];
@@ -18,10 +19,14 @@ export default function ModalPostLeftPane() {
         {isVideoUrl(firstMediaUrl) ? (
           <video className="post-detail-media" controls src={firstMediaUrl} />
         ) : (
-          <img
+          <Image
             className="post-detail-media"
             src={firstMediaUrl}
             alt="Post media"
+            width={1280}
+            height={1280}
+            sizes="100vw"
+            unoptimized
           />
         )}
       </div>

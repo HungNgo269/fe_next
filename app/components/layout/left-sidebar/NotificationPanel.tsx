@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   ChevronLeft,
   Check,
@@ -71,10 +71,6 @@ export default function NotificationPanel({
 
   const visiblePostNotifications = postNotifications.slice(0, visiblePostCount);
 
-  useEffect(() => {
-    setVisiblePostCount(POST_PAGE_SIZE);
-  }, [notifications]);
-
   if (loading) {
     return (
       <div className="h-full w-full bg-background">
@@ -105,15 +101,11 @@ export default function NotificationPanel({
 
       <div className="h-[calc(100vh-57px)] space-y-3 overflow-y-auto px-2.5 py-2.5 sm:space-y-5 sm:px-3 sm:py-3">
         <section className="space-y-1.5 sm:space-y-2">
-          <h4 className="px-1 text-xs font-semibold uppercase tracking-wide text-foreground-muted">
-            Ket ban
+          <h4 className="px-1 text-xs font-semibold uppercase  text-foreground-muted">
+            Kết bạn
           </h4>
 
-          {friendRequestLoading ? (
-            <div className="rounded-xl border border-border/60 px-3 py-5 text-center text-xs text-foreground-muted sm:rounded-2xl sm:py-6">
-              Dang tai yeu cau ket ban...
-            </div>
-          ) : null}
+          {friendRequestLoading ? <Loader2></Loader2> : null}
 
           {!friendRequestLoading
             ? incomingRequests.map((request) => {
@@ -130,7 +122,7 @@ export default function NotificationPanel({
                           {request.handle ? `@${request.handle}` : request.name}
                         </p>
                         <p className="mt-0.5 text-sm leading-5 text-foreground-muted">
-                          da gui loi moi ket ban
+                          đã gửi lời mời kết bạn
                         </p>
                       </div>
                     </div>
@@ -159,7 +151,7 @@ export default function NotificationPanel({
                         ) : (
                           <X className="h-3.5 w-3.5" />
                         )}
-                        Xoa
+                        Xóa yêu cầu
                       </button>
                     </div>
                   </div>
@@ -171,7 +163,7 @@ export default function NotificationPanel({
           incomingRequests.length === 0 &&
           friendActivityNotifications.length === 0 ? (
             <div className="rounded-xl border border-border/60 px-3 py-5 text-center text-xs text-foreground-muted sm:rounded-2xl sm:py-6">
-              Chua co thong bao ket ban.
+              Chưa có thông báo kết bạn.
             </div>
           ) : null}
 
@@ -206,13 +198,13 @@ export default function NotificationPanel({
         </section>
 
         <section className="space-y-1.5 sm:space-y-2">
-          <h4 className="px-1 text-xs font-semibold uppercase tracking-wide text-foreground-muted">
-            Like va Binh luan
+          <h4 className="px-1 text-xs font-semibold uppercase  text-foreground-muted">
+            Like và bình luận
           </h4>
 
           {postNotifications.length === 0 ? (
             <div className="rounded-xl border border-border/60 px-3 py-5 text-center text-xs text-foreground-muted sm:rounded-2xl sm:py-6">
-              Chua co thong bao bai dang.
+              Chưa có thông báo bài đăng
             </div>
           ) : (
             <>
@@ -252,7 +244,7 @@ export default function NotificationPanel({
                         href={`/posts/${item.referenceId}`}
                         className="inline-flex items-center rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs font-semibold text-foreground transition hover:bg-surface-hover sm:px-3"
                       >
-                        Xem bai dang
+                        Xem bài đăng
                       </Link>
                     ) : null}
                   </div>
@@ -270,7 +262,7 @@ export default function NotificationPanel({
                   className="flex w-full items-center justify-center gap-1 rounded-xl border border-dashed border-border bg-background px-3 py-2 text-sm font-semibold text-foreground-muted transition hover:bg-surface-hover hover:text-foreground"
                 >
                   <Plus className="h-4 w-4" />
-                  Tai them 10 thong bao
+                  Tải thêm thông báo
                 </button>
               ) : null}
             </>
@@ -280,3 +272,4 @@ export default function NotificationPanel({
     </div>
   );
 }
+

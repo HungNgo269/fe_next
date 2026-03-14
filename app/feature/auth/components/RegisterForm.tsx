@@ -82,7 +82,7 @@ export default function RegisterForm() {
   return (
     <div className="mx-auto w-full max-w-md space-y-6 sm:max-w-lg lg:max-w-4xl">
       <div className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-widest-xl text-foreground-muted">
+        <p className="text-xs font-semibold uppercase -xl text-foreground-muted">
           Sign up
         </p>
         <h2 className="text-2xl font-semibold text-foreground">
@@ -154,7 +154,10 @@ export default function RegisterForm() {
             </label>
           </div>
           {errors.gender?.message ? (
-            <p className="text-xs font-medium text-destructive" id={genderErrorId}>
+            <p
+              className="text-xs font-medium text-destructive"
+              id={genderErrorId}
+            >
               {errors.gender.message}
             </p>
           ) : null}
@@ -173,7 +176,10 @@ export default function RegisterForm() {
           {...register("password")}
         />
         {errors.password?.message ? (
-          <p className="text-xs font-medium text-destructive" id={passwordErrorId}>
+          <p
+            className="text-xs font-medium text-destructive"
+            id={passwordErrorId}
+          >
             {errors.password.message}
           </p>
         ) : null}

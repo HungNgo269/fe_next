@@ -9,7 +9,7 @@ export default function SuggestionCard({ person }: { person: Suggestion }) {
         className="flex min-w-0 items-center gap-3 transition-opacity hover:opacity-80"
         href={`/profile/${person.handle || person.id}`}
       >
-        <Avatar avatar={person.avatar} gender={person.gender} />
+        <Avatar avatar={person.avatar} initials={person.name} />
         <div className="min-w-0">
           <p className="text-sm font-semibold text-foreground">{person.name}</p>
           <p className="ui-text-muted text-xs">{person.note}</p>

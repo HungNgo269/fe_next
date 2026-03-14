@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { useState, type ReactNode } from "react";
+import { useCallback, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { Settings } from "lucide-react";
 import ProfileStatusCard from "@/app/feature/profile/components/ProfileStatusCard";
 import ProfileHeader from "@/app/feature/profile/components/ProfileHeader";
 import ProfilePostFeed from "@/app/feature/profile/components/ProfilePostFeed";
@@ -10,46 +9,69 @@ import UserListModal from "@/app/feature/profile/components/UserListModal";
 import FriendRequestsModal from "@/app/feature/profile/components/FriendRequestsModal";
 import type { UserListType } from "@/app/feature/profile/types/user-list.types";
 import type { Post } from "@/app/feature/post/types/api.types";
-import { useFollowUser } from "@/app/feature/profile/hooks/useFollowUser";
-import { useFriendActions } from "@/app/feature/profile/hooks/useFriendActions";
 import { useQuery } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { fetchFriendRequests } from "@/app/feature/profile/api/userListApi";
-import type { useProfileFeed } from "@/app/feature/profile/hooks/useProfileFeed";
 import ProfileActions from "../components/ProfileActions";
-import ProfileSettingsModal from "../components/ProfileSettingsModal";
 import { logout } from "@/app/feature/auth/api/authApi";
 import { useAppSessionStore } from "@/app/share/stores/appSessionStore";
+import {
+  getCurrentUserProfileFeed,
+  getUserProfileFeed,
+} from "@/app/feature/profile/api/profileApi";
+import { useProfileFeed } from "@/app/feature/profile/hooks/useProfileFeed";
 
-type ProfileFeedState = ReturnType<typeof useProfileFeed>;
-
-type ProfileFeedViewProps = ProfileFeedState & {
+type BaseProfileFeedViewProps = {
   headerActions?: ReactNode;
   postsLabel?: string;
   emptyMessage?: string;
-  profileKey?: string;
 };
 
-export default function ProfileFeedView({
-  profile,
-  initials,
-  currentUserAvatar,
-  canEditProfile,
-  posts,
-  isLoading,
-  isUnauthorized,
-  profileError,
-  postsError,
-  hasMorePosts,
-  totalPosts,
-  isLoadingMore,
-  handleLoadMore,
-  headerActions,
-  postsLabel = "Posts",
-  emptyMessage = "No posts yet.",
-  profileKey = "default",
-}: ProfileFeedViewProps) {
+type OwnProfileFeedViewProps = BaseProfileFeedViewProps & {
+  mode: "own";
+};
+
+type OtherProfileFeedViewProps = BaseProfileFeedViewProps & {
+  mode: "other";
+  handle: string;
+};
+
+type ProfileFeedViewProps = OwnProfileFeedViewProps | OtherProfileFeedViewProps;
+
+export default function ProfileFeedView(props: ProfileFeedViewProps) {
+  const { mode, headerActions, postsLabel = "Posts", emptyMessage = "No posts yet." } =
+    props;
+  const handle = mode === "other" ? props.handle : undefined;
+  const profileKey = mode === "own" ? "me" : handle ?? "default";
+  const fetchFn = useCallback(
+    (page: number, limit: number) =>
+      mode === "own"
+        ? getCurrentUserProfileFeed(page, limit)
+        : getUserProfileFeed(handle ?? "", page, limit),
+    [mode, handle],
+  );
+
+  const {
+    profile,
+    currentUserAvatar,
+    canEditProfile,
+    posts,
+    isLoading,
+    isUnauthorized,
+    profileError,
+    postsError,
+    hasMorePosts,
+    totalPosts,
+    isLoadingMore,
+    handleLoadMore,
+  } = useProfileFeed({
+    fetchFn,
+    isOwnProfile: mode === "own",
+    profileKey,
+  });
+
   void currentUserAvatar;
+
   const router = useRouter();
   const queryClient = useQueryClient();
   const clearAuthenticatedProfile = useAppSessionStore(
@@ -59,21 +81,7 @@ export default function ProfileFeedView({
   const [listModalType, setListModalType] = useState<UserListType | null>(null);
   const [listModalOpen, setListModalOpen] = useState(false);
   const [friendRequestsModalOpen, setFriendRequestsModalOpen] = useState(false);
-  const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-
-  const { followUser, unfollowUser, isFollowingLoading } = useFollowUser(
-    profile.id ?? "",
-    profileKey,
-  );
-  const {
-    sendRequest,
-    cancelRequest,
-    acceptRequest,
-    declineRequest,
-    removeFriend,
-    isFriendActionLoading,
-  } = useFriendActions(profile.id ?? "", profileKey);
 
   const { data: pendingRequests = [] } = useQuery({
     queryKey: ["friend-requests"],
@@ -90,29 +98,42 @@ export default function ProfileFeedView({
   const handleLogout = async () => {
     if (isLoggingOut) return;
     setIsLoggingOut(true);
-    await logout();
-    clearAuthenticatedProfile();
-    queryClient.clear();
-    setSettingsModalOpen(false);
-    router.replace("/login");
-    setIsLoggingOut(false);
+    try {
+      await logout();
+      clearAuthenticatedProfile();
+      queryClient.clear();
+      router.replace("/login");
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
-  const resolvedHeaderActions = (
-    <>
-      {headerActions}
-      {canEditProfile ? (
-        <button
-          type="button"
-          onClick={() => setSettingsModalOpen(true)}
-          className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-border/70 text-foreground-muted transition hover:bg-surface-hover hover:text-foreground"
-          aria-label="Open profile settings"
-        >
-          <Settings className="h-4 w-4" />
-        </button>
-      ) : null}
-    </>
-  );
+  const resolvedHeaderActions = canEditProfile ? null : headerActions;
+
+  if (mode === "other" && !isLoading && (profileError || isUnauthorized)) {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6 px-4 text-center">
+        <div className="space-y-2">
+          <h1 className="text-2xl font-bold text-foreground">
+            {isUnauthorized ? "Access Denied" : "User Not Found"}
+          </h1>
+          <p className="ui-text-muted max-w-md text-sm">
+            {isUnauthorized
+              ? "You don't have permission to view this profile."
+              : "This user may have changed their username or the link may be incorrect."}
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Link
+            className="ui-btn-ghost rounded-full px-5 py-2.5 text-sm font-semibold transition-colors"
+            href="/profile"
+          >
+            My profile
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -146,9 +167,9 @@ export default function ProfileFeedView({
     <main className="relative mx-auto w-full max-w-5xl space-y-6 px-4 pb-16 pt-12 sm:px-6">
       <ProfileHeader
         avatarUrl={profile.avatar}
-        initials={initials}
         name={profile.name}
         handle={profile.handle}
+        bio={profile.bio}
         headerActions={resolvedHeaderActions}
         postsCount={totalPosts ?? posts.length}
         friendsCount={profile.friendsCount ?? 0}
@@ -161,25 +182,36 @@ export default function ProfileFeedView({
         profileError={profileError}
       >
         {canEditProfile ? (
-          <ProfileActions
-            variant="own"
-            incomingCount={incomingCount}
-            onOpenFriendRequests={() => setFriendRequestsModalOpen(true)}
-          />
+          <>
+            <div className="flex w-full flex-col gap-3 sm:flex-row">
+              <Link
+                className="inline-flex flex-1 items-center justify-center rounded-xl bg-gray-200 px-4 py-2.5 text-sm font-semibold text-secondary-foreground transition-colors hover:brightness-95"
+                href="/profile/edit"
+              >
+                Edit profile
+              </Link>
+              <button
+                type="button"
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+                className="inline-flex flex-1 items-center justify-center rounded-xl bg-gray-200 px-4 py-2.5 text-sm font-semibold text-secondary-foreground transition-colors hover:brightness-95 disabled:opacity-60"
+              >
+                Logout
+              </button>
+            </div>
+            <ProfileActions
+              variant="own"
+              incomingCount={incomingCount}
+              onOpenFriendRequests={() => setFriendRequestsModalOpen(true)}
+            />
+          </>
         ) : (
           <ProfileActions
             variant="other"
+            profileId={profile.id ?? ""}
+            profileKey={profileKey}
             isFollowing={profile.isFollowing ?? false}
-            isFollowingLoading={isFollowingLoading}
-            onFollow={followUser}
-            onUnfollow={unfollowUser}
             friendshipStatus={profile.friendshipStatus ?? "NONE"}
-            isFriendActionLoading={isFriendActionLoading}
-            onSendRequest={sendRequest}
-            onCancelRequest={cancelRequest}
-            onAcceptRequest={acceptRequest}
-            onDeclineRequest={declineRequest}
-            onRemoveFriend={removeFriend}
           />
         )}
       </ProfileHeader>
@@ -201,17 +233,11 @@ export default function ProfileFeedView({
         isOpen={listModalOpen}
         onClose={() => setListModalOpen(false)}
         listType={listModalType}
-        userId={profile.id!}
+        userId={profile.id ?? ""}
       />
       <FriendRequestsModal
         isOpen={friendRequestsModalOpen}
         onClose={() => setFriendRequestsModalOpen(false)}
-      />
-      <ProfileSettingsModal
-        open={settingsModalOpen}
-        onClose={() => setSettingsModalOpen(false)}
-        onLogout={handleLogout}
-        loggingOut={isLoggingOut}
       />
     </main>
   );

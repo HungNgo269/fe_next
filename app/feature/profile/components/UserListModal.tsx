@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X, Search, Loader2 } from "lucide-react";
 import ProfileAvatarPreview from "./ProfileAvatarPreview";
@@ -34,10 +34,6 @@ export default function UserListModal({
 
   const queryKey = ["user-list", userId, listType] as const;
 
-  useEffect(() => {
-    setSearchQuery("");
-  }, [isOpen, listType]);
-
   const { data: users, isLoading } = useQuery({
     queryKey,
     queryFn: async () => {
@@ -66,7 +62,15 @@ export default function UserListModal({
     ) ?? [];
 
   return (
-    <Dialog.Root open={isOpen} onOpenChange={(open: boolean) => !open && onClose()}>
+    <Dialog.Root
+      open={isOpen}
+      onOpenChange={(open: boolean) => {
+        if (!open) {
+          setSearchQuery("");
+          onClose();
+        }
+      }}
+    >
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/60 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
         <Dialog.Content className="fixed left-[50%] top-[50%] z-50 w-full max-w-[400px] translate-x-[-50%] translate-y-[-50%] overflow-hidden rounded-xl bg-background shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
@@ -107,11 +111,11 @@ export default function UserListModal({
                   {filteredUsers.map((user) => (
                     <div key={user.id} className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10">
+                        <div className="shrink-0">
                           <ProfileAvatarPreview
                             avatarUrl={user.avatarUrl ?? ""}
-                            fallbackInitials={user.name.charAt(0).toUpperCase()}
                             name={user.name}
+                            size="md"
                           />
                         </div>
                         <div className="flex flex-col">

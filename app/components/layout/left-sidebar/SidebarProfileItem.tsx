@@ -28,10 +28,7 @@ export default function SidebarProfileItem({
         }`}
       >
         <span className="shrink-0">
-          <Avatar
-            avatar={currentUser.avatarUrl ?? undefined}
-            gender={currentUser.gender}
-          />
+          <Avatar avatar={currentUser.avatarUrl ?? undefined} initials={currentUser.name} />
         </span>
         <span
           className={`${labelClassName} ${

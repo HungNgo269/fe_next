@@ -8,7 +8,6 @@ import type { FeedBootstrapData } from "@/app/feature/feed/types/feed";
 import { FEED_QUERY_KEY } from "@/app/share/hooks/feedQueryKeys";
 import { useState, useCallback, useEffect, useMemo } from "react";
 import type { UserProfile } from "../types/profile";
-import { buildInitials } from "./useProfileData";
 
 const PAGE_SIZE = 5;
 
@@ -27,6 +26,7 @@ const toUserProfile = (
   user: ProfileFeedResponse["user"],
 ): UserProfile => ({
   id: user.id,
+  handle: user.handle ?? null,
   name: user.name,
   email: user.email ?? "",
   gender: user.gender ?? "",
@@ -79,7 +79,6 @@ export function useProfileFeed({
     () => (query.data ? toUserProfile(query.data.user) : profileData.profile),
     [query.data, profileData.profile],
   );
-  const initials = useMemo(() => buildInitials(profile.name), [profile.name]);
   const canEditProfile =
     Boolean(currentUserId) &&
     (isOwnProfile || (Boolean(profile.id) && currentUserId === profile.id));
@@ -139,7 +138,6 @@ export function useProfileFeed({
   return {
     profile,
     posts,
-    initials: initials,
     currentUserId,
     currentUserAvatar,
     canEditProfile,

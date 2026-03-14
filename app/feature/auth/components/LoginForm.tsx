@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -81,14 +82,18 @@ export default function LoginForm() {
     <div className="min-h-screen bg-background text-foreground">
       <div className="grid min-h-screen w-full lg:grid-cols-3">
         <section className="relative hidden overflow-hidden lg:col-span-2 lg:block">
-          <img
+          <Image
             src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1800&q=80"
             alt="People collaborating in a modern workspace"
-            className="h-full w-full object-cover"
+            className="object-cover"
+            fill
+            priority
+            sizes="(min-width: 1024px) 66vw, 100vw"
+            unoptimized
           />
           <div className="absolute inset-0 bg-auth-hero-overlay" />
           <div className="absolute bottom-10 left-10 right-10 max-w-xl space-y-4 text-white">
-            <p className="text-xs font-semibold uppercase tracking-widest-xl text-white/75">
+            <p className="text-xs font-semibold uppercase -xl text-white/75">
               Welcome back
             </p>
             <h1 className="text-4xl font-semibold leading-tight">
@@ -104,7 +109,7 @@ export default function LoginForm() {
         <section className="flex items-center justify-center px-6 py-10 sm:px-10">
           <div className="w-full max-w-lg rounded-md border border-border bg-auth-panel p-7 shadow-soft backdrop-blur md:p-10">
             <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-widest-xl text-foreground-muted">
+              <p className="text-xs font-semibold uppercase -xl text-foreground-muted">
                 Sign in
               </p>
               <h2 className="text-2xl font-semibold text-foreground">

@@ -1,14 +1,13 @@
 "use client";
 
-import { useCallback, useMemo, useRef } from "react";
+import { useMemo, useRef } from "react";
 import LoginRequiredDialog from "@/app/share/components/LoginRequiredDialog";
 import { useFeedQuery } from "@/app/feature/feed/hooks/useFeedQuery";
 import { usePostUIStore } from "@/app/feature/post/stores/postStore";
-import { usePostDetailModal } from "@/app/feature/post/hooks/usePostDetailModal";
 import FeedComposer from "@/app/feature/feed/components/FeedComposer";
 import PostCard from "@/app/feature/post/components/PostCard";
 import PostDetailModal from "@/app/feature/post/components/PostDetailModal";
-import type { Post, User } from "@/app/feature/post/types/api.types";
+import type { Post } from "@/app/feature/post/types/api.types";
 import {
   toAvatarFromProfile,
   useAppSessionStore,
@@ -19,14 +18,10 @@ import { STORY_THEMES, STORY_TITLES } from "@/app/feature/story/data/story";
 import type { StoryData } from "@/app/feature/story/types/story";
 import Link from "next/link";
 import Image from "next/image";
-import { userToSuggestion } from "@/app/feature/suggestion/types/suggestion.type";
 import SuggestionList from "@/app/feature/suggestion/components/SuggestionList";
+import { useSuggestedUsers } from "@/app/feature/suggestion/hooks/useSuggestedUsers";
 
-type FeedPageClientProps = {
-  initialSuggestedUsers: User[];
-};
-
-export default function FeedPageClient({ initialSuggestedUsers }: FeedPageClientProps) {
+export default function FeedPageClient() {
   const storiesSectionRef = useRef<HTMLDivElement | null>(null);
   const postComposerRef = useRef<HTMLDivElement | null>(null);
   const postsSectionRef = useRef<HTMLDivElement | null>(null);
@@ -39,14 +34,10 @@ export default function FeedPageClient({ initialSuggestedUsers }: FeedPageClient
     postsError,
     handleLoadMore,
   } = useFeedQuery();
+  const { users: suggestedUsers, suggestions } = useSuggestedUsers();
   const authProfile = useAppSessionStore((state) => state.authProfile);
   const showLoginDialog = usePostUIStore((s) => s.showLoginDialog);
   const setShowLoginDialog = usePostUIStore((s) => s.setShowLoginDialog);
-  const openModal = usePostDetailModal((s) => s.openModal);
-  const handleOpenDetail = useCallback(
-    (post: Post) => openModal(post, { syncUrl: true }),
-    [openModal],
-  );
   const scrollToSection = (section: "stories" | "post" | "posts") => {
     const target =
       section === "stories"
@@ -68,7 +59,7 @@ export default function FeedPageClient({ initialSuggestedUsers }: FeedPageClient
   const feedError = error?.message ?? "";
   const stories = useMemo<StoryData[]>(
     () =>
-      initialSuggestedUsers
+      suggestedUsers
         .filter((u) => u.id !== currentUserId)
         .slice(0, 4)
         .map((user, i) => ({
@@ -77,15 +68,7 @@ export default function FeedPageClient({ initialSuggestedUsers }: FeedPageClient
           author: user,
           theme: STORY_THEMES[i % STORY_THEMES.length],
         })),
-    [currentUserId, initialSuggestedUsers],
-  );
-  const suggestions = useMemo(
-    () =>
-      initialSuggestedUsers
-        .filter((u) => u.id !== currentUserId)
-        .slice(0, 3)
-        .map(userToSuggestion),
-    [currentUserId, initialSuggestedUsers],
+    [currentUserId, suggestedUsers],
   );
 
   return (
@@ -157,13 +140,8 @@ export default function FeedPageClient({ initialSuggestedUsers }: FeedPageClient
           </div>
 
           <div ref={postsSectionRef} className="space-y-6">
-            {feedPosts.map((post, index) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                index={index}
-                onOpenDetail={handleOpenDetail}
-              />
+            {feedPosts.map((post) => (
+              <PostCard key={post.id} post={post} />
             ))}
 
             {postsError ? (

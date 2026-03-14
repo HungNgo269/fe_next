@@ -1,4 +1,4 @@
-import { clientGetJson, clientPostJson, clientDeleteJson, clientPatchJson } from "@/app/share/utils/api";
+import { clientGetJson } from "@/app/share/utils/api";
 import type { ApiResponse } from "@/app/share/utils/api-types";
 import type { FriendRequestUser, UserListUser } from "../types/user-list.types";
 

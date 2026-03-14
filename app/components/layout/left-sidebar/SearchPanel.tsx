@@ -10,6 +10,7 @@ import {
   type SidebarSearchAllResult,
 } from "@/app/share/api/searchApi";
 import { useSearchHistoryStore } from "@/app/share/stores/searchHistoryStore";
+import { firstNonEmpty, normalizeText } from "@/app/share/utils/helper";
 
 type SearchPanelProps = {
   open: boolean;
@@ -32,7 +33,7 @@ const toProfileSlug = (user: {
   id: string;
   handle: string | null;
   username: string | null;
-}) => user.handle?.trim() || user.username?.trim() || user.id;
+}) => firstNonEmpty(user.handle, user.username) ?? user.id;
 
 export default function SearchPanel({
   open,
@@ -54,7 +55,7 @@ export default function SearchPanel({
   const requestIdRef = useRef(0);
   const activeRequestControllerRef = useRef<AbortController | null>(null);
   const lastFetchedQueryRef = useRef("");
-  const trimmedQuery = query.trim();
+  const trimmedQuery = normalizeText(query);
 
   const clearInFlightRequest = useCallback(() => {
     activeRequestControllerRef.current?.abort();
@@ -69,7 +70,7 @@ export default function SearchPanel({
   const handleQueryChange = (nextValue: string) => {
     setQuery(nextValue);
     clearInFlightRequest();
-    if (nextValue.trim().length < SEARCH_MIN_QUERY_LENGTH) {
+    if (normalizeText(nextValue).length < SEARCH_MIN_QUERY_LENGTH) {
       lastFetchedQueryRef.current = "";
       resetSearchState();
     }
@@ -188,7 +189,7 @@ export default function SearchPanel({
       <div className="h-[calc(100vh-125px)] overflow-y-auto px-2.5 py-2.5 sm:px-3 sm:py-3">
         {trimmedQuery ? (
           <section className="space-y-3">
-            <h4 className="px-1 text-xs font-semibold uppercase tracking-wide text-foreground-muted">
+            <h4 className="px-1 text-xs font-semibold uppercase  text-foreground-muted">
               Kết quả tìm kiếm
             </h4>
 
@@ -208,7 +209,7 @@ export default function SearchPanel({
               <>
                 <section className="space-y-1.5 sm:space-y-2">
                   <div className="flex items-center justify-between px-1">
-                    <h5 className="text-xs font-semibold uppercase tracking-wide text-foreground-muted">
+                    <h5 className="text-xs font-semibold uppercase  text-foreground-muted">
                       Người dùng
                     </h5>
                     <span className="text-xs text-foreground-muted">
@@ -253,7 +254,7 @@ export default function SearchPanel({
 
                 <section className="space-y-1.5 sm:space-y-2">
                   <div className="flex items-center justify-between px-1">
-                    <h5 className="text-xs font-semibold uppercase tracking-wide text-foreground-muted">
+                    <h5 className="text-xs font-semibold uppercase  text-foreground-muted">
                       Bài viết
                     </h5>
                     <span className="text-xs text-foreground-muted">
@@ -299,7 +300,7 @@ export default function SearchPanel({
         ) : (
           <section className="space-y-1.5 sm:space-y-2">
             <div className="flex items-center justify-between px-1">
-              <h4 className="text-xs font-semibold uppercase tracking-wide text-foreground-muted">
+              <h4 className="text-xs font-semibold uppercase  text-foreground-muted">
                 Mới đây
               </h4>
               {history.length > 0 ? (
@@ -356,5 +357,3 @@ export default function SearchPanel({
     </div>
   );
 }
-
-

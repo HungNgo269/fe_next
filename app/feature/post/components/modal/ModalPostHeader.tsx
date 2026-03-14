@@ -14,8 +14,12 @@ import ReportReasonModal from "../ui/ReportReasonModal";
 export default function ModalPostHeader() {
   const { post, profileKey, userHandle, isOwner } = useModalPostDataContext();
   const { handleStartEdit } = useModalPostEditContext();
-  const { onClose, handleDeletePostAndClose, handleReportPost, isReportingPost } =
-    useModalPostActionsContext();
+  const {
+    onClose,
+    handleDeletePostAndClose,
+    handleReportPost,
+    isReportingPost,
+  } = useModalPostActionsContext();
   const author = post.author;
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [reportText, setReportText] = useState("");
@@ -31,10 +35,16 @@ export default function ModalPostHeader() {
   return (
     <div className="post-detail-header">
       <div className="flex items-center gap-3">
-        <Avatar
-          avatar={post.sharedBy?.avatarUrl ?? author.avatarUrl ?? undefined}
-          gender={author.gender}
-        />
+        <Link
+          className="cursor-pointer"
+          href={`/profile/${profileKey}`}
+          onClick={onClose}
+        >
+          <Avatar
+            avatar={post.sharedBy?.avatarUrl ?? author.avatarUrl ?? undefined}
+            initials={post.sharedBy?.name ?? author.name}
+          />
+        </Link>
         <div>
           {post.sharedBy ? (
             <p className="ui-text-muted text-[11px] font-medium">
@@ -100,3 +110,4 @@ export default function ModalPostHeader() {
     </div>
   );
 }
+

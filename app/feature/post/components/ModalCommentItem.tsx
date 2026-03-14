@@ -159,7 +159,7 @@ function ModalCommentItemComponent({
         <div className="group flex items-start gap-2.5 px-4 py-1.5">
           <Avatar
             avatar={comment.author.avatarUrl ?? undefined}
-            gender={comment.author.gender}
+            initials={comment.author.name}
           />
 
           <div className="min-w-0 flex-1">

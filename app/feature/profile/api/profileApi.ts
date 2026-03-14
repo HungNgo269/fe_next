@@ -1,6 +1,12 @@
 import type { ApiResponse } from "@/app/share/utils/api-types";
-import { clientGetJson, clientPatchJson, clientPostJson, clientDeleteJson } from "@/app/share/utils/api";
-import type { EditableProfileField, UserProfile } from "../types/profile";
+import {
+  clientDeleteJson,
+  clientGetJson,
+  clientPatchJson,
+  clientPostForm,
+  clientPostJson,
+} from "@/app/share/utils/api";
+import type { UserProfile } from "../types/profile";
 import type {
   ProfileResponse,
   ProfileFeedResponse,
@@ -42,29 +48,32 @@ export const getUserProfileFeed = async (
 ): Promise<ApiResponse<ProfileFeedResponse>> =>
   clientGetJson<ProfileFeedResponse>(`/users/${userId}/profile?page=${page}&limit=${limit}`);
 
-export const updateCurrentUserProfileField = async (
-  field: EditableProfileField,
-  value: string,
+export const updateCurrentUserProfile = async (
+  draft: Pick<UserProfile, "name" | "email" | "gender" | "bio">,
 ): Promise<ApiResponse<UserProfile>> => {
-  const nextValue = field === "gender" ? value.trim().toUpperCase() : value.trim();
-  const payloadField = field === "avatar" ? "avatarUrl" : field;
-  const raw = await clientPatchJson<ProfileResponse>(PROFILE_PATH, {
-    [payloadField]: nextValue,
+  const raw = await clientPatchJson<ProfileResponse>(`${PROFILE_PATH}/profile-info`, {
+    name: draft.name.trim(),
+    email: draft.email.trim(),
+    gender: draft.gender.trim().toUpperCase(),
+    bio: (draft.bio ?? "").trim(),
   });
   if (!raw.ok) return raw;
   return { ok: true, data: mapToUserProfile(raw.data) };
 };
 
-export const updateCurrentUserProfile = async (
-  draft: Pick<UserProfile, "name" | "email" | "gender" | "avatar" | "bio">,
+export const uploadCurrentUserAvatar = async (
+  avatarFile: File,
 ): Promise<ApiResponse<UserProfile>> => {
-  const raw = await clientPatchJson<ProfileResponse>(PROFILE_PATH, {
-    name: draft.name.trim(),
-    email: draft.email.trim(),
-    gender: draft.gender.trim().toUpperCase(),
-    avatarUrl: draft.avatar.trim(),
-    bio: (draft.bio ?? "").trim(),
-  });
+  const formData = new FormData();
+  formData.append("avatar", avatarFile);
+
+  const raw = await clientPostForm<ProfileResponse>(`${PROFILE_PATH}/avatar`, formData);
+  if (!raw.ok) return raw;
+  return { ok: true, data: mapToUserProfile(raw.data) };
+};
+
+export const deleteCurrentUserAvatar = async (): Promise<ApiResponse<UserProfile>> => {
+  const raw = await clientDeleteJson<ProfileResponse>(`${PROFILE_PATH}/avatar`);
   if (!raw.ok) return raw;
   return { ok: true, data: mapToUserProfile(raw.data) };
 };

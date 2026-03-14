@@ -1,22 +1,32 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import type { FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import {
+  deleteCurrentUserAvatar,
   getCurrentUserProfile,
   updateCurrentUserProfile,
+  uploadCurrentUserAvatar,
 } from "../../feature/profile/api/profileApi";
+import ProfileAvatarPreview from "../../feature/profile/components/ProfileAvatarPreview";
 import ProfileShell from "../../feature/profile/components/ProfileShell";
 import ProfileStatusCard from "../../feature/profile/components/ProfileStatusCard";
 import type { UserProfile } from "../../feature/profile/types/profile";
 import { useAppSessionStore } from "../../share/stores/appSessionStore";
 import { Loader2 } from "lucide-react";
-import type { ApiError } from "../../share/utils/api-types";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-const BASE_GENDER_OPTIONS = ["MALE", "FEMALE"];
+const BASE_GENDER_OPTIONS = ["MALE", "FEMALE"] as const;
+const PROFILE_SUBMIT_ERROR = "Sorry we can't upload your profile right now";
 
 const EMPTY_PROFILE: UserProfile = {
   name: "",
@@ -26,90 +36,150 @@ const EMPTY_PROFILE: UserProfile = {
   bio: "",
 };
 
-const normalizeFieldValue = (
-  field: keyof UserProfile,
-  value: string,
-): string => {
-  const trimmed = value.trim();
-  return field === "gender" ? trimmed.toUpperCase() : trimmed;
+type AvatarFormValues = {
+  avatarFile?: FileList;
 };
 
-const validateForm = (form: UserProfile): string | null => {
-  if (!form.name.trim() || !form.email.trim() || !form.gender.trim()) {
-    return "Name, email, and gender are required.";
-  }
-
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
-    return "Email format is invalid.";
-  }
-
-  if (form.avatar.trim()) {
-    const isAbsolute = /^https?:\/\//i.test(form.avatar.trim());
-    const isRelative = form.avatar.trim().startsWith("/");
-    if (!isAbsolute && !isRelative) {
-      return "Avatar must start with http://, https://, or /.";
-    }
-  }
-
-  if ((form.bio ?? "").trim().length > 500) {
-    return "Bio must be 500 characters or fewer.";
-  }
-
-  return null;
+type ProfileDetailsFormValues = {
+  name: string;
+  email: string;
+  gender: string;
+  bio: string;
 };
 
-const formatFriendlyError = (
-  error: ApiError | undefined,
-  fallback: string,
-): string => {
-  const firstMessage = error?.messages?.[0]?.trim() ?? "";
-  if (!firstMessage) return fallback;
+const toDetailsDefaults = (profile: UserProfile): ProfileDetailsFormValues => ({
+  name: profile.name ?? "",
+  email: profile.email ?? "",
+  gender: (profile.gender ?? "").trim().toUpperCase(),
+  bio: profile.bio ?? "",
+});
 
-  if (/^Cannot\s+(GET|POST|PATCH|PUT|DELETE)\s+/i.test(firstMessage)) {
-    return "A server route is not available yet. Please try again after backend restart.";
+const toAuthSyncPayload = (profile: UserProfile, fallbackId?: string) => {
+  const nextId = profile.id ?? fallbackId;
+  if (!nextId) {
+    return null;
   }
 
-  if (error?.status === 401 || error?.status === 403) {
-    return "Your session expired. Please sign in again.";
-  }
-
-  return firstMessage;
+  return {
+    id: nextId,
+    name: profile.name,
+    email: profile.email,
+    gender: profile.gender,
+    avatar: profile.avatar,
+    bio: profile.bio ?? "",
+  };
 };
 
 export default function EditProfilePage() {
-  const router = useRouter();
   const authProfile = useAppSessionStore((state) => state.authProfile);
   const setAuthenticatedProfile = useAppSessionStore(
     (state) => state.setAuthenticatedProfile,
   );
-  const [profile, setProfile] = useState<UserProfile>(() =>
-    authProfile
-      ? {
-          id: authProfile.id,
-          name: authProfile.name,
-          email: authProfile.email,
-          gender: authProfile.gender,
-          avatar: authProfile.avatar,
-          bio: authProfile.bio ?? "",
-        }
-      : EMPTY_PROFILE,
-  );
-  const [form, setForm] = useState<UserProfile>(() =>
-    authProfile
-      ? {
-          id: authProfile.id,
-          name: authProfile.name,
-          email: authProfile.email,
-          gender: authProfile.gender,
-          avatar: authProfile.avatar,
-          bio: authProfile.bio ?? "",
-        }
-      : EMPTY_PROFILE,
-  );
+
+  const initialProfile: UserProfile = authProfile
+    ? {
+        id: authProfile.id,
+        name: authProfile.name,
+        email: authProfile.email,
+        gender: authProfile.gender,
+        avatar: authProfile.avatar,
+        bio: authProfile.bio ?? "",
+      }
+    : { ...EMPTY_PROFILE };
+
+  const [profile, setProfile] = useState<UserProfile>(() => initialProfile);
   const [isLoading, setIsLoading] = useState(!authProfile);
   const [isSaving, setIsSaving] = useState(false);
   const [isUnauthorized, setIsUnauthorized] = useState(false);
-  const [error, setError] = useState("");
+  const [loadError, setLoadError] = useState("");
+  const [avatarSubmitError, setAvatarSubmitError] = useState("");
+  const [detailsSubmitError, setDetailsSubmitError] = useState("");
+  const [avatarPreviewObjectUrl, setAvatarPreviewObjectUrl] = useState("");
+
+  const {
+    register: registerAvatar,
+    handleSubmit: handleAvatarSubmit,
+    reset: resetAvatarForm,
+    watch: watchAvatar,
+    formState: { isSubmitting: isAvatarSubmitting },
+  } = useForm<AvatarFormValues>({
+    mode: "onTouched",
+  });
+
+  const {
+    register: registerDetails,
+    handleSubmit: handleDetailsSubmit,
+    control: detailsControl,
+    reset: resetDetailsForm,
+    watch: watchDetails,
+    formState: { isSubmitting: isDetailsSubmitting },
+  } = useForm<ProfileDetailsFormValues>({
+    mode: "onTouched",
+    defaultValues: toDetailsDefaults(initialProfile),
+  });
+
+  const avatarFiles = watchAvatar("avatarFile");
+  const selectedAvatarFile = avatarFiles?.item(0) ?? null;
+
+  const detailName = watchDetails("name") ?? "";
+  const detailEmail = watchDetails("email") ?? "";
+  const detailGender = watchDetails("gender") ?? "";
+  const detailBio = watchDetails("bio") ?? "";
+
+  const hasAvatarChanges = Boolean(selectedAvatarFile);
+  const hasDetailsChanges =
+    detailName.trim() !== (profile.name ?? "").trim() ||
+    detailEmail.trim() !== (profile.email ?? "").trim() ||
+    detailGender.trim().toUpperCase() !==
+      (profile.gender ?? "").trim().toUpperCase() ||
+    detailBio.trim() !== (profile.bio ?? "").trim();
+
+  const selectedGender = detailGender.trim().toUpperCase();
+  const genderOptions = useMemo(() => {
+    if (!selectedGender) {
+      return [...BASE_GENDER_OPTIONS];
+    }
+
+    return BASE_GENDER_OPTIONS.includes(
+      selectedGender as (typeof BASE_GENDER_OPTIONS)[number],
+    )
+      ? [...BASE_GENDER_OPTIONS]
+      : [selectedGender, ...BASE_GENDER_OPTIONS];
+  }, [selectedGender]);
+
+  useEffect(() => {
+    if (!selectedAvatarFile) {
+      setAvatarPreviewObjectUrl("");
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(selectedAvatarFile);
+    setAvatarPreviewObjectUrl(objectUrl);
+
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [selectedAvatarFile]);
+
+  const avatarPreviewName = detailName.trim() || profile.name || "User";
+  const avatarPreviewUrl = avatarPreviewObjectUrl || (profile.avatar ?? "");
+
+  const syncAuthProfile = (nextProfile: UserProfile, fallbackId?: string) => {
+    const authPayload = toAuthSyncPayload(nextProfile, fallbackId);
+    if (authPayload) {
+      setAuthenticatedProfile(authPayload);
+    }
+  };
+
+  const onAvatarSubmitInvalid = () => {
+    setAvatarSubmitError(PROFILE_SUBMIT_ERROR);
+    toast.error(PROFILE_SUBMIT_ERROR);
+  };
+
+  const onDetailsSubmitInvalid = () => {
+    setDetailsSubmitError(PROFILE_SUBMIT_ERROR);
+    toast.error(PROFILE_SUBMIT_ERROR);
+  };
 
   useEffect(() => {
     let active = true;
@@ -124,10 +194,14 @@ export default function EditProfilePage() {
           avatar: authProfile.avatar,
           bio: authProfile.bio ?? "",
         };
+
         setProfile(nextProfile);
-        setForm(nextProfile);
+        resetAvatarForm();
+        resetDetailsForm(toDetailsDefaults(nextProfile));
         setIsUnauthorized(false);
-        setError("");
+        setLoadError("");
+        setAvatarSubmitError("");
+        setDetailsSubmitError("");
         setIsLoading(false);
         return;
       }
@@ -141,25 +215,24 @@ export default function EditProfilePage() {
         setIsUnauthorized(
           result.error.status === 401 || result.error.status === 403,
         );
-        setError(result.error.messages[0] ?? "Unable to load profile.");
+        setLoadError(PROFILE_SUBMIT_ERROR);
         setIsLoading(false);
         return;
       }
 
       setProfile(result.data);
-      setForm(result.data);
-      if (result.data.id) {
-        setAuthenticatedProfile({
-          id: result.data.id,
-          name: result.data.name,
-          email: result.data.email,
-          gender: result.data.gender,
-          avatar: result.data.avatar,
-          bio: result.data.bio ?? "",
-        });
+      resetAvatarForm();
+      resetDetailsForm(toDetailsDefaults(result.data));
+
+      const authPayload = toAuthSyncPayload(result.data, result.data.id);
+      if (authPayload) {
+        setAuthenticatedProfile(authPayload);
       }
+
       setIsUnauthorized(false);
-      setError("");
+      setLoadError("");
+      setAvatarSubmitError("");
+      setDetailsSubmitError("");
       setIsLoading(false);
     };
 
@@ -168,75 +241,85 @@ export default function EditProfilePage() {
     return () => {
       active = false;
     };
-  }, [authProfile, setAuthenticatedProfile]);
+  }, [
+    authProfile,
+    resetAvatarForm,
+    resetDetailsForm,
+    setAuthenticatedProfile,
+  ]);
 
-  const hasChanges =
-    normalizeFieldValue("name", form.name) !==
-      normalizeFieldValue("name", profile.name) ||
-    normalizeFieldValue("email", form.email) !==
-      normalizeFieldValue("email", profile.email) ||
-    normalizeFieldValue("gender", form.gender) !==
-      normalizeFieldValue("gender", profile.gender) ||
-    normalizeFieldValue("avatar", form.avatar) !==
-      normalizeFieldValue("avatar", profile.avatar) ||
-    normalizeFieldValue("bio", form.bio ?? "") !==
-      normalizeFieldValue("bio", profile.bio ?? "");
-
-  const normalizedGender = normalizeFieldValue("gender", form.gender);
-  const genderOptions =
-    normalizedGender && !BASE_GENDER_OPTIONS.includes(normalizedGender)
-      ? [normalizedGender, ...BASE_GENDER_OPTIONS]
-      : BASE_GENDER_OPTIONS;
-
-  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (isSaving || !hasChanges) {
+  const onSubmitAvatar = handleAvatarSubmit(async (values) => {
+    if (isAvatarSubmitting || !hasAvatarChanges) {
       return;
     }
 
-    const validationError = validateForm(form);
-    if (validationError) {
-      setError(validationError);
+    const avatarFile = values.avatarFile?.item(0);
+    if (!avatarFile) {
+      setAvatarSubmitError(PROFILE_SUBMIT_ERROR);
+      toast.error(PROFILE_SUBMIT_ERROR);
+      return;
+    }
+
+    setAvatarSubmitError("");
+
+    const result = await uploadCurrentUserAvatar(avatarFile);
+    if (!result.ok) {
+      setAvatarSubmitError(PROFILE_SUBMIT_ERROR);
+      toast.error(PROFILE_SUBMIT_ERROR);
+      return;
+    }
+
+    setProfile(result.data);
+    resetAvatarForm();
+    syncAuthProfile(result.data, profile.id ?? authProfile?.id);
+  }, onAvatarSubmitInvalid);
+
+  const onDeleteAvatar = async () => {
+    if (isAvatarSubmitting || !(profile.avatar ?? "").trim()) {
+      return;
+    }
+
+    setAvatarSubmitError("");
+
+    const result = await deleteCurrentUserAvatar();
+    if (!result.ok) {
+      setAvatarSubmitError(PROFILE_SUBMIT_ERROR);
+      toast.error(PROFILE_SUBMIT_ERROR);
+      return;
+    }
+
+    setProfile(result.data);
+    resetAvatarForm();
+    syncAuthProfile(result.data, profile.id ?? authProfile?.id);
+  };
+
+  const onSubmitDetails = handleDetailsSubmit(async (values) => {
+    if (isDetailsSubmitting || !hasDetailsChanges) {
       return;
     }
 
     setIsSaving(true);
-    setError("");
+    setDetailsSubmitError("");
 
     const result = await updateCurrentUserProfile({
-      name: form.name,
-      email: form.email,
-      gender: form.gender,
-      avatar: form.avatar,
-      bio: form.bio ?? "",
+      name: values.name,
+      email: values.email,
+      gender: values.gender,
+      bio: values.bio ?? "",
     });
 
     if (!result.ok) {
-      const friendlyError = formatFriendlyError(result.error, "Update failed.");
-      setError(friendlyError);
-      toast.error(friendlyError);
+      setDetailsSubmitError(PROFILE_SUBMIT_ERROR);
+      toast.error(PROFILE_SUBMIT_ERROR);
       setIsSaving(false);
       return;
     }
 
-    const mergedProfile: UserProfile = { ...form, ...result.data };
-
-    setProfile(mergedProfile);
-    setForm(mergedProfile);
-    const nextProfileId = mergedProfile.id ?? profile.id ?? authProfile?.id;
-    if (nextProfileId) {
-      setAuthenticatedProfile({
-        id: nextProfileId,
-        name: mergedProfile.name,
-        email: mergedProfile.email,
-        gender: mergedProfile.gender,
-        avatar: mergedProfile.avatar,
-        bio: mergedProfile.bio,
-      });
-    }
+    setProfile(result.data);
+    resetDetailsForm(toDetailsDefaults(result.data));
+    syncAuthProfile(result.data, profile.id ?? authProfile?.id);
     setIsSaving(false);
-    router.push("/profile");
-  };
+  }, onDetailsSubmitInvalid);
 
   return (
     <ProfileShell>
@@ -260,6 +343,22 @@ export default function EditProfilePage() {
             variant="error"
           />
         </main>
+      ) : loadError ? (
+        <main className="relative mx-auto w-full max-w-3xl px-4 pb-16 pt-12 sm:px-6">
+          <ProfileStatusCard
+            action={
+              <Link
+                className="ui-btn-primary rounded-full px-5 py-2 text-xs font-semibold transition"
+                href="/profile"
+              >
+                Back to profile
+              </Link>
+            }
+            message={loadError}
+            title="Unable to load profile"
+            variant="error"
+          />
+        </main>
       ) : (
         <main className="relative mx-auto w-full max-w-3xl space-y-4 px-4 pb-16 pt-12 sm:px-6">
           <header className="flex items-center justify-between gap-2">
@@ -268,109 +367,165 @@ export default function EditProfilePage() {
             </h1>
           </header>
 
-          <form className=" space-y-4 rounded-md p-6" onSubmit={onSubmit}>
-            <div>
-              <label className="ui-text-muted block text-xs font-semibold uppercase tracking-widest-xl">
-                Avatar URL
-              </label>
+          <form className="space-y-4 rounded-md p-6" onSubmit={onSubmitAvatar}>
+            <h2 className="text-lg font-semibold text-foreground">Avatar</h2>
+
+            <div className="rounded-2xl border border-border p-4">
               <input
-                className="ui-input mt-2 w-full rounded-2xl px-4 py-3 text-sm outline-none transition-colors"
-                onChange={(event) =>
-                  setForm((prev) => ({ ...prev, avatar: event.target.value }))
-                }
-                placeholder="https://example.com/avatar.png"
-                type="text"
-                value={form.avatar}
+                accept="image/*"
+                className="sr-only"
+                disabled={isAvatarSubmitting}
+                id="avatar-file-input"
+                type="file"
+                {...registerAvatar("avatarFile", {
+                  validate: (files) => Boolean(files?.length),
+                })}
               />
+
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-4">
+                  <label
+                    className="relative block cursor-pointer"
+                    htmlFor="avatar-file-input"
+                  >
+                    <ProfileAvatarPreview
+                      avatarUrl={avatarPreviewUrl}
+                      name={avatarPreviewName}
+                      size="lg"
+                    />
+                    {isAvatarSubmitting ? (
+                      <div className="absolute inset-0 flex items-center justify-center rounded-full bg-background/60">
+                        <Loader2 className="h-8 w-8 animate-spin text-foreground" />
+                      </div>
+                    ) : null}
+                  </label>
+
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-foreground">
+                      Click avatar to choose image
+                    </p>
+                    {selectedAvatarFile ? (
+                      <p className="text-xs text-foreground-muted">
+                        {selectedAvatarFile.name}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-foreground-muted">
+                        JPG, PNG, WEBP
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-2">
+                  <button
+                    className="rounded-full border border-border px-5 py-2 text-xs font-semibold transition-colors hover:bg-surface-hover disabled:opacity-50"
+                    disabled={isAvatarSubmitting || !(profile.avatar ?? "").trim()}
+                    onClick={onDeleteAvatar}
+                    type="button"
+                  >
+                    Delete avatar
+                  </button>
+                  <button
+                    className="ui-btn-primary rounded-full px-5 py-2 text-xs font-semibold transition-colors disabled:opacity-50"
+                    disabled={isAvatarSubmitting || !hasAvatarChanges}
+                    type="submit"
+                  >
+                    {isAvatarSubmitting ? "Uploading..." : "Upload avatar"}
+                  </button>
+                </div>
+              </div>
             </div>
 
+            {avatarSubmitError ? (
+              <p className="text-base text-red-600">{avatarSubmitError}</p>
+            ) : null}
+          </form>
+
+          <form className="space-y-4 rounded-md p-6" onSubmit={onSubmitDetails}>
+            <h2 className="text-lg font-semibold text-foreground">
+              Profile details
+            </h2>
+
             <div>
-              <label className="ui-text-muted block text-xs font-semibold uppercase tracking-widest-xl">
-                Bio
-              </label>
+              <label className="block text-md font-semibold">Bio</label>
               <textarea
                 className="ui-input mt-2 min-h-24 w-full rounded-2xl px-4 py-3 text-sm outline-none transition-colors"
-                maxLength={500}
-                onChange={(event) =>
-                  setForm((prev) => ({ ...prev, bio: event.target.value }))
-                }
+                disabled={isDetailsSubmitting}
                 placeholder="Tell people about yourself..."
-                value={form.bio ?? ""}
+                {...registerDetails("bio", {
+                  maxLength: 500,
+                })}
               />
-              <p className="ui-text-muted mt-1 text-xs">
-                {(form.bio ?? "").trim().length}/500
-              </p>
+              <p className="mt-1 text-xs">{detailBio.trim().length}/500</p>
             </div>
 
             <div>
-              <label className="ui-text-muted block text-xs font-semibold uppercase tracking-widest-xl">
-                Full name
-              </label>
+              <label className="block text-md font-semibold">Full name</label>
               <input
                 className="ui-input mt-2 w-full rounded-2xl px-4 py-3 text-sm outline-none transition-colors"
-                onChange={(event) =>
-                  setForm((prev) => ({ ...prev, name: event.target.value }))
-                }
+                disabled={isDetailsSubmitting}
                 placeholder="Your name"
                 type="text"
-                value={form.name}
+                {...registerDetails("name", {
+                  validate: (value) => value.trim().length > 0,
+                })}
               />
             </div>
 
             <div>
-              <label className="ui-text-muted block text-xs font-semibold uppercase tracking-widest-xl">
-                Email
-              </label>
+              <label className="block text-md font-semibold">Email</label>
               <input
                 className="ui-input mt-2 w-full rounded-2xl px-4 py-3 text-sm outline-none transition-colors"
-                onChange={(event) =>
-                  setForm((prev) => ({ ...prev, email: event.target.value }))
-                }
+                disabled={isDetailsSubmitting}
                 placeholder="you@example.com"
                 readOnly
                 type="email"
-                value={form.email}
+                {...registerDetails("email", {
+                  required: true,
+                  pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                })}
               />
             </div>
 
             <div>
-              <label className="ui-text-muted block text-xs font-semibold uppercase tracking-widest-xl">
-                Gender
-              </label>
-              <select
-                className="ui-input mt-2 w-full rounded-2xl px-4 py-3 text-sm outline-none transition-colors"
-                onChange={(event) =>
-                  setForm((prev) => ({ ...prev, gender: event.target.value }))
-                }
-                value={form.gender}
-              >
-                <option value="">Select gender</option>
-                {genderOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
+              <label className="block text-md font-semibold">Gender</label>
+              <Controller
+                control={detailsControl}
+                name="gender"
+                rules={{
+                  validate: (value) => (value ?? "").trim().length > 0,
+                }}
+                render={({ field }) => (
+                  <Select
+                    disabled={isDetailsSubmitting}
+                    onValueChange={(value) => field.onChange((value ?? "").toUpperCase())}
+                    value={field.value || undefined}
+                  >
+                    <SelectTrigger className="mt-2 w-[180px]">
+                      <SelectValue placeholder="Gender" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {genderOptions.map((option) => (
+                          <SelectItem key={option} value={option}>
+                            {option}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
             </div>
 
-            {error ? (
-              <p className="text-base text-red-600">
-                {error}
-              </p>
+            {detailsSubmitError ? (
+              <p className="text-base text-red-600">{detailsSubmitError}</p>
             ) : null}
 
             <div className="flex items-center justify-end gap-2 pt-2">
               <button
-                className="ui-btn-ghost rounded-full px-5 py-2 text-xs font-semibold transition-colors disabled:opacity-50"
-                disabled={isSaving || !(form.bio ?? "").trim()}
-                onClick={() => setForm((prev) => ({ ...prev, bio: "" }))}
-                type="button"
-              >
-                Clear bio
-              </button>
-              <button
                 className="ui-btn-primary rounded-full px-5 py-2 text-xs font-semibold transition-colors disabled:opacity-50"
-                disabled={isSaving || !hasChanges}
+                disabled={isSaving || isDetailsSubmitting || !hasDetailsChanges}
                 type="submit"
               >
                 {isSaving ? "Updating..." : "Update profile"}

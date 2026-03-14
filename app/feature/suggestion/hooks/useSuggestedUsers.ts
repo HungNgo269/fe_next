@@ -30,5 +30,9 @@ export function useSuggestedUsers() {
     [allUsers, currentUserId],
   );
 
-  return { suggestions, isLoading };
+  return {
+    users: allUsers,
+    suggestions,
+    isLoading,
+  };
 }

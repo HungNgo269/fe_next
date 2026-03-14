@@ -25,6 +25,7 @@ import {
   useAppSessionStore,
 } from "../share/stores/appSessionStore";
 import { formatRelativeTime } from "../share/utils/format";
+import { normalizeText } from "../share/utils/helper";
 import { fetchCurrentUser } from "../share/api/userApi";
 
 const AUTH_ROUTES = new Set(["/login", "/register"]);
@@ -196,7 +197,7 @@ export default function AppShell({ children }: AppShellProps) {
           return {
             id: conv.id,
             name: conv.name || (otherId ?? fallbackName),
-            preview: latest?.content?.trim() || "No messages yet",
+            preview: normalizeText(latest?.content, "No messages yet"),
             time: formatRelativeTime(latest?.createdAt ?? conv.updatedAt),
           };
         }),
@@ -283,3 +284,5 @@ export default function AppShell({ children }: AppShellProps) {
     </div>
   );
 }
+
+

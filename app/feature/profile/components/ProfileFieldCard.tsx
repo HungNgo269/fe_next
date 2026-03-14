@@ -31,7 +31,7 @@ export default function ProfileFieldCard({
         onSubmit();
       }}
     >
-      <label className="ui-text-muted block text-xs font-semibold uppercase tracking-widest-xl">
+      <label className="ui-text-muted block text-md font-semibold uppercase -xl">
         {label}
       </label>
       {children}

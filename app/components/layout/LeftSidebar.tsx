@@ -108,7 +108,7 @@ export default function LeftSidebar({
                     <span className="scale-75">
                       <Avatar
                         avatar={currentUser!.avatarUrl ?? undefined}
-                        gender={currentUser!.gender}
+                        initials={currentUser!.name}
                       />
                     </span>
                   </span>
@@ -239,7 +239,7 @@ export default function LeftSidebar({
               <span className="scale-75">
                 <Avatar
                   avatar={currentUser!.avatarUrl ?? undefined}
-                  gender={currentUser!.gender}
+                  initials={currentUser!.name}
                 />
               </span>
             </Link>

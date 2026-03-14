@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useAutoResizeTextarea } from "@/app/share/hooks/useAutoResizeTextarea";
 import { usePostActions } from "../hooks/usePostActions";
 
@@ -106,11 +107,15 @@ export default function PostBody({
               src={mediaUrls[0]}
             />
           ) : (
-            <img
+            <Image
               alt="Post media"
               className="h-72 w-full object-cover sm:h-96"
               loading="lazy"
               src={mediaUrls[0]}
+              width={1280}
+              height={960}
+              sizes="100vw"
+              unoptimized
             />
           )}
         </div>
