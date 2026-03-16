@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient, type QueryKey } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 type SafeOptimisticOptions<TData, TVariables, TSnapshot> = {
   queryKey: QueryKey;
@@ -11,6 +12,7 @@ type SafeOptimisticOptions<TData, TVariables, TSnapshot> = {
   onSuccess?: (data: TData, variables: TVariables) => void;
   onSettled?: () => void;
   refetchType?: "active" | "inactive" | "all" | "none";
+  errorMessage?: string;
 };
 
 type MutationContext<TSnapshot> = {
@@ -33,6 +35,7 @@ export function useSafeOptimisticMutation<TData, TVariables, TSnapshot>(
     onError: (_error, _variables, context) => {
       if (!context) return;
       options.rollback(context.snapshot);
+      toast.error(options.errorMessage ?? "Unable to complete request.");
     },
     onSuccess: (data, variables) => {
       options.onSuccess?.(data, variables);

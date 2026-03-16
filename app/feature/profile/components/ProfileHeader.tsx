@@ -17,7 +17,6 @@ interface ProfileHeaderProps {
   followersCount: number;
   followingCount: number;
   onOpenList: (type: UserListType) => void;
-  profileError?: string;
   children?: ReactNode;
 }
 
@@ -32,7 +31,6 @@ export default function ProfileHeader({
   followersCount,
   followingCount,
   onOpenList,
-  profileError,
   children,
 }: ProfileHeaderProps) {
   const normalizedHandle = normalizeNullableText(handle);
@@ -107,11 +105,6 @@ export default function ProfileHeader({
           </div>
         </div>
       </div>
-      {profileError ? (
-        <p className="ui-alert-warning mt-4 rounded-2xl px-4 py-3 text-sm">
-          {profileError}
-        </p>
-      ) : null}
     </section>
   );
 }

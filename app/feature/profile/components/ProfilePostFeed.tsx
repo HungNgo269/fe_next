@@ -14,7 +14,6 @@ interface ProfilePostFeedProps {
   canEditProfile: boolean;
   postsLabel: string;
   emptyMessage: string;
-  postsError?: string;
   hasMorePosts: boolean;
   isLoadingMore: boolean;
   onLoadMore: () => void | Promise<void>;
@@ -26,7 +25,6 @@ export default function ProfilePostFeed({
   canEditProfile,
   postsLabel,
   emptyMessage,
-  postsError,
   hasMorePosts,
   isLoadingMore,
   onLoadMore,
@@ -53,12 +51,6 @@ export default function ProfilePostFeed({
       <header className="mb-4 flex items-center justify-between gap-2">
         <h2 className="text-lg font-semibold text-foreground">{postsLabel}</h2>
       </header>
-
-      {postsError ? (
-        <div className="ui-alert-warning rounded-2xl px-4 py-3 text-sm">
-          {postsError}
-        </div>
-      ) : null}
 
       {canEditProfile ? <FeedComposer currentUser={composerUser} /> : null}
 
