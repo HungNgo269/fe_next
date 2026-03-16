@@ -58,8 +58,7 @@ export default function ProfileFeedView(props: ProfileFeedViewProps) {
     posts,
     isLoading,
     isUnauthorized,
-    profileError,
-    postsError,
+    profileError,
     hasMorePosts,
     totalPosts,
     isLoadingMore,
@@ -178,8 +177,7 @@ export default function ProfileFeedView(props: ProfileFeedViewProps) {
         onOpenList={(type) => {
           setListModalType(type);
           setListModalOpen(true);
-        }}
-        profileError={profileError}
+        }}
       >
         {canEditProfile ? (
           <>
@@ -221,8 +219,7 @@ export default function ProfileFeedView(props: ProfileFeedViewProps) {
         profile={profile}
         canEditProfile={canEditProfile}
         postsLabel={postsLabel}
-        emptyMessage={emptyMessage}
-        postsError={postsError}
+        emptyMessage={emptyMessage}
         hasMorePosts={hasMorePosts}
         isLoadingMore={isLoadingMore}
         onLoadMore={handleLoadMore}
@@ -242,3 +239,5 @@ export default function ProfileFeedView(props: ProfileFeedViewProps) {
     </main>
   );
 }
+
+

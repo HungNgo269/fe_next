@@ -42,6 +42,7 @@ export const useFollowUser = (userId: string, profileKey: string) => {
       queryClient.setQueryData(profileQueryKey, snapshot);
     },
     refetchType: "inactive",
+    errorMessage: "Unable to follow user.",
   });
 
   const unfollowMutation = useSafeOptimisticMutation<void, void, ProfileFeedResponse | undefined>({
@@ -60,6 +61,7 @@ export const useFollowUser = (userId: string, profileKey: string) => {
       queryClient.setQueryData(profileQueryKey, snapshot);
     },
     refetchType: "inactive",
+    errorMessage: "Unable to unfollow user.",
   });
 
   return {

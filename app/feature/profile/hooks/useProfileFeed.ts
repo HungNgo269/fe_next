@@ -8,6 +8,7 @@ import type { FeedBootstrapData } from "@/app/feature/feed/types/feed";
 import { FEED_QUERY_KEY } from "@/app/share/hooks/feedQueryKeys";
 import { useState, useCallback, useEffect, useMemo } from "react";
 import type { UserProfile } from "../types/profile";
+import { toast } from "sonner";
 
 const PAGE_SIZE = 5;
 
@@ -58,7 +59,6 @@ export function useProfileFeed({
   const [hasMorePosts, setHasMorePosts] = useState<boolean | null>(null);
   const [totalPosts, setTotalPosts] = useState<number | null>(null);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [postsError, setPostsError] = useState("");
 
   const query = useQuery({
     queryKey: ["profile-feed", isOwnProfile ? "me" : "other", profileKey],
@@ -67,7 +67,7 @@ export function useProfileFeed({
       if (!result.ok) {
         const status = (result.error as { status?: number }).status;
         setIsUnauthorized(status === 401 || status === 403);
-        throw new Error(result.error.messages[0] ?? "Unable to load profile.");
+        throw new Error("Unable to load profile.");
       }
       return result.data;
     },
@@ -109,12 +109,11 @@ export function useProfileFeed({
   const handleLoadMore = useCallback(async () => {
     if (isLoadingMore || !effectiveHasMorePosts) return;
     setIsLoadingMore(true);
-    setPostsError("");
 
     const nextPage = effectiveCurrentPage + 1;
     const result = await fetchFn(nextPage, PAGE_SIZE);
     if (!result.ok) {
-      setPostsError(result.error.messages[0] ?? "Unable to load more posts.");
+      toast.error("Unable to load more posts.");
       setIsLoadingMore(false);
       return;
     }
@@ -135,6 +134,11 @@ export function useProfileFeed({
     setIsLoadingMore(false);
   }, [isLoadingMore, effectiveHasMorePosts, effectiveCurrentPage, fetchFn, queryClient, basePosts]);
 
+  useEffect(() => {
+    if (!query.error || isUnauthorized) return;
+    toast.error("Unable to load profile.");
+  }, [isUnauthorized, query.error]);
+
   return {
     profile,
     posts,
@@ -145,7 +149,6 @@ export function useProfileFeed({
     isLoadingMore,
     isUnauthorized,
     profileError: query.error?.message ?? profileData.profileError,
-    postsError,
     hasMorePosts: effectiveHasMorePosts,
     totalPosts: effectiveTotalPosts,
     handleLoadMore,

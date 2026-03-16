@@ -59,6 +59,7 @@ export const useFriendActions = (userId: string, profileKey: string) => {
     },
     onSettled: invalidateFriendRequests,
     refetchType: "inactive",
+    errorMessage: "Unable to send friend request.",
   });
 
   const cancelRequest = useSafeOptimisticMutation<void, void, ProfileFeedResponse | undefined>({
@@ -78,6 +79,7 @@ export const useFriendActions = (userId: string, profileKey: string) => {
     },
     onSettled: invalidateFriendRequests,
     refetchType: "inactive",
+    errorMessage: "Unable to cancel friend request.",
   });
 
   const acceptRequest = useSafeOptimisticMutation<void, void, ProfileFeedResponse | undefined>({
@@ -97,6 +99,7 @@ export const useFriendActions = (userId: string, profileKey: string) => {
     },
     onSettled: invalidateFriendRequests,
     refetchType: "inactive",
+    errorMessage: "Unable to accept friend request.",
   });
 
   const declineRequest = useSafeOptimisticMutation<void, void, ProfileFeedResponse | undefined>({
@@ -116,6 +119,7 @@ export const useFriendActions = (userId: string, profileKey: string) => {
     },
     onSettled: invalidateFriendRequests,
     refetchType: "inactive",
+    errorMessage: "Unable to decline friend request.",
   });
 
   const removeFriend = useSafeOptimisticMutation<void, void, ProfileFeedResponse | undefined>({
@@ -135,6 +139,7 @@ export const useFriendActions = (userId: string, profileKey: string) => {
     },
     onSettled: invalidateFriendRequests,
     refetchType: "inactive",
+    errorMessage: "Unable to remove friend.",
   });
 
   const isLoading =

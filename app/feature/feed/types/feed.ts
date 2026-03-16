@@ -45,5 +45,3 @@ export type TrendingTopic = {
   topic: string;
   posts: string;
 };
-
-export type { Suggestion } from "@/app/feature/suggestion/types/suggestion.type";

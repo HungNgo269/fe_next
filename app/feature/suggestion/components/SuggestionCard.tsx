@@ -4,7 +4,7 @@ import Avatar from "@/app/feature/post/components/ui/Avatar";
 
 export default function SuggestionCard({ person }: { person: Suggestion }) {
   return (
-    <div className="flex items-center justify-between gap-3 px-3 py-3">
+    <div className="flex items-center justify-between gap-3 py-3">
       <Link
         className="flex min-w-0 items-center gap-3 transition-opacity hover:opacity-80"
         href={`/profile/${person.handle || person.id}`}
