@@ -6,7 +6,7 @@ import { updatePostRequest, deletePostRequest } from "../api/postApi";
 import { createPostReportRequest } from "../api/postReportApi";
 import { usePostUIStore } from "../stores/postStore";
 import type { FeedBootstrapData } from "@/app/feature/feed/types/feed";
-import { FEED_QUERY_KEY } from "@/app/share/hooks/feedQueryKeys";
+import { feedQueryKeys } from "@/app/feature/feed/queries/feed.query-keys";
 import { useRequireAuthAction } from "./useRequireAuthAction";
 import { useFeedCacheUpdater } from "@/app/share/hooks/useFeedCacheUpdater";
 import { useOwnership } from "./useOwnership";
@@ -52,7 +52,7 @@ export function usePostActions(postId: string) {
   const handleStartEdit = useCallback(() => {
     runIfAuth(() => {
       const post = queryClient
-        .getQueryData<FeedBootstrapData>(FEED_QUERY_KEY)
+        .getQueryData<FeedBootstrapData>(feedQueryKeys.all)
         ?.posts.find((item) => item.id === postId);
       if (!post) return;
       startEditing(postId, post.content);
@@ -97,3 +97,4 @@ export function usePostActions(postId: string) {
     handleReportPost,
   };
 }
+

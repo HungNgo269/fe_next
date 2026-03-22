@@ -4,7 +4,8 @@ import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Post, PostComment } from "../types/api.types";
 import type { FeedBootstrapData } from "@/app/feature/feed/types/feed";
-import { FEED_QUERY_KEY } from "@/app/share/hooks/feedQueryKeys";
+import { feedQueryKeys } from "@/app/feature/feed/queries/feed.query-keys";
+import { postQueryKeys } from "../queries/post.query-keys";
 import { useAppSessionStore } from "@/app/share/stores/appSessionStore";
 
 export function useOwnership() {
@@ -14,7 +15,7 @@ export function useOwnership() {
   const getPosts = useCallback(
     (posts?: Post[]) =>
       posts ??
-      queryClient.getQueryData<FeedBootstrapData>(FEED_QUERY_KEY)?.posts ??
+      queryClient.getQueryData<FeedBootstrapData>(feedQueryKeys.all)?.posts ??
       [],
     [queryClient],
   );
@@ -38,7 +39,7 @@ export function useOwnership() {
   const isCommentOwner = useCallback(
     (postId: string, commentId: string) => {
       const comments =
-        queryClient.getQueryData<PostComment[]>(["post-comments", postId]) ?? [];
+        queryClient.getQueryData<PostComment[]>(postQueryKeys.comments(postId)) ?? [];
       const comment = comments.find(
         (root) => root.id === commentId || root.replies?.some((reply) => reply.id === commentId),
       );
@@ -53,3 +54,6 @@ export function useOwnership() {
 
   return { currentUserId, isOwnerByUserId, isPostOwner, isCommentOwner };
 }
+
+
+

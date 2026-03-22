@@ -2,10 +2,7 @@
 
 import Link from "next/link";
 import { LogOut, Moon, Sun } from "lucide-react";
-import type {
-  SidebarMessagePreview,
-  SidebarNotificationItem,
-} from "@/app/feature/feed/types/feed";
+import type { SidebarNotificationItem } from "@/app/feature/feed/types/feed";
 import type { User } from "@/app/feature/post/types/api.types";
 import { mobileNavItems, navItems } from "./left-sidebar/constants";
 import SidebarBrand from "./left-sidebar/SidebarBrand";
@@ -14,7 +11,6 @@ import Avatar from "@/app/feature/post/components/ui/Avatar";
 import NotificationPanel from "./left-sidebar/NotificationPanel";
 import SearchPanel from "./left-sidebar/SearchPanel";
 import { Sheet, SheetContent } from "@/app/share/components/ui/sheet";
-
 import LoginRequiredDialog from "@/app/share/components/LoginRequiredDialog";
 import { useLeftSidebar } from "./hooks/useLeftSidebar";
 
@@ -22,7 +18,6 @@ type LeftSidebarProps = {
   currentUser: User | null;
   isAuthenticated: boolean;
   onRequireAuth: () => void;
-  messages: SidebarMessagePreview[];
   notifications: SidebarNotificationItem[];
   notificationCount: number;
   notificationLoading: boolean;
@@ -33,7 +28,6 @@ export default function LeftSidebar({
   currentUser,
   isAuthenticated,
   onRequireAuth,
-  messages,
   notifications,
   notificationCount,
   notificationLoading,
@@ -58,10 +52,10 @@ export default function LeftSidebar({
     handleLogout,
   } = useLeftSidebar({
     isAuthenticated,
-    messageCount: messages.length,
     notificationCount,
     onNotificationSelect,
   });
+
   return (
     <>
       <aside className="fixed left-0 top-0 z-30 hidden h-screen lg:block">

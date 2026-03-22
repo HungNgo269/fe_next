@@ -2,18 +2,16 @@ import "server-only";
 
 import { cookies } from "next/headers";
 import type { ApiResponse } from "./api-types";
-import {
-  extractErrorName,
-  JSON_HEADERS,
-  normalizeBaseUrl,
-  normalizeMessages,
-  parseResponseBody,
-} from "./api-helpers";
 
-const API_BASE_URL =
+const API_BASE_URL = (
   process.env.INTERNAL_API_BASE_URL ??
   process.env.NEXT_PUBLIC_API_BASE_URL ??
-  "http://localhost:3001/api";
+  "http://localhost:3001/api"
+).replace(/\/+$/, "");
+
+const JSON_HEADERS = {
+  "Content-Type": "application/json",
+} as const;
 
 type ServerRequestOptions = {
   includeAuth?: boolean;
@@ -27,106 +25,129 @@ type NextFetchRequestConfig = {
   tags?: string[];
 };
 
-export const serverPostJson = async <T>(
+const unwrapErrorPayload = (payload: unknown) => {
+  if (!payload || typeof payload !== "object") {
+    return payload;
+  }
+
+  const responsePayload = (payload as { response?: unknown }).response;
+  return responsePayload ?? payload;
+};
+
+const getErrorMessages = (payload: unknown): string[] => {
+  const source = unwrapErrorPayload(payload);
+
+  if (Array.isArray(source)) {
+    return source.map((item) => String(item));
+  }
+
+  if (source && typeof source === "object") {
+    const message = (source as { message?: unknown }).message;
+    if (Array.isArray(message)) {
+      return message.map((item) => String(item));
+    }
+    if (typeof message === "string" && message.trim()) {
+      return [message];
+    }
+  }
+
+  if (typeof source === "string" && source.trim()) {
+    return [source];
+  }
+
+  return ["An unexpected error occurred."];
+};
+
+const getErrorName = (payload: unknown): string | undefined => {
+  const source = unwrapErrorPayload(payload);
+  if (!source || typeof source !== "object") {
+    return undefined;
+  }
+
+  const errorName = (source as { error?: unknown }).error;
+  if (typeof errorName === "string" && errorName.trim()) {
+    return errorName;
+  }
+
+  return undefined;
+};
+
+const readResponseBody = async (response: Response): Promise<unknown> => {
+  const contentType = response.headers.get("content-type") ?? "";
+  if (contentType.includes("application/json")) {
+    return response.json();
+  }
+  return response.text();
+};
+
+const getRequestHeaders = async (options?: ServerRequestOptions) => {
+  const headers: Record<string, string> = {
+    ...JSON_HEADERS,
+    ...(options?.headers ?? {}),
+  };
+
+  if (options?.includeAuth === false) {
+    return headers;
+  }
+
+  const cookieStore = await cookies();
+  const cookieValue = cookieStore.toString();
+  if (cookieValue) {
+    headers.cookie = cookieValue;
+  }
+
+  return headers;
+};
+
+const runServerRequest = async <T>(
   path: string,
-  body?: unknown,
+  method: "GET" | "POST",
   options?: ServerRequestOptions,
+  body?: unknown,
 ): Promise<ApiResponse<T>> => {
   try {
-    const baseUrl = normalizeBaseUrl(API_BASE_URL);
-    const headers: Record<string, string> = {
-      ...JSON_HEADERS,
-      ...(options?.headers ?? {}),
-    };
-
-    if (options?.includeAuth !== false) {
-      const cookieStore = await cookies();
-      const cookieValue = cookieStore.toString();
-      if (cookieValue) {
-        headers.cookie = cookieValue;
-      }
-    }
-
-    const response = await fetch(`${baseUrl}${path}`, {
-      method: "POST",
-      headers,
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+      method,
+      headers: await getRequestHeaders(options),
       body: body === undefined ? undefined : JSON.stringify(body),
       credentials: "include",
       cache: options?.cache ?? "no-store",
       next: options?.next,
     });
 
-    const payload = await parseResponseBody(response);
+    const payload = await readResponseBody(response);
     if (!response.ok) {
       return {
         ok: false,
         error: {
           status: response.status,
-          name: extractErrorName(payload),
-          messages: normalizeMessages(payload),
+          name: getErrorName(payload),
+          messages: getErrorMessages(payload),
         },
       };
     }
 
     return { ok: true, data: payload as T };
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Request failed.";
     return {
       ok: false,
       error: {
-        messages: ["Unable to reach the server.", message],
+        messages: [
+          "Unable to reach the server.",
+          error instanceof Error ? error.message : "Request failed.",
+        ],
       },
     };
   }
 };
+
+export const serverPostJson = async <T>(
+  path: string,
+  body?: unknown,
+  options?: ServerRequestOptions,
+): Promise<ApiResponse<T>> => runServerRequest(path, "POST", options, body);
 
 export const serverGetJson = async <T>(
   path: string,
   options?: ServerRequestOptions,
-): Promise<ApiResponse<T>> => {
-  try {
-    const baseUrl = normalizeBaseUrl(API_BASE_URL);
-    const headers: Record<string, string> = {
-      ...JSON_HEADERS,
-      ...(options?.headers ?? {}),
-    };
-
-    if (options?.includeAuth !== false) {
-      const cookieStore = await cookies();
-      const cookieValue = cookieStore.toString();
-      if (cookieValue) {
-        headers.cookie = cookieValue;
-      }
-    }
-
-    const response = await fetch(`${baseUrl}${path}`, {
-      method: "GET",
-      headers,
-      credentials: "include",
-      cache: options?.cache ?? "no-store",
-      next: options?.next,
-    });
-
-    const payload = await parseResponseBody(response);
-    if (!response.ok) {
-      return {
-        ok: false,
-        error: {
-          status: response.status,
-          name: extractErrorName(payload),
-          messages: normalizeMessages(payload),
-        },
-      };
-    }
-
-    return { ok: true, data: payload as T };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Request failed.";
-    return {
-      ok: false,
-      error: {
-        messages: ["Unable to reach the server.", message],
-      },
-    };
-  }
-};
+): Promise<ApiResponse<T>> => runServerRequest(path, "GET", options);

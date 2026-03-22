@@ -5,13 +5,14 @@ import { userToSuggestion } from "../types/suggestion.type";
 import { useAppSessionStore } from "@/app/share/stores/appSessionStore";
 import { useMemo } from "react";
 import { fetchSuggestedUsers } from "../api/suggestionUserApi";
+import { suggestionQueryKeys } from "../queries/suggestion.query-keys";
 
 export function useSuggestedUsers() {
   const authProfile = useAppSessionStore((s) => s.authProfile);
   const currentUserId = authProfile?.id;
 
   const { data: allUsers = [], isLoading } = useQuery({
-    queryKey: ["suggested-users"],
+    queryKey: suggestionQueryKeys.all,
     queryFn: async () => {
       const result = await fetchSuggestedUsers();
       if (!result.ok) throw new Error("Unable to load users.");

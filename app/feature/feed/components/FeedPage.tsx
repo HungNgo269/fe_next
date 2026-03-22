@@ -1,8 +1,11 @@
 import { Suspense } from "react";
 import FeedStoriesServer from "@/app/feature/feed/components/FeedStoriesServer";
-import FeedPostsServer from "@/app/feature/feed/components/FeedPostsServer";
+import FeedPostsClient from "@/app/feature/feed/components/FeedPostsClient";
 import FeedSuggestionsServer from "@/app/feature/feed/components/FeedSuggestionsServer";
-import { fetchCurrentUserServer } from "@/app/feature/feed/api/feedApi.server";
+import {
+  fetchCurrentUserServer,
+  fetchFeedPostsOnlySsr,
+} from "@/app/feature/feed/api/feedApi.server";
 import FeedStoriesSkeleton from "@/app/share/skeleton/FeedStoriesSkeleton";
 import FeedComposerSkeleton from "@/app/share/skeleton/FeedComposerSkeleton";
 import FeedPostListSkeleton from "@/app/share/skeleton/FeedPostListSkeleton";
@@ -18,7 +21,11 @@ function FeedPostsSectionFallback() {
 }
 
 export default async function FeedPage() {
-  const currentUser = await fetchCurrentUserServer();
+  const [currentUser, feedPostsData] = await Promise.all([
+    fetchCurrentUserServer(),
+    fetchFeedPostsOnlySsr(),
+  ]);
+
   const currentUserId = currentUser?.id ?? null;
 
   return (
@@ -56,7 +63,12 @@ export default async function FeedPage() {
 
           <div id="posts">
             <Suspense fallback={<FeedPostsSectionFallback />}>
-              <FeedPostsServer currentUser={currentUser} />
+              <FeedPostsClient
+                currentUser={currentUser}
+                initialPagination={feedPostsData.pagination}
+                initialPosts={feedPostsData.posts}
+                feedError={feedPostsData.feedError}
+              />
             </Suspense>
           </div>
         </section>
@@ -70,3 +82,4 @@ export default async function FeedPage() {
     </div>
   );
 }
+

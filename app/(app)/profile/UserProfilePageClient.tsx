@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import ProfileFeedView from "../feature/profile/views/ProfileFeedView";
-import ProfileShell from "../feature/profile/components/ProfileShell";
+import ProfileFeedView from "@/app/feature/profile/views/ProfileFeedView";
+import ProfileShell from "@/app/feature/profile/components/ProfileShell";
 
 export default function UserProfilePageClient() {
   return (

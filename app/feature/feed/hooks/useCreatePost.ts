@@ -10,7 +10,8 @@ import {
 } from "@/app/share/stores/appSessionStore";
 import { useRequireAuthAction } from "@/app/feature/post/hooks/useRequireAuthAction";
 import { useFeedCacheUpdater } from "@/app/share/hooks/useFeedCacheUpdater";
-import { FEED_QUERY_KEY } from "@/app/share/hooks/feedQueryKeys";
+import { feedQueryKeys } from "../queries/feed.query-keys";
+import { profileQueryKeys } from "@/app/feature/profile/queries/profile.query-keys";
 
 export function useCreatePost() {
   const queryClient = useQueryClient();
@@ -44,8 +45,8 @@ export function useCreatePost() {
       };
       cache.prependPost(newPost);
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: FEED_QUERY_KEY }),
-        queryClient.invalidateQueries({ queryKey: ["profile-feed"] }),
+        queryClient.invalidateQueries({ queryKey: feedQueryKeys.all }),
+        queryClient.invalidateQueries({ queryKey: profileQueryKeys.all }),
       ]);
     },
   });
@@ -63,3 +64,5 @@ export function useCreatePost() {
 
   return { handleCreatePost, isCreating: createMutation.isPending };
 }
+
+

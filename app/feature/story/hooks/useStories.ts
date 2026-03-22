@@ -6,13 +6,14 @@ import { useAppSessionStore } from "@/app/share/stores/appSessionStore";
 import { STORY_THEMES, STORY_TITLES } from "@/app/feature/story/data/story";
 import type { StoryData } from "@/app/feature/story/types/story";
 import { fetchSuggestedUsers } from "@/app/feature/suggestion/api/suggestionUserApi";
+import { suggestionQueryKeys } from "@/app/feature/suggestion/queries/suggestion.query-keys";
 
 export function useStories() {
   const authProfile = useAppSessionStore((s) => s.authProfile);
   const currentUserId = authProfile?.id;
 
   const { data: allUsers = [], isLoading } = useQuery({
-    queryKey: ["suggested-users"],
+    queryKey: suggestionQueryKeys.all,
     queryFn: async () => {
       const result = await fetchSuggestedUsers();
       if (!result.ok) throw new Error("Unable to load users.");

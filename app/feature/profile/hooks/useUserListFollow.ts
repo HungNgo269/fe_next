@@ -3,6 +3,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { UserListUser } from "../types/user-list.types";
 import { followUserApi, unfollowUserApi } from "../api/profileApi";
+import { profileQueryKeys } from "../queries/profile.query-keys";
 
 
 export function useUserListFollow(queryKey: readonly unknown[]) {
@@ -19,7 +20,7 @@ export function useUserListFollow(queryKey: readonly unknown[]) {
     onMutate: (targetUserId) => optimisticUpdate(targetUserId, true),
     onError: (_, targetUserId) => optimisticUpdate(targetUserId, false),
     onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: ["user-list"] });
+      void queryClient.invalidateQueries({ queryKey: profileQueryKeys.userListAll() });
     },
   });
 
@@ -28,7 +29,7 @@ export function useUserListFollow(queryKey: readonly unknown[]) {
     onMutate: (targetUserId) => optimisticUpdate(targetUserId, false),
     onError: (_, targetUserId) => optimisticUpdate(targetUserId, true),
     onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: ["user-list"] });
+      void queryClient.invalidateQueries({ queryKey: profileQueryKeys.userListAll() });
     },
   });
 
@@ -46,3 +47,5 @@ export function useUserListFollow(queryKey: readonly unknown[]) {
 
   return { toggle, isBusy };
 }
+
+

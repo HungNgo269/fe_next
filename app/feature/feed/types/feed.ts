@@ -11,18 +11,9 @@ export type FeedBootstrapData = {
   pagination: FeedPagination;
 };
 
-
-
 export type NavItem = {
   label: string;
   description: string;
-};
-
-export type SidebarMessagePreview = {
-  id: string;
-  name: string;
-  preview: string;
-  time: string;
 };
 
 export type SidebarNotificationItem = {

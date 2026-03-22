@@ -11,6 +11,7 @@ import {
 import type { ProfileFeedResponse } from "../types/api.types";
 import type { FriendshipStatus } from "../types/api.types";
 import { useSafeOptimisticMutation } from "@/app/share/hooks/useSafeOptimisticMutation";
+import { profileQueryKeys } from "../queries/profile.query-keys";
 
 const updateFriendshipStatus = (
   queryClient: ReturnType<typeof useQueryClient>,
@@ -19,7 +20,7 @@ const updateFriendshipStatus = (
   friendsDelta = 0,
 ) => {
   queryClient.setQueryData(
-    ["profile-feed", "other", profileKey],
+    profileQueryKeys.other(profileKey),
     (old: ProfileFeedResponse | undefined) => {
       if (!old) return old;
       return {
@@ -36,10 +37,10 @@ const updateFriendshipStatus = (
 
 export const useFriendActions = (userId: string, profileKey: string) => {
   const queryClient = useQueryClient();
-  const profileQueryKey = ["profile-feed", "other", profileKey] as const;
+  const profileQueryKey = profileQueryKeys.other(profileKey);
 
   const invalidateFriendRequests = () => {
-    void queryClient.invalidateQueries({ queryKey: ["friend-requests"] });
+    void queryClient.invalidateQueries({ queryKey: profileQueryKeys.friendRequests() });
   };
 
   const sendRequest = useSafeOptimisticMutation<void, void, ProfileFeedResponse | undefined>({
@@ -158,3 +159,6 @@ export const useFriendActions = (userId: string, profileKey: string) => {
     isFriendActionLoading: isLoading,
   };
 };
+
+
+

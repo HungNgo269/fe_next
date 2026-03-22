@@ -1,34 +1,30 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
-import { useQueryClient } from "@tanstack/react-query";
-import { logout } from "@/app/feature/auth/api/authApi";
 import { useAppSessionStore } from "@/app/share/stores/appSessionStore";
+import { useLogout } from "@/app/share/hooks/useLogout";
 import type { NavItem } from "../left-sidebar/constants";
 
 type UseLeftSidebarOptions = {
   isAuthenticated: boolean;
-  messageCount: number;
   notificationCount: number;
   onNotificationSelect?: () => void;
 };
 
 export function useLeftSidebar({
   isAuthenticated,
-  messageCount,
   notificationCount,
   onNotificationSelect,
 }: UseLeftSidebarOptions) {
   const pathname = usePathname();
-  const router = useRouter();
-  const queryClient = useQueryClient();
+
   const { setTheme } = useTheme();
+  const logoutUser = useLogout();
 
   const themePreference = useAppSessionStore((state) => state.themePreference);
   const setThemePreference = useAppSessionStore((state) => state.setThemePreference);
-  const clearAuthenticatedProfile = useAppSessionStore((state) => state.clearAuthenticatedProfile);
 
   const [expanded, setExpanded] = useState(false);
   const [activeLabel, setActiveLabel] = useState("");
@@ -39,7 +35,6 @@ export function useLeftSidebar({
   const prevNotificationPanelOpenRef = useRef(false);
 
   const badgeCounts = {
-    messages: messageCount,
     notification: notificationCount,
   };
 
@@ -94,11 +89,11 @@ export function useLeftSidebar({
   const handleLogout = async () => {
     if (isLoggingOut) return;
     setIsLoggingOut(true);
-    await logout();
-    clearAuthenticatedProfile();
-    queryClient.clear();
-    router.replace("/login");
-    setIsLoggingOut(false);
+    try {
+      await logoutUser();
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   return {

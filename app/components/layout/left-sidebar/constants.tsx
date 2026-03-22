@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Bell, Home, MessageCircle, Search } from "lucide-react";
+import { Bell, Home, Search } from "lucide-react";
 
 export type NavItem = {
   key: string;
@@ -15,7 +15,6 @@ export const navItems: NavItem[] = [
     label: "Search",
     icon: <Search className="h-5 w-5" />,
   },
-
   {
     key: "notification",
     label: "Notifications",
@@ -32,10 +31,9 @@ export const mobileNavItems: NavItem[] = [
     icon: <Home className="h-5 w-5" />,
   },
   {
-    key: "messages",
-    label: "Messages",
-    badge: true,
-    icon: <MessageCircle className="h-5 w-5" />,
+    key: "search",
+    label: "Search",
+    icon: <Search className="h-5 w-5" />,
   },
   {
     key: "notification",
@@ -44,4 +42,3 @@ export const mobileNavItems: NavItem[] = [
     icon: <Bell className="h-5 w-5" />,
   },
 ];
-

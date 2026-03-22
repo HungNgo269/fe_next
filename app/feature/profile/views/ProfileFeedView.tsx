@@ -1,25 +1,18 @@
 import Link from "next/link";
-import { useCallback, useState, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
-import ProfileStatusCard from "@/app/feature/profile/components/ProfileStatusCard";
-import ProfileHeader from "@/app/feature/profile/components/ProfileHeader";
-import ProfilePostFeed from "@/app/feature/profile/components/ProfilePostFeed";
+import { useCallback, type ReactNode } from "react";
 import PostDetailModal from "@/app/feature/post/components/PostDetailModal";
-import UserListModal from "@/app/feature/profile/components/UserListModal";
-import FriendRequestsModal from "@/app/feature/profile/components/FriendRequestsModal";
-import type { UserListType } from "@/app/feature/profile/types/user-list.types";
-import type { Post } from "@/app/feature/post/types/api.types";
-import { useQuery } from "@tanstack/react-query";
-import { useQueryClient } from "@tanstack/react-query";
-import { fetchFriendRequests } from "@/app/feature/profile/api/userListApi";
 import ProfileActions from "../components/ProfileActions";
-import { logout } from "@/app/feature/auth/api/authApi";
-import { useAppSessionStore } from "@/app/share/stores/appSessionStore";
+import ProfileHeader from "../components/ProfileHeader";
+import ProfilePostFeed from "../components/ProfilePostFeed";
+import ProfileStatusCard from "../components/ProfileStatusCard";
+import FriendRequestsModal from "../components/FriendRequestsModal";
+import UserListModal from "../components/UserListModal";
 import {
   getCurrentUserProfileFeed,
   getUserProfileFeed,
-} from "@/app/feature/profile/api/profileApi";
-import { useProfileFeed } from "@/app/feature/profile/hooks/useProfileFeed";
+} from "../api/profileApi";
+import { useProfileFeed } from "../hooks/useProfileFeed";
+import { useProfileViewOrchestration } from "../hooks/useProfileViewOrchestration";
 
 type BaseProfileFeedViewProps = {
   headerActions?: ReactNode;
@@ -39,10 +32,16 @@ type OtherProfileFeedViewProps = BaseProfileFeedViewProps & {
 type ProfileFeedViewProps = OwnProfileFeedViewProps | OtherProfileFeedViewProps;
 
 export default function ProfileFeedView(props: ProfileFeedViewProps) {
-  const { mode, headerActions, postsLabel = "Posts", emptyMessage = "No posts yet." } =
-    props;
+  const {
+    mode,
+    headerActions,
+    postsLabel = "Posts",
+    emptyMessage = "No posts yet.",
+  } = props;
+
   const handle = mode === "other" ? props.handle : undefined;
   const profileKey = mode === "own" ? "me" : handle ?? "default";
+
   const fetchFn = useCallback(
     (page: number, limit: number) =>
       mode === "own"
@@ -53,12 +52,11 @@ export default function ProfileFeedView(props: ProfileFeedViewProps) {
 
   const {
     profile,
-    currentUserAvatar,
     canEditProfile,
     posts,
     isLoading,
     isUnauthorized,
-    profileError,
+    profileError,
     hasMorePosts,
     totalPosts,
     isLoadingMore,
@@ -69,43 +67,20 @@ export default function ProfileFeedView(props: ProfileFeedViewProps) {
     profileKey,
   });
 
-  void currentUserAvatar;
-
-  const router = useRouter();
-  const queryClient = useQueryClient();
-  const clearAuthenticatedProfile = useAppSessionStore(
-    (state) => state.clearAuthenticatedProfile,
-  );
-
-  const [listModalType, setListModalType] = useState<UserListType | null>(null);
-  const [listModalOpen, setListModalOpen] = useState(false);
-  const [friendRequestsModalOpen, setFriendRequestsModalOpen] = useState(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-
-  const { data: pendingRequests = [] } = useQuery({
-    queryKey: ["friend-requests"],
-    queryFn: async () => {
-      const res = await fetchFriendRequests();
-      return res.ok ? res.data : [];
-    },
-    enabled: canEditProfile,
+  const {
+    listModalType,
+    listModalOpen,
+    openListModal,
+    closeListModal,
+    friendRequestsModalOpen,
+    openFriendRequestsModal,
+    closeFriendRequestsModal,
+    incomingCount,
+    isLoggingOut,
+    handleLogout,
+  } = useProfileViewOrchestration({
+    canEditProfile,
   });
-  const incomingCount = pendingRequests.filter(
-    (r) => r.direction === "incoming",
-  ).length;
-
-  const handleLogout = async () => {
-    if (isLoggingOut) return;
-    setIsLoggingOut(true);
-    try {
-      await logout();
-      clearAuthenticatedProfile();
-      queryClient.clear();
-      router.replace("/login");
-    } finally {
-      setIsLoggingOut(false);
-    }
-  };
 
   const resolvedHeaderActions = canEditProfile ? null : headerActions;
 
@@ -174,10 +149,7 @@ export default function ProfileFeedView(props: ProfileFeedViewProps) {
         friendsCount={profile.friendsCount ?? 0}
         followersCount={profile.followersCount ?? 0}
         followingCount={profile.followingCount ?? 0}
-        onOpenList={(type) => {
-          setListModalType(type);
-          setListModalOpen(true);
-        }}
+        onOpenList={openListModal}
       >
         {canEditProfile ? (
           <>
@@ -190,7 +162,7 @@ export default function ProfileFeedView(props: ProfileFeedViewProps) {
               </Link>
               <button
                 type="button"
-                onClick={handleLogout}
+                onClick={() => void handleLogout()}
                 disabled={isLoggingOut}
                 className="inline-flex flex-1 items-center justify-center rounded-xl bg-gray-200 px-4 py-2.5 text-sm font-semibold text-secondary-foreground transition-colors hover:brightness-95 disabled:opacity-60"
               >
@@ -200,7 +172,7 @@ export default function ProfileFeedView(props: ProfileFeedViewProps) {
             <ProfileActions
               variant="own"
               incomingCount={incomingCount}
-              onOpenFriendRequests={() => setFriendRequestsModalOpen(true)}
+              onOpenFriendRequests={openFriendRequestsModal}
             />
           </>
         ) : (
@@ -215,11 +187,11 @@ export default function ProfileFeedView(props: ProfileFeedViewProps) {
       </ProfileHeader>
 
       <ProfilePostFeed
-        posts={posts as unknown as Post[]}
+        posts={posts}
         profile={profile}
         canEditProfile={canEditProfile}
         postsLabel={postsLabel}
-        emptyMessage={emptyMessage}
+        emptyMessage={emptyMessage}
         hasMorePosts={hasMorePosts}
         isLoadingMore={isLoadingMore}
         onLoadMore={handleLoadMore}
@@ -228,16 +200,15 @@ export default function ProfileFeedView(props: ProfileFeedViewProps) {
       <PostDetailModal />
       <UserListModal
         isOpen={listModalOpen}
-        onClose={() => setListModalOpen(false)}
+        onClose={closeListModal}
         listType={listModalType}
         userId={profile.id ?? ""}
       />
       <FriendRequestsModal
         isOpen={friendRequestsModalOpen}
-        onClose={() => setFriendRequestsModalOpen(false)}
+        onClose={closeFriendRequestsModal}
       />
     </main>
   );
 }
-
 

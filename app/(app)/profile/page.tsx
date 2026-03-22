@@ -1,16 +1,15 @@
 import UserProfilePageClient from "./UserProfilePageClient";
-import { getCurrentUserProfileFeedServer } from "../feature/profile/api/profileApi.server";
+import { getCurrentUserProfileFeedServer } from "@/app/feature/profile/api/profileApi.server";
 import { HydrationBoundary, QueryClient, dehydrate } from "@tanstack/react-query";
-import type { ProfileFeedResponse } from "../feature/profile/types/api.types";
-
-const PROFILE_ME_QUERY_KEY = ["profile-feed", "me", "me"] as const;
+import type { ProfileFeedResponse } from "@/app/feature/profile/types/api.types";
+import { profileQueryKeys } from "@/app/feature/profile/queries/profile.query-keys";
 
 export default async function UserProfilePage() {
   const queryClient = new QueryClient();
   const initialFeed = await getCurrentUserProfileFeedServer(1, 5);
 
   if (initialFeed.ok) {
-    queryClient.setQueryData<ProfileFeedResponse>(PROFILE_ME_QUERY_KEY, initialFeed.data);
+    queryClient.setQueryData<ProfileFeedResponse>(profileQueryKeys.me(), initialFeed.data);
   }
 
   return (

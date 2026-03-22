@@ -1,23 +1,12 @@
 "use client";
 
 import { createContext, useContext, useMemo, type ReactNode } from "react";
-import type { Post, PostComment } from "../../types/api.types";
-
-
-type ModalPostDataContextValue = {
-  post: Post;
-  postId: string;
-  profileKey: string;
-  userHandle: string;
-  isOwner: boolean;
-  likesCount: number;
-  likedByMe?: boolean;
-  totalComments: number;
-  commentsLoading: boolean;
-  visibleRootComments: PostComment[];
-  hasMoreRootComments: boolean;
-  showMoreRootComments: () => void;
-};
+import type {
+  ModalPostActionsContextValue,
+  ModalPostContentProviderValue,
+  ModalPostDataContextValue,
+  ModalPostEditContextValue,
+} from "../../interface/modal-post-content.interface";
 
 const ModalPostDataContext =
   createContext<ModalPostDataContextValue | null>(null);
@@ -32,16 +21,6 @@ export function useModalPostDataContext() {
   return context;
 }
 
-
-type ModalPostEditContextValue = {
-  isEditing: boolean;
-  editingText: string;
-  setEditingText: (value: string) => void;
-  handleSaveEdit: () => void;
-  handleCancelEdit: () => void;
-  handleStartEdit: () => void;
-};
-
 const ModalPostEditContext =
   createContext<ModalPostEditContextValue | null>(null);
 
@@ -54,19 +33,6 @@ export function useModalPostEditContext() {
   }
   return context;
 }
-
-
-type ModalPostActionsContextValue = {
-  onClose: () => void;
-  handleDeletePostAndClose: () => void;
-  handleReportPost: (text?: string) => Promise<boolean>;
-  isReportingPost: boolean;
-  handleToggleLike: () => void;
-  handleShare: () => void;
-  commentDraft: string;
-  setCommentDraft: (value: string) => void;
-  handleAddComment: () => void;
-};
 
 const ModalPostActionsContext =
   createContext<ModalPostActionsContextValue | null>(null);
@@ -81,13 +47,10 @@ export function useModalPostActionsContext() {
   return context;
 }
 
-
-type ModalPostContentProviderProps = {
-  value: ModalPostDataContextValue &
-    ModalPostEditContextValue &
-    ModalPostActionsContextValue;
+interface ModalPostContentProviderProps {
+  value: ModalPostContentProviderValue;
   children: ReactNode;
-};
+}
 
 export function ModalPostContentProvider({
   value,

@@ -7,15 +7,14 @@ import {
   cancelFriendRequestApi,
   declineFriendRequestApi,
 } from "../api/profileApi";
+import { profileQueryKeys } from "../queries/profile.query-keys";
 
-const QUERY_KEY = ["friend-requests"] as const;
-const INVALIDATE_KEYS = [["friend-requests"], ["profile-feed"]] as const;
 
 export function useFriendRequestActions(enabled: boolean) {
   const queryClient = useQueryClient();
 
   const { data: requests = [], isLoading } = useQuery({
-    queryKey: QUERY_KEY,
+    queryKey: profileQueryKeys.friendRequests(),
     queryFn: async () => {
       const res = await fetchFriendRequests();
       return res.ok ? res.data : [];
@@ -24,9 +23,8 @@ export function useFriendRequestActions(enabled: boolean) {
   });
 
   const invalidateAll = () => {
-    for (const key of INVALIDATE_KEYS) {
-      void queryClient.invalidateQueries({ queryKey: key });
-    }
+    void queryClient.invalidateQueries({ queryKey: profileQueryKeys.friendRequests() });
+    void queryClient.invalidateQueries({ queryKey: profileQueryKeys.all });
   };
 
   const acceptMutation = useMutation({
@@ -58,3 +56,5 @@ export function useFriendRequestActions(enabled: boolean) {
       cancelMutation.isPending && cancelMutation.variables === userId,
   };
 }
+
+

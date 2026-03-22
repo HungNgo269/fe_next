@@ -9,6 +9,7 @@ import type { UserListType } from "../types/user-list.types";
 import { fetchFollowers, fetchFollowing, fetchFriends } from "../api/userListApi";
 import { useAppSessionStore } from "@/app/share/stores/appSessionStore";
 import { useUserListFollow } from "../hooks/useUserListFollow";
+import { profileQueryKeys } from "../queries/profile.query-keys";
 
 interface UserListModalProps {
   isOpen: boolean;
@@ -32,7 +33,7 @@ export default function UserListModal({
   const [searchQuery, setSearchQuery] = useState("");
   const authProfile = useAppSessionStore((state) => state.authProfile);
 
-  const queryKey = ["user-list", userId, listType] as const;
+  const queryKey = profileQueryKeys.userList(userId, listType);
 
   const { data: users, isLoading } = useQuery({
     queryKey,
@@ -150,3 +151,5 @@ export default function UserListModal({
     </Dialog.Root>
   );
 }
+
+

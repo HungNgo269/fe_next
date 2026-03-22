@@ -1,4 +1,4 @@
-import type { Post } from "@/app/feature/post/types/api.types";
+import type { Post, FeedPagination } from "@/app/feature/post/types/api.types";
 
 export type FriendshipStatus = "NONE" | "PENDING_SENT" | "PENDING_RECEIVED" | "ACCEPTED";
 
@@ -33,10 +33,5 @@ export type ProfileFeedResponse = {
     friendshipStatus: FriendshipStatus;
   };
   posts: Post[];
-  pagination: {
-    page: number;
-    limit: number;
-    hasMore: boolean;
-    totalPosts: number;
-  };
+  pagination: FeedPagination;
 };

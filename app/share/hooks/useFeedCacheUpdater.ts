@@ -4,7 +4,9 @@ import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Post, PostComment } from "@/app/feature/post/types/api.types";
 import type { FeedBootstrapData } from "@/app/feature/feed/types/feed";
-import { FEED_QUERY_KEY } from "./feedQueryKeys";
+import { feedQueryKeys } from "@/app/feature/feed/queries/feed.query-keys";
+import { profileQueryKeys } from "@/app/feature/profile/queries/profile.query-keys";
+import { postQueryKeys } from "@/app/feature/post/queries/post.query-keys";
 import { usePostDetailModal } from "@/app/feature/post/hooks/usePostDetailModal";
 
 const matchPost = (post: Post, postId: string) =>
@@ -18,7 +20,7 @@ export function useFeedCacheUpdater() {
     if (!selectedPost) return;
 
     const interactionPostId = selectedPost.sourcePostId ?? selectedPost.id;
-    const feedData = queryClient.getQueryData<FeedBootstrapData>(FEED_QUERY_KEY);
+    const feedData = queryClient.getQueryData<FeedBootstrapData>(feedQueryKeys.all);
     const fromFeed =
       feedData?.posts.find((p) => p.id === selectedPost.id) ??
       feedData?.posts.find((p) => matchPost(p, interactionPostId));
@@ -29,7 +31,7 @@ export function useFeedCacheUpdater() {
     }
 
     const profileCaches = queryClient.getQueriesData<{ posts: Post[] }>({
-      queryKey: ["profile-feed"],
+      queryKey: profileQueryKeys.all,
     });
     for (const [, data] of profileCaches) {
       const fromProfile =
@@ -45,11 +47,11 @@ export function useFeedCacheUpdater() {
   const updateAll = useCallback(
     (updater: (posts: Post[]) => Post[]) => {
       queryClient.setQueriesData<FeedBootstrapData>(
-        { queryKey: FEED_QUERY_KEY },
+        { queryKey: feedQueryKeys.all },
         (old) => (old ? { ...old, posts: updater(old.posts) } : old),
       );
       queryClient.setQueriesData<{ posts: Post[] }>(
-        { queryKey: ["profile-feed"] },
+        { queryKey: profileQueryKeys.all },
         (old) => (old ? { ...old, posts: updater(old.posts) } : old),
       );
       syncModalSelectedPost();
@@ -76,7 +78,7 @@ export function useFeedCacheUpdater() {
   const appendComment = useCallback(
     (postId: string, comment: PostComment) => {
       queryClient.setQueryData<PostComment[]>(
-        ["post-comments", postId],
+        postQueryKeys.comments(postId),
         (old) => {
           if (!old) return [comment];
           if (!comment.parentId) return [...old, comment];
@@ -112,7 +114,7 @@ export function useFeedCacheUpdater() {
     (postId: string, commentId: string, newReplies: PostComment[]) => {
       if (newReplies.length === 0) return;
       queryClient.setQueryData<PostComment[]>(
-        ["post-comments", postId],
+        postQueryKeys.comments(postId),
         (old) => {
           if (!old) return old;
           return old.map((root) => {
@@ -135,7 +137,7 @@ export function useFeedCacheUpdater() {
   const updateComment = useCallback(
     (postId: string, commentId: string, patch: Partial<PostComment>) => {
       queryClient.setQueryData<PostComment[]>(
-        ["post-comments", postId],
+        postQueryKeys.comments(postId),
         (old) => {
           if (!old) return old;
           return old.map((root) => {
@@ -160,7 +162,7 @@ export function useFeedCacheUpdater() {
     (postId: string, commentId: string) => {
       let removedCount = 0;
       queryClient.setQueryData<PostComment[]>(
-        ["post-comments", postId],
+        postQueryKeys.comments(postId),
         (old) => {
           if (!old) return old;
 
@@ -238,7 +240,7 @@ export function useFeedCacheUpdater() {
   const prependProfilePost = useCallback(
     (post: Post) => {
       queryClient.setQueriesData<{ posts: Post[] }>(
-        { queryKey: ["profile-feed"] },
+        { queryKey: profileQueryKeys.all },
         (old) => (old ? { ...old, posts: [post, ...old.posts] } : old),
       );
     },
@@ -258,3 +260,5 @@ export function useFeedCacheUpdater() {
     prependProfilePost,
   };
 }
+
+

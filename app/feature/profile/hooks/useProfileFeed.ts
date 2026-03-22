@@ -5,12 +5,17 @@ import type { ApiResponse } from "@/app/share/utils/api-types";
 import type { ProfileFeedResponse } from "../types/api.types";
 import { useProfileData } from "./useProfileData";
 import type { FeedBootstrapData } from "@/app/feature/feed/types/feed";
-import { FEED_QUERY_KEY } from "@/app/share/hooks/feedQueryKeys";
+import { feedQueryKeys } from "@/app/feature/feed/queries/feed.query-keys";
+import { profileQueryKeys } from "../queries/profile.query-keys";
 import { useState, useCallback, useEffect, useMemo } from "react";
 import type { UserProfile } from "../types/profile";
+import { mergeUniquePosts } from "@/app/feature/post/utils/postCache";
 import { toast } from "sonner";
 
 const PAGE_SIZE = 5;
+type ProfileFeedQueryError = Error & { status?: number };
+
+type ProfileFeedState = Pick<ProfileFeedResponse, "posts" | "pagination">;
 
 export type FetchProfileFeedFn = (
   page: number,
@@ -54,20 +59,17 @@ export function useProfileFeed({
     setIsUnauthorized,
     syncProfileToSession,
   } = profileData;
-  const [currentPage, setCurrentPage] = useState<number | null>(null);
-  const [allPosts, setAllPosts] = useState<ProfileFeedResponse["posts"]>([]);
-  const [hasMorePosts, setHasMorePosts] = useState<boolean | null>(null);
-  const [totalPosts, setTotalPosts] = useState<number | null>(null);
+  const [loadedFeed, setLoadedFeed] = useState<ProfileFeedState | null>(null);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const query = useQuery({
-    queryKey: ["profile-feed", isOwnProfile ? "me" : "other", profileKey],
+    queryKey: profileQueryKeys.detail(isOwnProfile ? "me" : "other", profileKey),
     queryFn: async () => {
       const result = await fetchFn(1, PAGE_SIZE);
       if (!result.ok) {
-        const status = (result.error as { status?: number }).status;
-        setIsUnauthorized(status === 401 || status === 403);
-        throw new Error("Unable to load profile.");
+        const error = new Error("Unable to load profile.") as ProfileFeedQueryError;
+        error.status = (result.error as { status?: number }).status;
+        throw error;
       }
       return result.data;
     },
@@ -75,64 +77,91 @@ export function useProfileFeed({
     refetchOnWindowFocus: false,
   });
 
+  useEffect(() => {
+    setLoadedFeed(null);
+  }, [isOwnProfile, profileKey]);
+
   const profile = useMemo(
     () => (query.data ? toUserProfile(query.data.user) : profileData.profile),
     [query.data, profileData.profile],
   );
+
+  const feed = useMemo<ProfileFeedState | null>(() => {
+    if (loadedFeed) {
+      return loadedFeed;
+    }
+    if (!query.data) {
+      return null;
+    }
+    return {
+      posts: query.data.posts,
+      pagination: query.data.pagination,
+    };
+  }, [loadedFeed, query.data]);
+
   const canEditProfile =
     Boolean(currentUserId) &&
     (isOwnProfile || (Boolean(profile.id) && currentUserId === profile.id));
-  const basePosts = useMemo(() => query.data?.posts ?? [], [query.data]);
-  const posts = allPosts.length > 0 ? allPosts : basePosts;
-  const effectiveCurrentPage = currentPage ?? query.data?.pagination.page ?? 1;
-  const effectiveHasMorePosts = hasMorePosts ?? query.data?.pagination.hasMore ?? false;
-  const effectiveTotalPosts = totalPosts ?? query.data?.pagination.totalPosts ?? 0;
+  const posts = feed?.posts ?? [];
+  const pagination = feed?.pagination;
 
   useEffect(() => {
     if (!query.data) return;
 
+    setIsUnauthorized(false);
     syncProfileToSession(toUserProfile(query.data.user));
-    queryClient.setQueryData<FeedBootstrapData>(FEED_QUERY_KEY, (old) => {
+    queryClient.setQueryData<FeedBootstrapData>(feedQueryKeys.all, (old) => {
       if (!old) return old;
-      const oldIds = new Set(old.posts.map((post) => post.id));
-      const mergedPosts = [...old.posts];
-      for (const post of query.data.posts) {
-        if (!oldIds.has(post.id)) {
-          mergedPosts.push(post);
-          oldIds.add(post.id);
-        }
-      }
-      return { ...old, posts: mergedPosts } as FeedBootstrapData;
+      return {
+        ...old,
+        posts: mergeUniquePosts(old.posts, query.data.posts),
+      } as FeedBootstrapData;
     });
-  }, [query.data, queryClient, syncProfileToSession]);
+  }, [query.data, queryClient, setIsUnauthorized, syncProfileToSession]);
+
+  useEffect(() => {
+    if (!query.error) return;
+    const status = (query.error as ProfileFeedQueryError).status;
+    setIsUnauthorized(status === 401 || status === 403);
+  }, [query.error, setIsUnauthorized]);
 
   const handleLoadMore = useCallback(async () => {
-    if (isLoadingMore || !effectiveHasMorePosts) return;
+    if (isLoadingMore || !pagination?.hasMore) return;
+
     setIsLoadingMore(true);
+    try {
+      const result = await fetchFn(pagination.page + 1, PAGE_SIZE);
+      if (!result.ok) {
+        toast.error("Unable to load more posts.");
+        return;
+      }
 
-    const nextPage = effectiveCurrentPage + 1;
-    const result = await fetchFn(nextPage, PAGE_SIZE);
-    if (!result.ok) {
-      toast.error("Unable to load more posts.");
+      setLoadedFeed((current) => {
+        const base = current ?? feed;
+        if (!base) {
+          return {
+            posts: result.data.posts,
+            pagination: result.data.pagination,
+          };
+        }
+
+        return {
+          posts: mergeUniquePosts(base.posts, result.data.posts),
+          pagination: result.data.pagination,
+        };
+      });
+
+      queryClient.setQueryData<FeedBootstrapData>(feedQueryKeys.all, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          posts: mergeUniquePosts(old.posts, result.data.posts),
+        } as FeedBootstrapData;
+      });
+    } finally {
       setIsLoadingMore(false);
-      return;
     }
-
-    setAllPosts((prev) =>
-      prev.length > 0 ? [...prev, ...result.data.posts] : [...basePosts, ...result.data.posts],
-    );
-    setCurrentPage(result.data.pagination.page);
-    setHasMorePosts(result.data.pagination.hasMore);
-    setTotalPosts(result.data.pagination.totalPosts);
-
-    // Add to feed cache for mutation hooks
-    queryClient.setQueryData<FeedBootstrapData>(FEED_QUERY_KEY, (old) => {
-      if (!old) return old;
-      return { ...old, posts: [...old.posts, ...result.data.posts] } as FeedBootstrapData;
-    });
-
-    setIsLoadingMore(false);
-  }, [isLoadingMore, effectiveHasMorePosts, effectiveCurrentPage, fetchFn, queryClient, basePosts]);
+  }, [feed, fetchFn, isLoadingMore, pagination, queryClient]);
 
   useEffect(() => {
     if (!query.error || isUnauthorized) return;
@@ -149,8 +178,8 @@ export function useProfileFeed({
     isLoadingMore,
     isUnauthorized,
     profileError: query.error?.message ?? profileData.profileError,
-    hasMorePosts: effectiveHasMorePosts,
-    totalPosts: effectiveTotalPosts,
+    hasMorePosts: pagination?.hasMore ?? false,
+    totalPosts: pagination?.totalPosts ?? posts.length,
     handleLoadMore,
   };
 }
