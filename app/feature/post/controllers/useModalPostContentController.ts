@@ -4,12 +4,12 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { Post, PostComment } from "../types/api.types";
 import { fetchCommentsByPostId } from "../api/postCommentApi";
-import { useCommentActions } from "./useCommentActions";
-import { useLikeActions } from "./useLikeActions";
-import { usePostActions } from "./usePostActions";
-import { useSharePost } from "./useSharePost";
+import { usePostCommentMutations } from "../mutations/usePostCommentMutations";
+import { usePostLikeMutation } from "../mutations/usePostLikeMutation";
+import { usePostMutations } from "../mutations/usePostMutations";
+import { usePostShareMutation } from "../mutations/usePostShareMutation";
 import { postQueryKeys } from "../queries/post.query-keys";
-import { useModalLifecycle } from "./useModalLifecycle";
+import { useModalLifecycle } from "../hooks/useModalLifecycle";
 import type { ModalPostContentProviderValue } from "../interface/modal-post-content.interface";
 
 interface UseModalPostContentViewModelParams {
@@ -17,7 +17,7 @@ interface UseModalPostContentViewModelParams {
   onClose: () => void;
 }
 
-export function useModalPostContentViewModel({
+export function useModalPostContentController({
   post,
   onClose,
 }: UseModalPostContentViewModelParams): {
@@ -64,8 +64,8 @@ export function useModalPostContentViewModel({
 
   const { contentRef } = useModalLifecycle(onClose);
 
-  const { handleToggleLike } = useLikeActions(postId, post.likedByMe);
-  const { handleCopyShareLink } = useSharePost(postId);
+  const { handleToggleLike } = usePostLikeMutation(postId, post.likedByMe);
+  const { handleCopyShareLink } = usePostShareMutation(postId);
   const {
     isEditing,
     editingText,
@@ -77,10 +77,10 @@ export function useModalPostContentViewModel({
     handleDeletePost,
     isReportingPost,
     handleReportPost,
-  } = usePostActions(postId);
+  } = usePostMutations(postId);
 
   const { commentDraft, setCommentDraft, handleAddComment } =
-    useCommentActions(postId);
+    usePostCommentMutations(postId);
 
   const author = post.author ?? {
     id: "unknown-user",
@@ -134,4 +134,5 @@ export function useModalPostContentViewModel({
     providerValue,
   };
 }
+
 

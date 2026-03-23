@@ -1,10 +1,10 @@
-﻿"use client";
+"use client";
 
 import { memo, useCallback, useState } from "react";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import type { PostComment } from "../types/api.types";
-import { useCommentActions } from "../hooks/useCommentActions";
+import { usePostCommentMutations } from "../mutations/usePostCommentMutations";
 import { useOwnership } from "../hooks/useOwnership";
 import { useClickOutside } from "@/app/share/hooks/useClickOutside";
 import { formatRelativeTime } from "@/app/share/utils/format";
@@ -33,7 +33,7 @@ function ModalCommentItemComponent({
     handleSaveCommentEdit,
     handleDeleteComment,
     handleReportComment,
-  } = useCommentActions(postId);
+  } = usePostCommentMutations(postId);
   const { isCommentOwner, isPostOwner } = useOwnership();
   const cacheUpdater = useFeedCacheUpdater();
 
@@ -281,3 +281,4 @@ const ModalCommentItem = memo(
 );
 
 export default ModalCommentItem;
+

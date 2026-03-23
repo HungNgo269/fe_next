@@ -3,8 +3,7 @@
 import { useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import type { SidebarNotificationItem } from "@/app/feature/feed/types/feed";
-import type { FriendRequestUser } from "@/app/feature/profile/types/user-list.types";
-import { useFriendRequestActions } from "@/app/feature/profile/hooks/useFriendRequestActions";
+import { useFriendRequestsController } from "@/app/feature/profile/controllers/useFriendRequestsController";
 import NotificationPanelHeader from "./notification-panel/NotificationPanelHeader";
 import NotificationFriendSection from "./notification-panel/NotificationFriendSection";
 import NotificationPostSection from "./notification-panel/NotificationPostSection";
@@ -29,21 +28,13 @@ export default function NotificationPanel({
 }: NotificationPanelProps) {
   const [visiblePostCount, setVisiblePostCount] = useState(POST_PAGE_SIZE);
   const {
-    requests,
+    incomingRequests,
     isLoading: friendRequestLoading,
     accept,
     decline,
     isAccepting,
     isDeclining,
-  } = useFriendRequestActions(true);
-
-  const incomingRequests = useMemo(
-    () =>
-      requests.filter(
-        (item): item is FriendRequestUser => item.direction === "incoming",
-      ),
-    [requests],
-  );
+  } = useFriendRequestsController(true);
 
   const friendNotifications = useMemo(
     () => notifications.filter((item) => FRIEND_TYPES.has(item.type)),

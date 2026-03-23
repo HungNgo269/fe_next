@@ -1,7 +1,6 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchFriendRequests } from "../api/userListApi";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   acceptFriendRequestApi,
   cancelFriendRequestApi,
@@ -9,18 +8,8 @@ import {
 } from "../api/profileApi";
 import { profileQueryKeys } from "../queries/profile.query-keys";
 
-
-export function useFriendRequestActions(enabled: boolean) {
+export function useFriendRequestMutations() {
   const queryClient = useQueryClient();
-
-  const { data: requests = [], isLoading } = useQuery({
-    queryKey: profileQueryKeys.friendRequests(),
-    queryFn: async () => {
-      const res = await fetchFriendRequests();
-      return res.ok ? res.data : [];
-    },
-    enabled,
-  });
 
   const invalidateAll = () => {
     void queryClient.invalidateQueries({ queryKey: profileQueryKeys.friendRequests() });
@@ -43,8 +32,6 @@ export function useFriendRequestActions(enabled: boolean) {
   });
 
   return {
-    requests,
-    isLoading,
     accept: (userId: string) => acceptMutation.mutate(userId),
     decline: (userId: string) => declineMutation.mutate(userId),
     cancel: (userId: string) => cancelMutation.mutate(userId),
@@ -56,5 +43,3 @@ export function useFriendRequestActions(enabled: boolean) {
       cancelMutation.isPending && cancelMutation.variables === userId,
   };
 }
-
-

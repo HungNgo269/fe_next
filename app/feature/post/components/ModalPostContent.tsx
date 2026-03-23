@@ -8,7 +8,7 @@ import ModalPostActions from "./modal/ModalPostActions";
 import ModalPostComposer from "./modal/ModalPostComposer";
 import { ModalPostContentProvider } from "./modal/ModalPostContentContext";
 import type { Post } from "../types/api.types";
-import { useModalPostContentViewModel } from "../hooks/useModalPostContentViewModel";
+import { useModalPostContentController } from "../controllers/useModalPostContentController";
 
 interface ModalPostContentProps {
   post: Post;
@@ -16,7 +16,7 @@ interface ModalPostContentProps {
 }
 
 export default function ModalPostContent({ post, onClose }: ModalPostContentProps) {
-  const { contentRef, providerValue } = useModalPostContentViewModel({
+  const { contentRef, providerValue } = useModalPostContentController({
     post,
     onClose,
   });
@@ -38,3 +38,4 @@ export default function ModalPostContent({ post, onClose }: ModalPostContentProp
     </div>
   );
 }
+

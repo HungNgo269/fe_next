@@ -7,7 +7,7 @@ import ActionChip from "@/app/feature/post/components/ui/ActionChip";
 import Avatar from "@/app/feature/post/components/ui/Avatar";
 import { IconImage } from "@/app/share/components/icons";
 import { usePostUIStore } from "@/app/feature/post/stores/postStore";
-import { useCreatePost } from "@/app/feature/feed/hooks/useCreatePost";
+import { useCreatePostMutation } from "@/app/feature/feed/mutations/useCreatePostMutation";
 import { useAutoResizeTextarea } from "@/app/share/hooks/useAutoResizeTextarea";
 
 type SelectedComposerMedia = {
@@ -21,7 +21,7 @@ const MAX_POST_MEDIA_FILES = 10;
 function FeedComposer({ currentUser }: { currentUser: User }) {
   const composerText = usePostUIStore((s) => s.composerText);
   const setComposerText = usePostUIStore((s) => s.setComposerText);
-  const { handleCreatePost } = useCreatePost();
+  const { handleCreatePost } = useCreatePostMutation();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const composerTextareaRef = useAutoResizeTextarea<HTMLTextAreaElement>(
     composerText,

@@ -6,7 +6,7 @@ import type { User } from "../types/api.types";
 import { formatRelativeTime } from "@/app/share/utils/format";
 import Avatar from "./ui/Avatar";
 import { IconMoreVertical } from "@/app/share/components/icons";
-import { usePostActions } from "../hooks/usePostActions";
+import { usePostMutations } from "../mutations/usePostMutations";
 import { useClickOutside } from "@/app/share/hooks/useClickOutside";
 import ReportReasonModal from "./ui/ReportReasonModal";
 
@@ -35,7 +35,7 @@ export default function PostHeader({
     handleDeletePost,
     isReportingPost,
     handleReportPost,
-  } = usePostActions(postId);
+  } = usePostMutations(postId);
 
   const fallback = author.email.split("@")[0] ?? "user";
   const userHandle = author.handle || fallback;
@@ -151,3 +151,4 @@ export default function PostHeader({
     </header>
   );
 }
+

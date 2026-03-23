@@ -13,7 +13,7 @@ import { useFeedCacheUpdater } from "@/app/share/hooks/useFeedCacheUpdater";
 import { feedQueryKeys } from "../queries/feed.query-keys";
 import { profileQueryKeys } from "@/app/feature/profile/queries/profile.query-keys";
 
-export function useCreatePost() {
+export function useCreatePostMutation() {
   const queryClient = useQueryClient();
   const authProfile = useAppSessionStore((state) => state.authProfile);
   const { runIfAuth } = useRequireAuthAction();
@@ -25,15 +25,16 @@ export function useCreatePost() {
     mutationFn: (payload: { content: string; mediaFiles: File[] }) =>
       createPostRequest(payload.content, payload.mediaFiles),
     onSuccess: async (result, payload) => {
-      if (!result.ok) return;
+      if (!result.ok || !currentUser) return;
+
       const newPost: Post = {
         id: result.data.id,
         author: {
-          id: currentUser!.id,
-          name: currentUser!.name,
+          id: currentUser.id,
+          name: currentUser.name,
           email: "",
-          avatarUrl: currentUser!.avatarUrl ?? undefined,
-          gender: currentUser!.gender,
+          avatarUrl: currentUser.avatarUrl ?? undefined,
+          gender: currentUser.gender,
         },
         createdAt: new Date().toISOString(),
         content: payload.content.trim(),
@@ -43,6 +44,7 @@ export function useCreatePost() {
         sharesCount: 0,
         mediaUrls: result.data.mediaUrls ?? [],
       };
+
       cache.prependPost(newPost);
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: feedQueryKeys.all }),
@@ -59,10 +61,8 @@ export function useCreatePost() {
         createMutation.mutate({ content: trimmed, mediaFiles });
       });
     },
-    [runIfAuth, createMutation],
+    [createMutation, runIfAuth],
   );
 
   return { handleCreatePost, isCreating: createMutation.isPending };
 }
-
-

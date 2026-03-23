@@ -8,8 +8,8 @@ import type { StoryData } from "@/app/feature/story/types/story";
 import { fetchSuggestedUsers } from "@/app/feature/suggestion/api/suggestionUserApi";
 import { suggestionQueryKeys } from "@/app/feature/suggestion/queries/suggestion.query-keys";
 
-export function useStories() {
-  const authProfile = useAppSessionStore((s) => s.authProfile);
+export function useStoriesQuery() {
+  const authProfile = useAppSessionStore((state) => state.authProfile);
   const currentUserId = authProfile?.id;
 
   const { data: allUsers = [], isLoading } = useQuery({
@@ -26,13 +26,13 @@ export function useStories() {
   const stories: StoryData[] = useMemo(
     () =>
       allUsers
-        .filter((u) => u.id !== currentUserId)
+        .filter((user) => user.id !== currentUserId)
         .slice(0, 4)
-        .map((user, i) => ({
+        .map((user, index) => ({
           id: `story-${user.id}`,
-          title: STORY_TITLES[i % STORY_TITLES.length],
+          title: STORY_TITLES[index % STORY_TITLES.length],
           author: user,
-          theme: STORY_THEMES[i % STORY_THEMES.length],
+          theme: STORY_THEMES[index % STORY_THEMES.length],
         })),
     [allUsers, currentUserId],
   );

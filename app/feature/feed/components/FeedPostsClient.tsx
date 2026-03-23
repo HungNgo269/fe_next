@@ -1,18 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import FeedComposer from "@/app/feature/feed/components/FeedComposer";
 import PostCard from "@/app/feature/post/components/PostCard";
 import PostDetailModal from "@/app/feature/post/components/PostDetailModal";
 import LoginRequiredDialog from "@/app/share/components/LoginRequiredDialog";
-import { usePostUIStore } from "@/app/feature/post/stores/postStore";
-import { fetchPosts } from "@/app/feature/post/api/postApi";
-import { FEED_PAGE_SIZE } from "@/app/share/hooks/feedQueryKeys";
-import { useInfiniteScrollTrigger } from "@/app/share/hooks/useInfiniteScrollTrigger";
 import type { FeedPagination, Post, User } from "@/app/feature/post/types/api.types";
-import { mergeUniquePosts } from "@/app/feature/post/utils/postCache";
-import { toast } from "sonner";
+import { useFeedPageController } from "../controllers/useFeedPageController";
 
 type FeedPostsClientProps = {
   currentUser: User | null;
@@ -21,59 +15,24 @@ type FeedPostsClientProps = {
   feedError?: string;
 };
 
-type FeedState = {
-  posts: Post[];
-  pagination: FeedPagination;
-};
-
 export default function FeedPostsClient({
   currentUser,
   initialPosts,
   initialPagination,
   feedError,
 }: FeedPostsClientProps) {
-  const [feed, setFeed] = useState<FeedState>({
-    posts: initialPosts,
-    pagination: initialPagination,
-  });
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const showLoginDialog = usePostUIStore((s) => s.showLoginDialog);
-  const setShowLoginDialog = usePostUIStore((s) => s.setShowLoginDialog);
-
-  useEffect(() => {
-    setFeed({ posts: initialPosts, pagination: initialPagination });
-  }, [initialPagination, initialPosts]);
-
-  const handleLoadMore = useCallback(async () => {
-    if (isLoadingMore || !feed.pagination.hasMore) {
-      return;
-    }
-
-    setIsLoadingMore(true);
-
-    try {
-      const nextPage = feed.pagination.page + 1;
-      const result = await fetchPosts(nextPage, feed.pagination.limit || FEED_PAGE_SIZE);
-
-      if (!result.ok) {
-        toast.error("Unable to load more posts.");
-        return;
-      }
-
-      setFeed((current) => ({
-        posts: mergeUniquePosts(current.posts, result.data.posts),
-        pagination: result.data.pagination,
-      }));
-    } finally {
-      setIsLoadingMore(false);
-    }
-  }, [feed.pagination, isLoadingMore]);
-
-  const loadMoreSentinelRef = useInfiniteScrollTrigger({
-    hasMore: feed.pagination.hasMore,
-    isLoading: isLoadingMore,
-    onLoadMore: handleLoadMore,
-    rootMargin: "240px 0px",
+  const {
+    posts,
+    hasMore,
+    isLoadingMore,
+    loadMoreSentinelRef,
+    showLoginDialog,
+    closeLoginDialog,
+  } = useFeedPageController({
+    currentUser,
+    initialPosts,
+    initialPagination,
+    feedError,
   });
 
   return (
@@ -87,11 +46,11 @@ export default function FeedPostsClient({
       {currentUser ? <FeedComposer currentUser={currentUser} /> : null}
 
       <div className="space-y-6">
-        {feed.posts.map((post) => (
+        {posts.map((post) => (
           <PostCard key={post.id} post={post} />
         ))}
 
-        {feed.pagination.hasMore ? (
+        {hasMore ? (
           <div className="flex flex-col items-center gap-3 pt-2">
             <div
               ref={loadMoreSentinelRef}
@@ -111,7 +70,7 @@ export default function FeedPostsClient({
       <PostDetailModal />
       <LoginRequiredDialog
         open={showLoginDialog}
-        onClose={() => setShowLoginDialog(false)}
+        onClose={closeLoginDialog}
       />
     </>
   );

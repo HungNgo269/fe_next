@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useAutoResizeTextarea } from "@/app/share/hooks/useAutoResizeTextarea";
-import { usePostActions } from "../hooks/usePostActions";
+import { usePostMutations } from "../mutations/usePostMutations";
 
 const VIDEO_EXTENSIONS = [".mp4", ".webm", ".mov", ".m4v", ".avi", ".mkv"];
 
@@ -31,7 +31,7 @@ export default function PostBody({
     setEditingText,
     handleSaveEdit,
     handleCancelEdit,
-  } = usePostActions(postId);
+  } = usePostMutations(postId);
   const editTextareaRef = useAutoResizeTextarea<HTMLTextAreaElement>(
     editingText,
     { minHeight: 96, maxHeight: 320 },
@@ -123,3 +123,4 @@ export default function PostBody({
     </div>
   );
 }
+

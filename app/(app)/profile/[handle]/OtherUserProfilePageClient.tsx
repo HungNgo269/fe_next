@@ -1,6 +1,6 @@
 "use client";
 
-import ProfileFeedView from "@/app/feature/profile/views/ProfileFeedView";
+import ProfileFeedView from "@/app/feature/profile/components/ProfileFeedView";
 import ProfileShell from "@/app/feature/profile/components/ProfileShell";
 
 type OtherUserProfilePageClientProps = {

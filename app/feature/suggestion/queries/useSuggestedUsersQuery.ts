@@ -1,14 +1,14 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 import { userToSuggestion } from "../types/suggestion.type";
 import { useAppSessionStore } from "@/app/share/stores/appSessionStore";
-import { useMemo } from "react";
 import { fetchSuggestedUsers } from "../api/suggestionUserApi";
-import { suggestionQueryKeys } from "../queries/suggestion.query-keys";
+import { suggestionQueryKeys } from "./suggestion.query-keys";
 
-export function useSuggestedUsers() {
-  const authProfile = useAppSessionStore((s) => s.authProfile);
+export function useSuggestedUsersQuery() {
+  const authProfile = useAppSessionStore((state) => state.authProfile);
   const currentUserId = authProfile?.id;
 
   const { data: allUsers = [], isLoading } = useQuery({
@@ -25,7 +25,7 @@ export function useSuggestedUsers() {
   const suggestions = useMemo(
     () =>
       allUsers
-        .filter((u) => u.id !== currentUserId)
+        .filter((user) => user.id !== currentUserId)
         .slice(0, 3)
         .map(userToSuggestion),
     [allUsers, currentUserId],

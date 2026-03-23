@@ -4,7 +4,7 @@ import type { BaseSyntheticEvent } from "react";
 import type { UseFormRegister } from "react-hook-form";
 import { Loader2 } from "lucide-react";
 import ProfileAvatarPreview from "@/app/feature/profile/components/ProfileAvatarPreview";
-import type { AvatarFormValues } from "@/app/feature/profile/hooks/useEditProfilePageViewModel";
+import type { AvatarFormValues } from "@/app/feature/profile/types/edit-profile.forms";
 
 type EditProfileAvatarFormProps = {
   isAvatarSubmitting: boolean;
@@ -111,3 +111,4 @@ export default function EditProfileAvatarForm({
     </form>
   );
 }
+

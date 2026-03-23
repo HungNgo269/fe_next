@@ -3,8 +3,13 @@
 import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Post, PostComment } from "@/app/feature/post/types/api.types";
-import type { FeedBootstrapData } from "@/app/feature/feed/types/feed";
 import { feedQueryKeys } from "@/app/feature/feed/queries/feed.query-keys";
+import {
+  findFeedPost,
+  prependFeedPost,
+  updateFeedPosts,
+  type FeedPostsInfiniteData,
+} from "@/app/feature/feed/queries/feed.cache";
 import { profileQueryKeys } from "@/app/feature/profile/queries/profile.query-keys";
 import { postQueryKeys } from "@/app/feature/post/queries/post.query-keys";
 import { usePostDetailModal } from "@/app/feature/post/hooks/usePostDetailModal";
@@ -20,10 +25,12 @@ export function useFeedCacheUpdater() {
     if (!selectedPost) return;
 
     const interactionPostId = selectedPost.sourcePostId ?? selectedPost.id;
-    const feedData = queryClient.getQueryData<FeedBootstrapData>(feedQueryKeys.all);
+    const feedData = queryClient.getQueryData<FeedPostsInfiniteData>(
+      feedQueryKeys.list(),
+    );
     const fromFeed =
-      feedData?.posts.find((p) => p.id === selectedPost.id) ??
-      feedData?.posts.find((p) => matchPost(p, interactionPostId));
+      findFeedPost(feedData, selectedPost.id) ??
+      findFeedPost(feedData, interactionPostId);
 
     if (fromFeed) {
       usePostDetailModal.setState({ selectedPost: fromFeed });
@@ -46,9 +53,9 @@ export function useFeedCacheUpdater() {
 
   const updateAll = useCallback(
     (updater: (posts: Post[]) => Post[]) => {
-      queryClient.setQueriesData<FeedBootstrapData>(
+      queryClient.setQueriesData<FeedPostsInfiniteData>(
         { queryKey: feedQueryKeys.all },
-        (old) => (old ? { ...old, posts: updater(old.posts) } : old),
+        (old) => (old ? updateFeedPosts(old, updater) : old),
       );
       queryClient.setQueriesData<{ posts: Post[] }>(
         { queryKey: profileQueryKeys.all },
@@ -232,9 +239,22 @@ export function useFeedCacheUpdater() {
 
   const prependPost = useCallback(
     (post: Post) => {
-      updateAll((posts) => [post, ...posts]);
+      queryClient.setQueriesData<FeedPostsInfiniteData>(
+        { queryKey: feedQueryKeys.all },
+        (old) => (old ? prependFeedPost(old, post) : old),
+      );
+      queryClient.setQueriesData<{ posts: Post[] }>(
+        { queryKey: profileQueryKeys.all },
+        (old) =>
+          old && old.posts.some((item) => item.id === post.id)
+            ? old
+            : old
+              ? { ...old, posts: [post, ...old.posts] }
+              : old,
+      );
+      syncModalSelectedPost();
     },
-    [updateAll],
+    [queryClient, syncModalSelectedPost],
   );
 
   const prependProfilePost = useCallback(

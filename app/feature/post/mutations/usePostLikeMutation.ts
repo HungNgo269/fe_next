@@ -1,13 +1,13 @@
-﻿"use client";
+"use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef } from "react";
-import { useRequireAuthAction } from "./useRequireAuthAction";
+import { useRequireAuthAction } from "../hooks/useRequireAuthAction";
 import { useFeedCacheUpdater } from "@/app/share/hooks/useFeedCacheUpdater";
 import { createLikeRequest, deleteLikeRequest } from "../api/postLikeApi";
 import { findPostInCaches } from "../utils/postCache";
 
-export function useLikeActions(postId: string, currentLiked?: boolean) {
+export function usePostLikeMutation(postId: string, currentLiked?: boolean) {
   const queryClient = useQueryClient();
   const { runIfAuth } = useRequireAuthAction();
   const cache = useFeedCacheUpdater();
@@ -110,3 +110,4 @@ export function useLikeActions(postId: string, currentLiked?: boolean) {
 
   return { handleToggleLike, isLiking: likeMutation.isPending };
 }
+

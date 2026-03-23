@@ -3,8 +3,8 @@
 import { useCallback, useState } from "react";
 import ActionButton from "./ui/ActionButton";
 import { IconComment, IconLike, IconShare } from "@/app/share/components/icons";
-import { useLikeActions } from "../hooks/useLikeActions";
-import { useSharePost } from "../hooks/useSharePost";
+import { usePostLikeMutation } from "../mutations/usePostLikeMutation";
+import { usePostShareMutation } from "../mutations/usePostShareMutation";
 import { useClickOutside } from "@/app/share/hooks/useClickOutside";
 
 export default function PostActions({
@@ -22,9 +22,9 @@ export default function PostActions({
   sharesCount: number;
   onClickComment?: () => void;
 }) {
-  const { handleToggleLike } = useLikeActions(postId, likedByMe);
+  const { handleToggleLike } = usePostLikeMutation(postId, likedByMe);
   const { handleShareToProfile, handleCopyShareLink, isSharingToProfile } =
-    useSharePost(postId);
+    usePostShareMutation(postId);
   const [isShareMenuOpen, setIsShareMenuOpen] = useState(false);
   const shareMenuRef = useClickOutside<HTMLDivElement>(
     useCallback(() => setIsShareMenuOpen(false), []),
@@ -78,3 +78,4 @@ export default function PostActions({
     </div>
   );
 }
+

@@ -9,6 +9,10 @@ import {
   uploadCurrentUserAvatar,
 } from "@/app/feature/profile/api/profileApi";
 import type { UserProfile } from "@/app/feature/profile/types/profile";
+import type {
+  AvatarFormValues,
+  ProfileDetailsFormValues,
+} from "@/app/feature/profile/types/edit-profile.forms";
 import { useAppSessionStore } from "@/app/share/stores/appSessionStore";
 import { toast } from "sonner";
 
@@ -21,17 +25,6 @@ const EMPTY_PROFILE: UserProfile = {
   gender: "",
   avatar: "",
   bio: "",
-};
-
-export type AvatarFormValues = {
-  avatarFile?: FileList;
-};
-
-export type ProfileDetailsFormValues = {
-  name: string;
-  email: string;
-  gender: string;
-  bio: string;
 };
 
 const toDetailsDefaults = (profile: UserProfile): ProfileDetailsFormValues => ({
@@ -57,7 +50,19 @@ const toAuthSyncPayload = (profile: UserProfile, fallbackId?: string) => {
   };
 };
 
-export function useEditProfilePageViewModel() {
+const buildGenderOptions = (selectedGender: string) => {
+  if (!selectedGender) {
+    return [...BASE_GENDER_OPTIONS];
+  }
+
+  return BASE_GENDER_OPTIONS.includes(
+    selectedGender as (typeof BASE_GENDER_OPTIONS)[number],
+  )
+    ? [...BASE_GENDER_OPTIONS]
+    : [selectedGender, ...BASE_GENDER_OPTIONS];
+};
+
+export function useEditProfilePageController() {
   const authProfile = useAppSessionStore((state) => state.authProfile);
   const setAuthenticatedProfile = useAppSessionStore(
     (state) => state.setAuthenticatedProfile,
@@ -89,9 +94,7 @@ export function useEditProfilePageViewModel() {
     reset: resetAvatarForm,
     control: avatarControl,
     formState: { isSubmitting: isAvatarSubmitting },
-  } = useForm<AvatarFormValues>({
-    mode: "onTouched",
-  });
+  } = useForm<AvatarFormValues>({ mode: "onTouched" });
 
   const {
     register: registerDetails,
@@ -121,17 +124,10 @@ export function useEditProfilePageViewModel() {
     detailBio.trim() !== (profile.bio ?? "").trim();
 
   const selectedGender = detailGender.trim().toUpperCase();
-  const genderOptions = useMemo(() => {
-    if (!selectedGender) {
-      return [...BASE_GENDER_OPTIONS];
-    }
-
-    return BASE_GENDER_OPTIONS.includes(
-      selectedGender as (typeof BASE_GENDER_OPTIONS)[number],
-    )
-      ? [...BASE_GENDER_OPTIONS]
-      : [selectedGender, ...BASE_GENDER_OPTIONS];
-  }, [selectedGender]);
+  const genderOptions = useMemo(
+    () => buildGenderOptions(selectedGender),
+    [selectedGender],
+  );
 
   useEffect(() => {
     if (!selectedAvatarFile) {
@@ -217,12 +213,7 @@ export function useEditProfilePageViewModel() {
     return () => {
       active = false;
     };
-  }, [
-    authProfile,
-    resetAvatarForm,
-    resetDetailsForm,
-    setAuthenticatedProfile,
-  ]);
+  }, [authProfile, resetAvatarForm, resetDetailsForm, setAuthenticatedProfile]);
 
   const onAvatarSubmitInvalid = () => {
     setAvatarSubmitError(PROFILE_SUBMIT_ERROR);
@@ -314,26 +305,33 @@ export function useEditProfilePageViewModel() {
 
   return {
     profile,
-    isLoading,
-    isUnauthorized,
-    loadError,
-    avatarSubmitError,
-    detailsSubmitError,
-    isSaving,
-    isAvatarSubmitting,
-    isDetailsSubmitting,
-    selectedAvatarFile,
-    detailBio,
-    genderOptions,
-    detailsControl,
-    registerAvatar,
-    registerDetails,
-    avatarPreviewName,
-    avatarPreviewUrl,
-    hasAvatarChanges,
-    hasDetailsChanges,
-    onDeleteAvatar,
-    onSubmitAvatar,
-    onSubmitDetails,
+    status: {
+      isLoading,
+      isUnauthorized,
+      loadError,
+    },
+    avatarForm: {
+      register: registerAvatar,
+      isSubmitting: isAvatarSubmitting,
+      submitError: avatarSubmitError,
+      selectedFile: selectedAvatarFile,
+      selectedFileName: selectedAvatarFile?.name,
+      previewName: avatarPreviewName,
+      previewUrl: avatarPreviewUrl,
+      hasChanges: hasAvatarChanges,
+      onDelete: onDeleteAvatar,
+      onSubmit: onSubmitAvatar,
+    },
+    detailsForm: {
+      register: registerDetails,
+      control: detailsControl,
+      isSubmitting: isDetailsSubmitting,
+      isSaving,
+      submitError: detailsSubmitError,
+      bioValue: detailBio,
+      genderOptions,
+      hasChanges: hasDetailsChanges,
+      onSubmit: onSubmitDetails,
+    },
   };
 }
