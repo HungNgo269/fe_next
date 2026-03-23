@@ -5,13 +5,12 @@ import { useCallback } from "react";
 import { updatePostRequest, deletePostRequest } from "../api/postApi";
 import { createPostReportRequest } from "../api/postReportApi";
 import { usePostUIStore } from "../stores/postStore";
-import type { FeedBootstrapData } from "@/app/feature/feed/types/feed";
-import { feedQueryKeys } from "@/app/feature/feed/queries/feed.query-keys";
-import { useRequireAuthAction } from "./useRequireAuthAction";
+import { getFeedPostsFromCache } from "@/app/feature/feed/queries/feed.cache";
+import { useRequireAuthAction } from "../hooks/useRequireAuthAction";
 import { useFeedCacheUpdater } from "@/app/share/hooks/useFeedCacheUpdater";
-import { useOwnership } from "./useOwnership";
+import { useOwnership } from "../hooks/useOwnership";
 
-export function usePostActions(postId: string) {
+export function usePostMutations(postId: string) {
   const queryClient = useQueryClient();
   const { runIfAuth } = useRequireAuthAction();
   const cache = useFeedCacheUpdater();
@@ -51,9 +50,9 @@ export function usePostActions(postId: string) {
 
   const handleStartEdit = useCallback(() => {
     runIfAuth(() => {
-      const post = queryClient
-        .getQueryData<FeedBootstrapData>(feedQueryKeys.all)
-        ?.posts.find((item) => item.id === postId);
+      const post = getFeedPostsFromCache(queryClient).find(
+        (item) => item.id === postId,
+      );
       if (!post) return;
       startEditing(postId, post.content);
     });

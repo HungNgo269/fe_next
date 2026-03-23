@@ -3,7 +3,7 @@
 import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X, Loader2, Clock } from "lucide-react";
-import { useFriendRequestActions } from "../hooks/useFriendRequestActions";
+import { useFriendRequestsController } from "../controllers/useFriendRequestsController";
 import FriendRequestRow from "./FriendRequestRow";
 
 interface FriendRequestsModalProps {
@@ -19,8 +19,16 @@ export default function FriendRequestsModal({
 }: FriendRequestsModalProps) {
   const [activeTab, setActiveTab] = useState<Tab>("incoming");
 
-  const { requests, isLoading, accept, decline, cancel, isAccepting, isDeclining, isCancelling } =
-    useFriendRequestActions(isOpen);
+  const {
+    requests,
+    isLoading,
+    accept,
+    decline,
+    cancel,
+    isAccepting,
+    isDeclining,
+    isCancelling,
+  } = useFriendRequestsController(isOpen);
 
   const incoming = requests.filter((r) => r.direction === "incoming");
   const outgoing = requests.filter((r) => r.direction === "outgoing");

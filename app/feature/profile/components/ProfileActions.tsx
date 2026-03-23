@@ -2,8 +2,7 @@
 
 import { Loader2, UserPlus, Users } from "lucide-react";
 import type { FriendshipStatus } from "../types/api.types";
-import { useFollowUser } from "../hooks/useFollowUser";
-import { useFriendActions } from "../hooks/useFriendActions";
+import { useProfileConnectionMutations } from "../mutations/useProfileConnectionMutations";
 
 type OwnProfileActionsProps = {
   variant: "own";
@@ -53,19 +52,17 @@ function OtherProfileActions({
   isFollowing,
   friendshipStatus,
 }: Omit<OtherProfileActionsProps, "variant">) {
-  const { followUser, unfollowUser, isFollowingLoading } = useFollowUser(
-    profileId,
-    profileKey,
-  );
-
   const {
-    sendRequest,
-    cancelRequest,
-    acceptRequest,
-    declineRequest,
+    follow,
+    unfollow,
+    sendFriendRequest,
+    cancelFriendRequest,
+    acceptFriendRequest,
+    declineFriendRequest,
     removeFriend,
+    isFollowingLoading,
     isFriendActionLoading,
-  } = useFriendActions(profileId, profileKey);
+  } = useProfileConnectionMutations(profileId, profileKey);
 
   const missingProfileId = profileId.length === 0;
   const followDisabled = missingProfileId || isFollowingLoading;
@@ -79,7 +76,7 @@ function OtherProfileActions({
             type="button"
             className={`${BUTTON_BASE} ui-btn-primary`}
             disabled={friendDisabled}
-            onClick={() => acceptRequest()}
+            onClick={() => acceptFriendRequest()}
           >
             {isFriendActionLoading ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -90,7 +87,7 @@ function OtherProfileActions({
             type="button"
             className={`${BUTTON_BASE} ui-btn-ghost`}
             disabled={friendDisabled}
-            onClick={() => declineRequest()}
+            onClick={() => declineFriendRequest()}
           >
             Decline
           </button>
@@ -104,7 +101,7 @@ function OtherProfileActions({
           type="button"
           className={`${BUTTON_BASE} ui-btn-ghost`}
           disabled={friendDisabled}
-          onClick={() => cancelRequest()}
+          onClick={() => cancelFriendRequest()}
         >
           {isFriendActionLoading ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -135,7 +132,7 @@ function OtherProfileActions({
         type="button"
         className={`${BUTTON_BASE} ui-btn-primary`}
         disabled={friendDisabled}
-        onClick={() => sendRequest()}
+        onClick={() => sendFriendRequest()}
       >
         {isFriendActionLoading ? (
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -153,7 +150,7 @@ function OtherProfileActions({
         type="button"
         className={`${BUTTON_BASE} ${isFollowing ? "ui-btn-ghost" : "ui-btn-primary"}`}
         disabled={followDisabled}
-        onClick={() => (isFollowing ? unfollowUser() : followUser())}
+        onClick={() => (isFollowing ? unfollow() : follow())}
       >
         {isFollowingLoading ? (
           <Loader2 className="h-3.5 w-3.5 animate-spin" />

@@ -1,38 +1,39 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { fetchFriendRequests } from "../api/userListApi";
 import { useLogout } from "@/app/share/hooks/useLogout";
-import { profileQueryKeys } from "../queries/profile.query-keys";
 import type { UserListType } from "../types/user-list.types";
+import type { FetchProfileFeedFn } from "../queries/useProfileFeedQuery";
+import { useProfileFeedQuery } from "../queries/useProfileFeedQuery";
+import { useFriendRequestsQuery } from "../queries/useFriendRequestsQuery";
 
-interface UseProfileViewOrchestrationOptions {
-  canEditProfile: boolean;
-}
+export type UseProfilePageControllerOptions = {
+  fetchFn: FetchProfileFeedFn;
+  isOwnProfile: boolean;
+  profileKey: string;
+};
 
-export function useProfileViewOrchestration({
-  canEditProfile,
-}: UseProfileViewOrchestrationOptions) {
+export function useProfilePageController({
+  fetchFn,
+  isOwnProfile,
+  profileKey,
+}: UseProfilePageControllerOptions) {
   const logoutUser = useLogout();
+  const feed = useProfileFeedQuery({
+    fetchFn,
+    isOwnProfile,
+    profileKey,
+  });
+  const { requests } = useFriendRequestsQuery(feed.canEditProfile);
 
   const [listModalType, setListModalType] = useState<UserListType | null>(null);
   const [listModalOpen, setListModalOpen] = useState(false);
   const [friendRequestsModalOpen, setFriendRequestsModalOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  const { data: pendingRequests = [] } = useQuery({
-    queryKey: profileQueryKeys.friendRequests(),
-    queryFn: async () => {
-      const res = await fetchFriendRequests();
-      return res.ok ? res.data : [];
-    },
-    enabled: canEditProfile,
-  });
-
   const incomingCount = useMemo(
-    () => pendingRequests.filter((r) => r.direction === "incoming").length,
-    [pendingRequests],
+    () => requests.filter((request) => request.direction === "incoming").length,
+    [requests],
   );
 
   const openListModal = useCallback((type: UserListType) => {
@@ -53,7 +54,10 @@ export function useProfileViewOrchestration({
   }, []);
 
   const handleLogout = useCallback(async () => {
-    if (isLoggingOut) return;
+    if (isLoggingOut) {
+      return;
+    }
+
     setIsLoggingOut(true);
     try {
       await logoutUser();
@@ -63,15 +67,18 @@ export function useProfileViewOrchestration({
   }, [isLoggingOut, logoutUser]);
 
   return {
-    listModalType,
-    listModalOpen,
-    openListModal,
-    closeListModal,
-    friendRequestsModalOpen,
-    openFriendRequestsModal,
-    closeFriendRequestsModal,
-    incomingCount,
-    isLoggingOut,
-    handleLogout,
+    feed,
+    ui: {
+      listModalType,
+      listModalOpen,
+      friendRequestsModalOpen,
+      incomingCount,
+      isLoggingOut,
+      openListModal,
+      closeListModal,
+      openFriendRequestsModal,
+      closeFriendRequestsModal,
+      handleLogout,
+    },
   };
 }

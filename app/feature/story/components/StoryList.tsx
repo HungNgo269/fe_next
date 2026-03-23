@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useStories } from "@/app/feature/story/hooks/useStories";
+import { useStoriesQuery } from "@/app/feature/story/queries/useStoriesQuery";
 import Image from "next/image";
 
 export default function StoryList() {
-  const { stories } = useStories();
+  const { stories } = useStoriesQuery();
 
   if (stories.length === 0) return null;
 

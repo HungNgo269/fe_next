@@ -1,18 +1,17 @@
 import Link from "next/link";
 import { useCallback, type ReactNode } from "react";
 import PostDetailModal from "@/app/feature/post/components/PostDetailModal";
-import ProfileActions from "../components/ProfileActions";
-import ProfileHeader from "../components/ProfileHeader";
-import ProfilePostFeed from "../components/ProfilePostFeed";
-import ProfileStatusCard from "../components/ProfileStatusCard";
-import FriendRequestsModal from "../components/FriendRequestsModal";
-import UserListModal from "../components/UserListModal";
+import ProfileActions from "./ProfileActions";
+import ProfileHeader from "./ProfileHeader";
+import ProfilePostFeed from "./ProfilePostFeed";
+import ProfileStatusCard from "./ProfileStatusCard";
+import FriendRequestsModal from "./FriendRequestsModal";
+import UserListModal from "./UserListModal";
 import {
   getCurrentUserProfileFeed,
   getUserProfileFeed,
 } from "../api/profileApi";
-import { useProfileFeed } from "../hooks/useProfileFeed";
-import { useProfileViewOrchestration } from "../hooks/useProfileViewOrchestration";
+import { useProfilePageController } from "../controllers/useProfilePageController";
 
 type BaseProfileFeedViewProps = {
   headerActions?: ReactNode;
@@ -40,7 +39,7 @@ export default function ProfileFeedView(props: ProfileFeedViewProps) {
   } = props;
 
   const handle = mode === "other" ? props.handle : undefined;
-  const profileKey = mode === "own" ? "me" : handle ?? "default";
+  const profileKey = mode === "own" ? "me" : (handle ?? "default");
 
   const fetchFn = useCallback(
     (page: number, limit: number) =>
@@ -50,6 +49,12 @@ export default function ProfileFeedView(props: ProfileFeedViewProps) {
     [mode, handle],
   );
 
+  const controller = useProfilePageController({
+    fetchFn,
+    isOwnProfile: mode === "own",
+    profileKey,
+  });
+  const { feed, ui } = controller;
   const {
     profile,
     canEditProfile,
@@ -61,26 +66,7 @@ export default function ProfileFeedView(props: ProfileFeedViewProps) {
     totalPosts,
     isLoadingMore,
     handleLoadMore,
-  } = useProfileFeed({
-    fetchFn,
-    isOwnProfile: mode === "own",
-    profileKey,
-  });
-
-  const {
-    listModalType,
-    listModalOpen,
-    openListModal,
-    closeListModal,
-    friendRequestsModalOpen,
-    openFriendRequestsModal,
-    closeFriendRequestsModal,
-    incomingCount,
-    isLoggingOut,
-    handleLogout,
-  } = useProfileViewOrchestration({
-    canEditProfile,
-  });
+  } = feed;
 
   const resolvedHeaderActions = canEditProfile ? null : headerActions;
 
@@ -149,7 +135,7 @@ export default function ProfileFeedView(props: ProfileFeedViewProps) {
         friendsCount={profile.friendsCount ?? 0}
         followersCount={profile.followersCount ?? 0}
         followingCount={profile.followingCount ?? 0}
-        onOpenList={openListModal}
+        onOpenList={ui.openListModal}
       >
         {canEditProfile ? (
           <>
@@ -162,8 +148,8 @@ export default function ProfileFeedView(props: ProfileFeedViewProps) {
               </Link>
               <button
                 type="button"
-                onClick={() => void handleLogout()}
-                disabled={isLoggingOut}
+                onClick={() => void ui.handleLogout()}
+                disabled={ui.isLoggingOut}
                 className="inline-flex flex-1 items-center justify-center rounded-xl bg-gray-200 px-4 py-2.5 text-sm font-semibold text-secondary-foreground transition-colors hover:brightness-95 disabled:opacity-60"
               >
                 Logout
@@ -171,8 +157,8 @@ export default function ProfileFeedView(props: ProfileFeedViewProps) {
             </div>
             <ProfileActions
               variant="own"
-              incomingCount={incomingCount}
-              onOpenFriendRequests={openFriendRequestsModal}
+              incomingCount={ui.incomingCount}
+              onOpenFriendRequests={ui.openFriendRequestsModal}
             />
           </>
         ) : (
@@ -199,16 +185,15 @@ export default function ProfileFeedView(props: ProfileFeedViewProps) {
 
       <PostDetailModal />
       <UserListModal
-        isOpen={listModalOpen}
-        onClose={closeListModal}
-        listType={listModalType}
+        isOpen={ui.listModalOpen}
+        onClose={ui.closeListModal}
+        listType={ui.listModalType}
         userId={profile.id ?? ""}
       />
       <FriendRequestsModal
-        isOpen={friendRequestsModalOpen}
-        onClose={closeFriendRequestsModal}
+        isOpen={ui.friendRequestsModalOpen}
+        onClose={ui.closeFriendRequestsModal}
       />
     </main>
   );
 }
-

@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { ProfileDetailsFormValues } from "@/app/feature/profile/hooks/useEditProfilePageViewModel";
+import type { ProfileDetailsFormValues } from "@/app/feature/profile/types/edit-profile.forms";
 
 type EditProfileDetailsFormProps = {
   isSaving: boolean;
@@ -133,3 +133,4 @@ export default function EditProfileDetailsForm({
     </form>
   );
 }
+

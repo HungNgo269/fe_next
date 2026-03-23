@@ -5,8 +5,7 @@ import type { UserListUser } from "../types/user-list.types";
 import { followUserApi, unfollowUserApi } from "../api/profileApi";
 import { profileQueryKeys } from "../queries/profile.query-keys";
 
-
-export function useUserListFollow(queryKey: readonly unknown[]) {
+export function useUserListFollowMutation(queryKey: readonly unknown[]) {
   const queryClient = useQueryClient();
 
   const optimisticUpdate = (targetUserId: string, isFollowing: boolean) => {
@@ -33,19 +32,17 @@ export function useUserListFollow(queryKey: readonly unknown[]) {
     },
   });
 
-  const toggle = (user: UserListUser) => {
-    if (user.isFollowing) {
-      unfollowMutation.mutate(user.id);
-    } else {
+  return {
+    toggle: (user: UserListUser) => {
+      if (user.isFollowing) {
+        unfollowMutation.mutate(user.id);
+        return;
+      }
+
       followMutation.mutate(user.id);
-    }
+    },
+    isBusy: (targetUserId: string) =>
+      (followMutation.isPending && followMutation.variables === targetUserId) ||
+      (unfollowMutation.isPending && unfollowMutation.variables === targetUserId),
   };
-
-  const isBusy = (targetUserId: string) =>
-    (followMutation.isPending && followMutation.variables === targetUserId) ||
-    (unfollowMutation.isPending && unfollowMutation.variables === targetUserId);
-
-  return { toggle, isBusy };
 }
-
-

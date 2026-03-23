@@ -6,18 +6,19 @@ import ProfileShell from "@/app/feature/profile/components/ProfileShell";
 import ProfileStatusCard from "@/app/feature/profile/components/ProfileStatusCard";
 import EditProfileAvatarForm from "@/app/feature/profile/components/edit-profile/EditProfileAvatarForm";
 import EditProfileDetailsForm from "@/app/feature/profile/components/edit-profile/EditProfileDetailsForm";
-import { useEditProfilePageViewModel } from "@/app/feature/profile/hooks/useEditProfilePageViewModel";
+import { useEditProfilePageController } from "@/app/feature/profile/controllers/useEditProfilePageController";
 
 export default function EditProfilePage() {
-  const vm = useEditProfilePageViewModel();
+  const controller = useEditProfilePageController();
+  const { profile, status, avatarForm, detailsForm } = controller;
 
   return (
     <ProfileShell>
-      {vm.isLoading ? (
+      {status.isLoading ? (
         <main className="relative mx-auto w-full max-w-3xl px-4 pb-16 pt-12 sm:px-6">
           <Loader2 aria-hidden="true" className="h-10 w-10 animate-spin" />
         </main>
-      ) : vm.isUnauthorized ? (
+      ) : status.isUnauthorized ? (
         <main className="relative mx-auto w-full max-w-3xl px-4 pb-16 pt-12 sm:px-6">
           <ProfileStatusCard
             action={
@@ -33,7 +34,7 @@ export default function EditProfilePage() {
             variant="error"
           />
         </main>
-      ) : vm.loadError ? (
+      ) : status.loadError ? (
         <main className="relative mx-auto w-full max-w-3xl px-4 pb-16 pt-12 sm:px-6">
           <ProfileStatusCard
             action={
@@ -44,7 +45,7 @@ export default function EditProfilePage() {
                 Back to profile
               </Link>
             }
-            message={vm.loadError}
+            message={status.loadError}
             title="Unable to load profile"
             variant="error"
           />
@@ -56,28 +57,28 @@ export default function EditProfilePage() {
           </header>
 
           <EditProfileAvatarForm
-            isAvatarSubmitting={vm.isAvatarSubmitting}
-            hasAvatarChanges={vm.hasAvatarChanges}
-            avatarSubmitError={vm.avatarSubmitError}
-            selectedAvatarFileName={vm.selectedAvatarFile?.name}
-            hasCurrentAvatar={Boolean((vm.profile.avatar ?? "").trim())}
-            avatarPreviewUrl={vm.avatarPreviewUrl}
-            avatarPreviewName={vm.avatarPreviewName}
-            registerAvatar={vm.registerAvatar}
-            onDeleteAvatar={vm.onDeleteAvatar}
-            onSubmitAvatar={vm.onSubmitAvatar}
+            isAvatarSubmitting={avatarForm.isSubmitting}
+            hasAvatarChanges={avatarForm.hasChanges}
+            avatarSubmitError={avatarForm.submitError}
+            selectedAvatarFileName={avatarForm.selectedFileName}
+            hasCurrentAvatar={Boolean((profile.avatar ?? "").trim())}
+            avatarPreviewUrl={avatarForm.previewUrl}
+            avatarPreviewName={avatarForm.previewName}
+            registerAvatar={avatarForm.register}
+            onDeleteAvatar={avatarForm.onDelete}
+            onSubmitAvatar={avatarForm.onSubmit}
           />
 
           <EditProfileDetailsForm
-            isSaving={vm.isSaving}
-            isDetailsSubmitting={vm.isDetailsSubmitting}
-            hasDetailsChanges={vm.hasDetailsChanges}
-            detailsSubmitError={vm.detailsSubmitError}
-            detailBio={vm.detailBio}
-            genderOptions={vm.genderOptions}
-            detailsControl={vm.detailsControl}
-            registerDetails={vm.registerDetails}
-            onSubmitDetails={vm.onSubmitDetails}
+            isSaving={detailsForm.isSaving}
+            isDetailsSubmitting={detailsForm.isSubmitting}
+            hasDetailsChanges={detailsForm.hasChanges}
+            detailsSubmitError={detailsForm.submitError}
+            detailBio={detailsForm.bioValue}
+            genderOptions={detailsForm.genderOptions}
+            detailsControl={detailsForm.control}
+            registerDetails={detailsForm.register}
+            onSubmitDetails={detailsForm.onSubmit}
           />
         </main>
       )}

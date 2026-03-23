@@ -1,6 +1,9 @@
 import type { QueryClient } from "@tanstack/react-query";
-import type { FeedBootstrapData } from "@/app/feature/feed/types/feed";
 import type { Post } from "../types/api.types";
+import {
+  findFeedPost,
+  type FeedPostsInfiniteData,
+} from "@/app/feature/feed/queries/feed.cache";
 import { feedQueryKeys } from "@/app/feature/feed/queries/feed.query-keys";
 import { profileQueryKeys } from "@/app/feature/profile/queries/profile.query-keys";
 
@@ -27,10 +30,10 @@ export function findPostInCaches(
   queryClient: QueryClient,
   postId: string,
 ): Post | undefined {
-  const feedData = queryClient.getQueryData<FeedBootstrapData>(feedQueryKeys.all);
-  const fromFeed =
-    feedData?.posts.find((p) => p.id === postId) ??
-    feedData?.posts.find((p) => p.sourcePostId === postId);
+  const feedData = queryClient.getQueryData<FeedPostsInfiniteData>(
+    feedQueryKeys.list(),
+  );
+  const fromFeed = findFeedPost(feedData, postId);
   if (fromFeed) return fromFeed;
 
   const profileCaches = queryClient.getQueriesData<{ posts: Post[] }>({

@@ -1,15 +1,13 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X, Search, Loader2 } from "lucide-react";
 import ProfileAvatarPreview from "./ProfileAvatarPreview";
 import type { UserListType } from "../types/user-list.types";
-import { fetchFollowers, fetchFollowing, fetchFriends } from "../api/userListApi";
 import { useAppSessionStore } from "@/app/share/stores/appSessionStore";
-import { useUserListFollow } from "../hooks/useUserListFollow";
-import { profileQueryKeys } from "../queries/profile.query-keys";
+import { useUserListFollowMutation } from "../mutations/useUserListFollowMutation";
+import { useUserListQuery } from "../queries/useUserListQuery";
 
 interface UserListModalProps {
   isOpen: boolean;
@@ -32,35 +30,14 @@ export default function UserListModal({
 }: UserListModalProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const authProfile = useAppSessionStore((state) => state.authProfile);
+  const { queryKey, users, isLoading } = useUserListQuery(isOpen, listType, userId);
+  const { toggle, isBusy } = useUserListFollowMutation(queryKey);
 
-  const queryKey = profileQueryKeys.userList(userId, listType);
-
-  const { data: users, isLoading } = useQuery({
-    queryKey,
-    queryFn: async () => {
-      if (!listType || !userId) return [];
-      if (listType === "followers") {
-        const res = await fetchFollowers(userId);
-        return res.ok ? res.data : [];
-      }
-      if (listType === "following") {
-        const res = await fetchFollowing(userId);
-        return res.ok ? res.data : [];
-      }
-      const res = await fetchFriends(userId);
-      return res.ok ? res.data : [];
-    },
-    enabled: isOpen && !!listType && !!userId,
-  });
-
-  const { toggle, isBusy } = useUserListFollow(queryKey);
-
-  const filteredUsers =
-    users?.filter(
-      (u) =>
-        u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (u.handle && u.handle.toLowerCase().includes(searchQuery.toLowerCase())),
-    ) ?? [];
+  const filteredUsers = users.filter(
+    (u) =>
+      u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (u.handle && u.handle.toLowerCase().includes(searchQuery.toLowerCase())),
+  );
 
   return (
     <Dialog.Root
@@ -151,5 +128,3 @@ export default function UserListModal({
     </Dialog.Root>
   );
 }
-
-

@@ -13,11 +13,11 @@ import {
   useAppSessionStore,
   toAvatarFromProfile,
 } from "@/app/share/stores/appSessionStore";
-import { useRequireAuthAction } from "./useRequireAuthAction";
+import { useRequireAuthAction } from "../hooks/useRequireAuthAction";
 import { useFeedCacheUpdater } from "@/app/share/hooks/useFeedCacheUpdater";
-import { useOwnership } from "./useOwnership";
+import { useOwnership } from "../hooks/useOwnership";
 
-export function useCommentActions(postId: string) {
+export function usePostCommentMutations(postId: string) {
   const authProfile = useAppSessionStore((state) => state.authProfile);
   const currentUser = toAvatarFromProfile(authProfile);
   const { runIfAuth } = useRequireAuthAction();
@@ -171,3 +171,4 @@ export function useCommentActions(postId: string) {
     handleReportComment,
   };
 }
+

@@ -3,8 +3,7 @@
 import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Post, PostComment } from "../types/api.types";
-import type { FeedBootstrapData } from "@/app/feature/feed/types/feed";
-import { feedQueryKeys } from "@/app/feature/feed/queries/feed.query-keys";
+import { getFeedPostsFromCache } from "@/app/feature/feed/queries/feed.cache";
 import { postQueryKeys } from "../queries/post.query-keys";
 import { useAppSessionStore } from "@/app/share/stores/appSessionStore";
 
@@ -14,9 +13,7 @@ export function useOwnership() {
 
   const getPosts = useCallback(
     (posts?: Post[]) =>
-      posts ??
-      queryClient.getQueryData<FeedBootstrapData>(feedQueryKeys.all)?.posts ??
-      [],
+      posts ?? getFeedPostsFromCache(queryClient),
     [queryClient],
   );
 
