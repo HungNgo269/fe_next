@@ -9,10 +9,11 @@ export const loginSchema = z.object({
 export const registerSchema = z.object({
   name: z.string().min(1, "name should not be empty"),
   email: z.string().email("email must be an email"),
-  gender: z.enum(GENDER_VALUES, {
-    required_error: "Gender not valid",
-    invalid_type_error: "Gender not valid",
-  }),
+  gender: z.string().refine(
+    (value): value is (typeof GENDER_VALUES)[number] =>
+      GENDER_VALUES.includes(value as (typeof GENDER_VALUES)[number]),
+    "Gender not valid",
+  ),
   password: z.string().min(6, "Password length at least 6 characters"),
 });
 
