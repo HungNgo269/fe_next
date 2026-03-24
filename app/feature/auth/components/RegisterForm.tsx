@@ -1,15 +1,14 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useQueryClient } from "@tanstack/react-query";
 import FormAlert from "@/app/share/components/FormAlert";
 import { register as registerUser } from "../api/authApi";
 import { registerSchema, type RegisterFormValues } from "../schema/authSchema";
-import { useRouter } from "next/navigation";
-import { useAppSessionStore } from "@/app/share/stores/appSessionStore";
 
 const buildErrorTitle = (status?: number) => {
   if (status === 400) {
@@ -27,9 +26,6 @@ const buildErrorTitle = (status?: number) => {
 export default function RegisterForm() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const setAuthenticatedProfile = useAppSessionStore(
-    (state) => state.setAuthenticatedProfile,
-  );
   const [serverErrors, setServerErrors] = useState<string[]>([]);
   const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
   const {
@@ -58,16 +54,9 @@ export default function RegisterForm() {
       return;
     }
 
-    const authUser = result.data.user;
-    setAuthenticatedProfile({
-      id: authUser.id,
-      name: authUser.name,
-      email: authUser.email,
-      gender: authUser.gender ?? "",
-      avatar: authUser.avatarUrl ?? "",
-    });
     await queryClient.invalidateQueries();
     router.replace("/");
+    router.refresh();
   };
 
   const nameErrorId = errors.name ? "register-name-error" : undefined;

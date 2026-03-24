@@ -2,21 +2,14 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
+import { mergeFeedPosts, type FeedPostsInfiniteData } from "@/app/feature/feed/queries/feed.cache";
+import { feedQueryKeys } from "@/app/feature/feed/queries/feed.query-keys";
+import { mergeUniquePosts } from "@/app/feature/post/utils/postCache";
 import type { ApiResponse } from "@/app/share/utils/api-types";
 import type { ProfileFeedResponse } from "../types/api.types";
-import {
-  mergeFeedPosts,
-  type FeedPostsInfiniteData,
-} from "@/app/feature/feed/queries/feed.cache";
-import { feedQueryKeys } from "@/app/feature/feed/queries/feed.query-keys";
 import { profileQueryKeys } from "./profile.query-keys";
 import type { UserProfile } from "../types/profile";
-import { mergeUniquePosts } from "@/app/feature/post/utils/postCache";
-import { toast } from "sonner";
-import {
-  toAvatarFromProfile,
-  useAppSessionStore,
-} from "@/app/share/stores/appSessionStore";
 
 const PAGE_SIZE = 5;
 type ProfileFeedQueryError = Error & { status?: number };
@@ -32,6 +25,7 @@ export type UseProfileFeedQueryOptions = {
   fetchFn: FetchProfileFeedFn;
   isOwnProfile?: boolean;
   profileKey?: string;
+  viewerId?: string | null;
 };
 
 const EMPTY_PROFILE: UserProfile = {
@@ -64,42 +58,15 @@ export function useProfileFeedQuery({
   fetchFn,
   isOwnProfile = false,
   profileKey = "default",
+  viewerId,
 }: UseProfileFeedQueryOptions) {
   const queryClient = useQueryClient();
-  const authProfile = useAppSessionStore((state) => state.authProfile);
-  const setAuthenticatedProfile = useAppSessionStore(
-    (state) => state.setAuthenticatedProfile,
-  );
-  const currentUserId = authProfile?.id ?? "";
-  const currentUserAvatar = useMemo(
-    () => toAvatarFromProfile(authProfile),
-    [authProfile],
-  );
+  const currentUserId = viewerId ?? "";
   const [profileError, setProfileError] = useState("");
   const [profile, setProfile] = useState<UserProfile>(EMPTY_PROFILE);
   const [isUnauthorized, setIsUnauthorized] = useState(false);
   const [loadedFeed, setLoadedFeed] = useState<ProfileFeedState | null>(null);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-
-  const syncProfileToSession = useCallback(
-    (incoming: UserProfile) => {
-      if (isOwnProfile && incoming.id) {
-        setAuthenticatedProfile({
-          id: incoming.id,
-          handle: incoming.handle ?? null,
-          name: incoming.name,
-          email: incoming.email,
-          gender: incoming.gender,
-          avatar: incoming.avatar,
-          bio: incoming.bio,
-          followersCount: incoming.followersCount,
-          followingCount: incoming.followingCount,
-          isFollowing: incoming.isFollowing,
-        });
-      }
-    },
-    [isOwnProfile, setAuthenticatedProfile],
-  );
 
   const query = useQuery({
     queryKey: profileQueryKeys.detail(isOwnProfile ? "me" : "other", profileKey),
@@ -129,11 +96,10 @@ export function useProfileFeedQuery({
     setProfile(nextProfile);
     setProfileError("");
     setIsUnauthorized(false);
-    syncProfileToSession(nextProfile);
     queryClient.setQueryData<FeedPostsInfiniteData>(feedQueryKeys.list(), (old) =>
       old ? mergeFeedPosts(old, query.data.posts) : old,
     );
-  }, [query.data, queryClient, syncProfileToSession]);
+  }, [query.data, queryClient]);
 
   useEffect(() => {
     if (!query.error) {
@@ -175,7 +141,8 @@ export function useProfileFeedQuery({
 
   const canEditProfile =
     Boolean(currentUserId) &&
-    (isOwnProfile || (Boolean(resolvedProfile.id) && currentUserId === resolvedProfile.id));
+    (isOwnProfile ||
+      (Boolean(resolvedProfile.id) && currentUserId === resolvedProfile.id));
   const posts = feed?.posts ?? [];
   const pagination = feed?.pagination;
 
@@ -220,7 +187,6 @@ export function useProfileFeedQuery({
     profile: resolvedProfile,
     posts,
     currentUserId,
-    currentUserAvatar,
     canEditProfile,
     isLoading: query.isLoading,
     isLoadingMore,

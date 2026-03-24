@@ -1,50 +1,32 @@
 "use client";
 
-import {
-  startTransition,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { startTransition, useCallback, useEffect, useRef, useState } from "react";
 import type { Socket } from "socket.io-client";
-import { refreshTokens } from "@/app/share/utils/api";
 import type { SidebarNotificationItem } from "@/app/feature/feed/types/feed";
-import {
-  DEFAULT_NOTIFICATION_LIMIT,
-  NOTIFICATION_BADGE_EVENT,
-  NOTIFICATION_SOCKET_NAMESPACE,
-} from "@/app/share/constants/notification.constants";
 import {
   fetchNotificationSummary,
   fetchNotificationUnreadCount,
   markAllNotificationsAsRead,
 } from "@/app/share/api/notificationApi";
 import {
-  toAvatarFromProfile,
-  useAppSessionStore,
-} from "@/app/share/stores/appSessionStore";
-import { fetchCurrentUser } from "@/app/share/api/userApi";
+  DEFAULT_NOTIFICATION_LIMIT,
+  NOTIFICATION_BADGE_EVENT,
+  NOTIFICATION_SOCKET_NAMESPACE,
+} from "@/app/share/constants/notification.constants";
+import { refreshTokens } from "@/app/share/utils/api";
 
 const NOTIFICATION_SUMMARY_TTL_MS = 15_000;
 
-export function useAppShellSidebarData() {
-  const storedAuthProfile = useAppSessionStore((state) => state.authProfile);
-  const isAuthenticated = useAppSessionStore((state) => state.isAuthenticated);
-  const setAuthenticatedProfile = useAppSessionStore(
-    (state) => state.setAuthenticatedProfile,
-  );
-  const clearAuthenticatedProfile = useAppSessionStore(
-    (state) => state.clearAuthenticatedProfile,
-  );
+type UseAppShellNotificationsOptions = {
+  authenticatedUserId: string | null;
+};
 
-  const [notifications, setNotifications] = useState<SidebarNotificationItem[]>(
-    [],
-  );
+export function useAppShellNotifications({
+  authenticatedUserId,
+}: UseAppShellNotificationsOptions) {
+  const [notifications, setNotifications] = useState<SidebarNotificationItem[]>([]);
   const [notificationCount, setNotificationCount] = useState(0);
   const [notificationLoading, setNotificationLoading] = useState(false);
-  const [socketReady, setSocketReady] = useState(false);
-  const [socketUserId, setSocketUserId] = useState<string | null>(null);
 
   const summaryInFlightRef = useRef<Promise<SidebarNotificationItem[]> | null>(
     null,
@@ -52,13 +34,9 @@ export function useAppShellSidebarData() {
   const summaryFetchedAtRef = useRef(0);
   const markAllReadInFlightRef = useRef<Promise<boolean> | null>(null);
 
-  const currentUser = toAvatarFromProfile(storedAuthProfile);
-
-  const resetSidebarState = useCallback(() => {
+  const resetNotificationState = useCallback(() => {
     setNotifications([]);
     setNotificationCount(0);
-    setSocketReady(false);
-    setSocketUserId(null);
     summaryFetchedAtRef.current = 0;
   }, []);
 
@@ -112,6 +90,7 @@ export function useAppShellSidebarData() {
         markAllReadInFlightRef.current = null;
       }
     })();
+
     markAllReadInFlightRef.current = request;
     return request;
   }, []);
@@ -130,32 +109,14 @@ export function useAppShellSidebarData() {
   useEffect(() => {
     let active = true;
 
+    if (!authenticatedUserId) {
+      resetNotificationState();
+      return () => {
+        active = false;
+      };
+    }
+
     const bootstrap = async () => {
-      setSocketReady(false);
-      setSocketUserId(null);
-
-      const userResult = await fetchCurrentUser();
-      if (!active) {
-        return;
-      }
-
-      if (!userResult.ok) {
-        clearAuthenticatedProfile();
-        resetSidebarState();
-        return;
-      }
-
-      if (userResult.data.currentUserProfile) {
-        setAuthenticatedProfile(userResult.data.currentUserProfile);
-      } else {
-        clearAuthenticatedProfile();
-        resetSidebarState();
-      }
-
-      if (!userResult.data.isAuthenticated || !userResult.data.currentUser) {
-        return;
-      }
-
       const [unreadCount, summary] = await Promise.all([
         fetchNotificationUnreadCount(),
         fetchNotificationSummary(DEFAULT_NOTIFICATION_LIMIT),
@@ -167,8 +128,6 @@ export function useAppShellSidebarData() {
       setNotificationCount(unreadCount);
       setNotifications(summary);
       summaryFetchedAtRef.current = Date.now();
-      setSocketUserId(userResult.data.currentUser.id);
-      setSocketReady(true);
     };
 
     void bootstrap();
@@ -176,10 +135,10 @@ export function useAppShellSidebarData() {
     return () => {
       active = false;
     };
-  }, [clearAuthenticatedProfile, resetSidebarState, setAuthenticatedProfile]);
+  }, [authenticatedUserId, resetNotificationState]);
 
   useEffect(() => {
-    if (!socketReady || !socketUserId) {
+    if (!authenticatedUserId) {
       return;
     }
 
@@ -245,11 +204,9 @@ export function useAppShellSidebarData() {
         socket.disconnect();
       }
     };
-  }, [socketReady, socketUserId]);
+  }, [authenticatedUserId]);
 
   return {
-    currentUser,
-    isAuthenticated,
     notifications,
     notificationCount,
     notificationLoading,

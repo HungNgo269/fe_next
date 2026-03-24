@@ -21,7 +21,7 @@ const MAX_POST_MEDIA_FILES = 10;
 function FeedComposer({ currentUser }: { currentUser: User }) {
   const composerText = usePostUIStore((s) => s.composerText);
   const setComposerText = usePostUIStore((s) => s.setComposerText);
-  const { handleCreatePost } = useCreatePostMutation();
+  const { handleCreatePost } = useCreatePostMutation(currentUser);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const composerTextareaRef = useAutoResizeTextarea<HTMLTextAreaElement>(
     composerText,

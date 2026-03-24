@@ -2,24 +2,20 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { useCallback } from "react";
+import { useFeedCacheUpdater } from "@/app/share/hooks/useFeedCacheUpdater";
+import { useUser } from "@/app/share/providers/UserProvider";
 import {
   createCommentRequest,
-  updateCommentRequest,
   deleteCommentRequest,
+  updateCommentRequest,
 } from "../api/postCommentApi";
 import { createCommentReportRequest } from "../api/postReportApi";
-import { usePostUIStore } from "../stores/postStore";
-import {
-  useAppSessionStore,
-  toAvatarFromProfile,
-} from "@/app/share/stores/appSessionStore";
-import { useRequireAuthAction } from "../hooks/useRequireAuthAction";
-import { useFeedCacheUpdater } from "@/app/share/hooks/useFeedCacheUpdater";
 import { useOwnership } from "../hooks/useOwnership";
+import { useRequireAuthAction } from "../hooks/useRequireAuthAction";
+import { usePostUIStore } from "../stores/postStore";
 
 export function usePostCommentMutations(postId: string) {
-  const authProfile = useAppSessionStore((state) => state.authProfile);
-  const currentUser = toAvatarFromProfile(authProfile);
+  const currentUser = useUser();
   const { runIfAuth } = useRequireAuthAction();
   const cache = useFeedCacheUpdater();
   const { isCommentOwner, isPostOwner } = useOwnership();
@@ -45,7 +41,7 @@ export function usePostCommentMutations(postId: string) {
           id: currentUser.id,
           handle: currentUser.handle ?? null,
           name: currentUser.name,
-          email: "",
+          email: currentUser.email,
           avatarUrl: currentUser.avatarUrl ?? undefined,
           gender: currentUser.gender,
         },
@@ -171,4 +167,3 @@ export function usePostCommentMutations(postId: string) {
     handleReportComment,
   };
 }
-

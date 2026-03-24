@@ -2,24 +2,17 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
+import { profileQueryKeys } from "@/app/feature/profile/queries/profile.query-keys";
 import { createPostRequest } from "@/app/feature/post/api/postApi";
-import type { Post } from "@/app/feature/post/types/api.types";
-import {
-  useAppSessionStore,
-  toAvatarFromProfile,
-} from "@/app/share/stores/appSessionStore";
+import type { Post, User } from "@/app/feature/post/types/api.types";
 import { useRequireAuthAction } from "@/app/feature/post/hooks/useRequireAuthAction";
 import { useFeedCacheUpdater } from "@/app/share/hooks/useFeedCacheUpdater";
 import { feedQueryKeys } from "../queries/feed.query-keys";
-import { profileQueryKeys } from "@/app/feature/profile/queries/profile.query-keys";
 
-export function useCreatePostMutation() {
+export function useCreatePostMutation(currentUser: User | null) {
   const queryClient = useQueryClient();
-  const authProfile = useAppSessionStore((state) => state.authProfile);
   const { runIfAuth } = useRequireAuthAction();
   const cache = useFeedCacheUpdater();
-
-  const currentUser = toAvatarFromProfile(authProfile);
 
   const createMutation = useMutation({
     mutationFn: (payload: { content: string; mediaFiles: File[] }) =>
@@ -31,8 +24,9 @@ export function useCreatePostMutation() {
         id: result.data.id,
         author: {
           id: currentUser.id,
+          handle: currentUser.handle ?? null,
           name: currentUser.name,
-          email: "",
+          email: currentUser.email,
           avatarUrl: currentUser.avatarUrl ?? undefined,
           gender: currentUser.gender,
         },

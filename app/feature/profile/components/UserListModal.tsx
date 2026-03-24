@@ -2,18 +2,18 @@
 
 import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { X, Search, Loader2 } from "lucide-react";
+import { Loader2, Search, X } from "lucide-react";
 import ProfileAvatarPreview from "./ProfileAvatarPreview";
-import type { UserListType } from "../types/user-list.types";
-import { useAppSessionStore } from "@/app/share/stores/appSessionStore";
 import { useUserListFollowMutation } from "../mutations/useUserListFollowMutation";
 import { useUserListQuery } from "../queries/useUserListQuery";
+import type { UserListType } from "../types/user-list.types";
 
 interface UserListModalProps {
   isOpen: boolean;
   onClose: () => void;
   listType: UserListType | null;
   userId: string;
+  currentUserId?: string | null;
 }
 
 const LIST_TITLES: Record<UserListType, string> = {
@@ -27,9 +27,9 @@ export default function UserListModal({
   onClose,
   listType,
   userId,
+  currentUserId,
 }: UserListModalProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const authProfile = useAppSessionStore((state) => state.authProfile);
   const { queryKey, users, isLoading } = useUserListQuery(isOpen, listType, userId);
   const { toggle, isBusy } = useUserListFollowMutation(queryKey);
 
@@ -102,7 +102,7 @@ export default function UserListModal({
                         </div>
                       </div>
 
-                      {authProfile?.id !== user.id ? (
+                      {currentUserId !== user.id ? (
                         <button
                           type="button"
                           disabled={isBusy(user.id)}

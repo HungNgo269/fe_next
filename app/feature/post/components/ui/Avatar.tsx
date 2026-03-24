@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { useMemo } from "react";
-import { useAppSessionStore } from "@/app/share/stores/appSessionStore";
 import {
   getAvatarFallbackColor,
   getInitialsFromLastTwoWords,
@@ -16,15 +15,12 @@ type AvatarProps = {
 };
 
 export default function Avatar({ avatar, online, initials }: AvatarProps) {
-  const currentUserName = useAppSessionStore(
-    (state) => state.authProfile?.name ?? "",
-  );
   const normalizedAvatar = normalizeNullableText(avatar);
   const hasAvatar = Boolean(normalizedAvatar);
   const isExternalAvatar = Boolean(
     normalizedAvatar && /^https?:\/\//i.test(normalizedAvatar),
   );
-  const fallbackName = firstNonEmpty(initials, currentUserName) ?? "";
+  const fallbackName = firstNonEmpty(initials) ?? "";
   const fallbackInitials = useMemo(
     () => getInitialsFromLastTwoWords(fallbackName),
     [fallbackName],

@@ -11,18 +11,21 @@ export type UseProfilePageControllerOptions = {
   fetchFn: FetchProfileFeedFn;
   isOwnProfile: boolean;
   profileKey: string;
+  viewerId?: string | null;
 };
 
 export function useProfilePageController({
   fetchFn,
   isOwnProfile,
   profileKey,
+  viewerId,
 }: UseProfilePageControllerOptions) {
   const logoutUser = useLogout();
   const feed = useProfileFeedQuery({
     fetchFn,
     isOwnProfile,
     profileKey,
+    viewerId,
   });
   const { requests } = useFriendRequestsQuery(feed.canEditProfile);
 

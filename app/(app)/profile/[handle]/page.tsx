@@ -1,5 +1,6 @@
 import OtherUserProfilePageClient from "./OtherUserProfilePageClient";
 import { getUserProfileFeedServer } from "@/app/feature/profile/api/profileApi.server";
+import { fetchCurrentUserServer } from "@/app/feature/feed/api/feedApi.server";
 import {
   HydrationBoundary,
   QueryClient,
@@ -17,7 +18,10 @@ export default async function OtherUserProfilePage({
 }: OtherUserProfilePageProps) {
   const { handle } = await params;
   const queryClient = new QueryClient();
-  const initialFeed = await getUserProfileFeedServer(handle, 1, 5);
+  const [viewer, initialFeed] = await Promise.all([
+    fetchCurrentUserServer(),
+    getUserProfileFeedServer(handle, 1, 5),
+  ]);
   const queryKey = profileQueryKeys.other(handle);
 
   if (initialFeed.ok) {
@@ -26,7 +30,7 @@ export default async function OtherUserProfilePage({
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <OtherUserProfilePageClient handle={handle} />
+      <OtherUserProfilePageClient handle={handle} viewer={viewer} />
     </HydrationBoundary>
   );
 }

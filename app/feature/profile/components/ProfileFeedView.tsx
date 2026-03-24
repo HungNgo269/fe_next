@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { useCallback, type ReactNode } from "react";
+import type { User } from "@/app/feature/post/types/api.types";
 import PostDetailModal from "@/app/feature/post/components/PostDetailModal";
 import ProfileActions from "./ProfileActions";
 import ProfileHeader from "./ProfileHeader";
@@ -17,6 +18,7 @@ type BaseProfileFeedViewProps = {
   headerActions?: ReactNode;
   postsLabel?: string;
   emptyMessage?: string;
+  viewer?: User | null;
 };
 
 type OwnProfileFeedViewProps = BaseProfileFeedViewProps & {
@@ -53,6 +55,7 @@ export default function ProfileFeedView(props: ProfileFeedViewProps) {
     fetchFn,
     isOwnProfile: mode === "own",
     profileKey,
+    viewerId: props.viewer?.id ?? null,
   });
   const { feed, ui } = controller;
   const {
@@ -189,6 +192,7 @@ export default function ProfileFeedView(props: ProfileFeedViewProps) {
         onClose={ui.closeListModal}
         listType={ui.listModalType}
         userId={profile.id ?? ""}
+        currentUserId={props.viewer?.id ?? null}
       />
       <FriendRequestsModal
         isOpen={ui.friendRequestsModalOpen}

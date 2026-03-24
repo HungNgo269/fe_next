@@ -2,8 +2,9 @@
 
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import LeftSidebar from "./layout/LeftSidebar";
-import { useAppShellSidebarData } from "./hooks/useAppShellSidebarData";
+import LeftSidebar from "../components/layout/LeftSidebar";
+import { useAppShellNotifications } from "../components/hooks/useAppShellNotifications";
+import { useUser } from "@/app/share/providers/UserProvider";
 
 type AppShellProps = {
   children: ReactNode;
@@ -11,17 +12,20 @@ type AppShellProps = {
 
 export default function AppShell({ children }: AppShellProps) {
   const router = useRouter();
+  const currentUser = useUser();
+  const isAuthenticated = Boolean(currentUser);
   const {
-    currentUser,
-    isAuthenticated,
     notifications,
     notificationCount,
     notificationLoading,
     openNotificationPanel,
-  } = useAppShellSidebarData();
+  } = useAppShellNotifications({
+    authenticatedUserId: currentUser?.id ?? null,
+  });
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
+      {/* có lẽ nên phân ra nhiều feature hơn khi app lớn, kiểu để vào đây message, noti,.. thay vì ôm hết */}
       <LeftSidebar
         currentUser={currentUser}
         isAuthenticated={isAuthenticated}

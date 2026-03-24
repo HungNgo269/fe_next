@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
+import { toast } from "sonner";
 import {
   deleteCurrentUserAvatar,
-  getCurrentUserProfile,
   updateCurrentUserProfile,
   uploadCurrentUserAvatar,
 } from "@/app/feature/profile/api/profileApi";
@@ -13,8 +14,6 @@ import type {
   AvatarFormValues,
   ProfileDetailsFormValues,
 } from "@/app/feature/profile/types/edit-profile.forms";
-import { useAppSessionStore } from "@/app/share/stores/appSessionStore";
-import { toast } from "sonner";
 
 const BASE_GENDER_OPTIONS = ["MALE", "FEMALE"] as const;
 const PROFILE_SUBMIT_ERROR = "Sorry we can't upload your profile right now";
@@ -34,22 +33,6 @@ const toDetailsDefaults = (profile: UserProfile): ProfileDetailsFormValues => ({
   bio: profile.bio ?? "",
 });
 
-const toAuthSyncPayload = (profile: UserProfile, fallbackId?: string) => {
-  const nextId = profile.id ?? fallbackId;
-  if (!nextId) {
-    return null;
-  }
-
-  return {
-    id: nextId,
-    name: profile.name,
-    email: profile.email,
-    gender: profile.gender,
-    avatar: profile.avatar,
-    bio: profile.bio ?? "",
-  };
-};
-
 const buildGenderOptions = (selectedGender: string) => {
   if (!selectedGender) {
     return [...BASE_GENDER_OPTIONS];
@@ -62,28 +45,22 @@ const buildGenderOptions = (selectedGender: string) => {
     : [selectedGender, ...BASE_GENDER_OPTIONS];
 };
 
-export function useEditProfilePageController() {
-  const authProfile = useAppSessionStore((state) => state.authProfile);
-  const setAuthenticatedProfile = useAppSessionStore(
-    (state) => state.setAuthenticatedProfile,
-  );
+type UseEditProfilePageControllerOptions = {
+  initialProfile: UserProfile | null;
+  isUnauthorized: boolean;
+  initialLoadError: string;
+};
 
-  const initialProfile: UserProfile = authProfile
-    ? {
-        id: authProfile.id,
-        name: authProfile.name,
-        email: authProfile.email,
-        gender: authProfile.gender,
-        avatar: authProfile.avatar,
-        bio: authProfile.bio ?? "",
-      }
-    : { ...EMPTY_PROFILE };
+export function useEditProfilePageController({
+  initialProfile,
+  isUnauthorized,
+  initialLoadError,
+}: UseEditProfilePageControllerOptions) {
+  const router = useRouter();
+  const resolvedInitialProfile = initialProfile ?? { ...EMPTY_PROFILE };
 
-  const [profile, setProfile] = useState<UserProfile>(() => initialProfile);
-  const [isLoading, setIsLoading] = useState(!authProfile);
+  const [profile, setProfile] = useState<UserProfile>(() => resolvedInitialProfile);
   const [isSaving, setIsSaving] = useState(false);
-  const [isUnauthorized, setIsUnauthorized] = useState(false);
-  const [loadError, setLoadError] = useState("");
   const [avatarSubmitError, setAvatarSubmitError] = useState("");
   const [detailsSubmitError, setDetailsSubmitError] = useState("");
   const [avatarPreviewObjectUrl, setAvatarPreviewObjectUrl] = useState("");
@@ -104,7 +81,7 @@ export function useEditProfilePageController() {
     formState: { isSubmitting: isDetailsSubmitting },
   } = useForm<ProfileDetailsFormValues>({
     mode: "onTouched",
-    defaultValues: toDetailsDefaults(initialProfile),
+    defaultValues: toDetailsDefaults(resolvedInitialProfile),
   });
 
   const avatarFiles = useWatch({ control: avatarControl, name: "avatarFile" });
@@ -143,77 +120,16 @@ export function useEditProfilePageController() {
     };
   }, [selectedAvatarFile]);
 
+  useEffect(() => {
+    setProfile(resolvedInitialProfile);
+    resetAvatarForm();
+    resetDetailsForm(toDetailsDefaults(resolvedInitialProfile));
+    setAvatarSubmitError("");
+    setDetailsSubmitError("");
+  }, [resolvedInitialProfile, resetAvatarForm, resetDetailsForm]);
+
   const avatarPreviewName = detailName.trim() || profile.name || "User";
   const avatarPreviewUrl = avatarPreviewObjectUrl || (profile.avatar ?? "");
-
-  const syncAuthProfile = (nextProfile: UserProfile, fallbackId?: string) => {
-    const authPayload = toAuthSyncPayload(nextProfile, fallbackId);
-    if (authPayload) {
-      setAuthenticatedProfile(authPayload);
-    }
-  };
-
-  useEffect(() => {
-    let active = true;
-
-    const bootstrap = async () => {
-      if (authProfile) {
-        const nextProfile: UserProfile = {
-          id: authProfile.id,
-          name: authProfile.name,
-          email: authProfile.email,
-          gender: authProfile.gender,
-          avatar: authProfile.avatar,
-          bio: authProfile.bio ?? "",
-        };
-
-        setProfile(nextProfile);
-        resetAvatarForm();
-        resetDetailsForm(toDetailsDefaults(nextProfile));
-        setIsUnauthorized(false);
-        setLoadError("");
-        setAvatarSubmitError("");
-        setDetailsSubmitError("");
-        setIsLoading(false);
-        return;
-      }
-
-      const result = await getCurrentUserProfile();
-      if (!active) {
-        return;
-      }
-
-      if (!result.ok) {
-        setIsUnauthorized(
-          result.error.status === 401 || result.error.status === 403,
-        );
-        setLoadError(PROFILE_SUBMIT_ERROR);
-        setIsLoading(false);
-        return;
-      }
-
-      setProfile(result.data);
-      resetAvatarForm();
-      resetDetailsForm(toDetailsDefaults(result.data));
-
-      const authPayload = toAuthSyncPayload(result.data, result.data.id);
-      if (authPayload) {
-        setAuthenticatedProfile(authPayload);
-      }
-
-      setIsUnauthorized(false);
-      setLoadError("");
-      setAvatarSubmitError("");
-      setDetailsSubmitError("");
-      setIsLoading(false);
-    };
-
-    void bootstrap();
-
-    return () => {
-      active = false;
-    };
-  }, [authProfile, resetAvatarForm, resetDetailsForm, setAuthenticatedProfile]);
 
   const onAvatarSubmitInvalid = () => {
     setAvatarSubmitError(PROFILE_SUBMIT_ERROR);
@@ -248,7 +164,7 @@ export function useEditProfilePageController() {
 
     setProfile(result.data);
     resetAvatarForm();
-    syncAuthProfile(result.data, profile.id ?? authProfile?.id);
+    router.refresh();
   }, onAvatarSubmitInvalid);
 
   const onDeleteAvatar = async () => {
@@ -267,7 +183,7 @@ export function useEditProfilePageController() {
 
     setProfile(result.data);
     resetAvatarForm();
-    syncAuthProfile(result.data, profile.id ?? authProfile?.id);
+    router.refresh();
   };
 
   const onSubmitDetails = handleDetailsSubmit(async (values) => {
@@ -294,7 +210,7 @@ export function useEditProfilePageController() {
 
       setProfile(result.data);
       resetDetailsForm(toDetailsDefaults(result.data));
-      syncAuthProfile(result.data, profile.id ?? authProfile?.id);
+      router.refresh();
     } catch {
       setDetailsSubmitError(PROFILE_SUBMIT_ERROR);
       toast.error(PROFILE_SUBMIT_ERROR);
@@ -306,9 +222,9 @@ export function useEditProfilePageController() {
   return {
     profile,
     status: {
-      isLoading,
+      isLoading: false,
       isUnauthorized,
-      loadError,
+      loadError: initialLoadError,
     },
     avatarForm: {
       register: registerAvatar,
