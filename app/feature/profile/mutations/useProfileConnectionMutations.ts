@@ -25,7 +25,7 @@ const updateProfileConnection = (
   },
 ) => {
   queryClient.setQueryData(
-    profileQueryKeys.other(profileKey),
+    profileQueryKeys.detail(profileKey),
     (old: ProfileFeedResponse | undefined) => {
       if (!old) {
         return old;
@@ -53,7 +53,7 @@ const updateProfileConnection = (
 
 export function useProfileConnectionMutations(userId: string, profileKey: string) {
   const queryClient = useQueryClient();
-  const profileQueryKey = profileQueryKeys.other(profileKey);
+  const profileQueryKey = profileQueryKeys.detail(profileKey);
 
   const invalidateFriendRequests = () => {
     void queryClient.invalidateQueries({ queryKey: profileQueryKeys.friendRequests() });

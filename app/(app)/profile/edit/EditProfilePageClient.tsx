@@ -26,6 +26,11 @@ export default function EditProfilePageClient({
     initialLoadError: loadError,
   });
   const { profile, status, avatarForm, detailsForm } = controller;
+  const profileHref = profile.handle
+    ? `/profile/${profile.handle}`
+    : profile.id
+      ? `/profile/${profile.id}`
+      : "/feed";
 
   return (
     <ProfileShell>
@@ -55,7 +60,7 @@ export default function EditProfilePageClient({
             action={
               <Link
                 className="ui-btn-primary rounded-full px-5 py-2 text-xs font-semibold transition"
-                href="/profile"
+                href={profileHref}
               >
                 Back to profile
               </Link>

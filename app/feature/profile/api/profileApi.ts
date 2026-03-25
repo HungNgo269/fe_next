@@ -15,7 +15,7 @@ import type {
 const PROFILE_PATH = "/users/me";
 
 const mapToUserProfile = (
-  data: ProfileResponse | ProfileFeedResponse["user"]
+  data: ProfileResponse | ProfileFeedResponse["user"],
 ): UserProfile => ({
   id: data.id,
   handle: data.handle ?? null,
@@ -35,18 +35,14 @@ export const getCurrentUserProfile = async (): Promise<ApiResponse<UserProfile>>
   return { ok: true, data: mapToUserProfile(raw.data) };
 };
 
-export const getCurrentUserProfileFeed = async (
-  page = 1,
-  limit = 5,
-): Promise<ApiResponse<ProfileFeedResponse>> =>
-  clientGetJson<ProfileFeedResponse>(`/users/me/profile?page=${page}&limit=${limit}`);
-
 export const getUserProfileFeed = async (
-  userId: string,
+  profileKey: string,
   page = 1,
   limit = 5,
 ): Promise<ApiResponse<ProfileFeedResponse>> =>
-  clientGetJson<ProfileFeedResponse>(`/users/${userId}/profile?page=${page}&limit=${limit}`);
+  clientGetJson<ProfileFeedResponse>(
+    `/users/${encodeURIComponent(profileKey)}/profile?page=${page}&limit=${limit}`,
+  );
 
 export const updateCurrentUserProfile = async (
   draft: Pick<UserProfile, "name" | "email" | "gender" | "bio">,

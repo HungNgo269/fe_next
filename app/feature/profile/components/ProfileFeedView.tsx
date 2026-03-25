@@ -1,5 +1,7 @@
+"use client";
+
 import Link from "next/link";
-import { useCallback, type ReactNode } from "react";
+import { Loader2 } from "lucide-react";
 import type { User } from "@/app/feature/post/types/api.types";
 import PostDetailModal from "@/app/feature/post/components/PostDetailModal";
 import ProfileActions from "./ProfileActions";
@@ -8,54 +10,51 @@ import ProfilePostFeed from "./ProfilePostFeed";
 import ProfileStatusCard from "./ProfileStatusCard";
 import FriendRequestsModal from "./FriendRequestsModal";
 import UserListModal from "./UserListModal";
-import {
-  getCurrentUserProfileFeed,
-  getUserProfileFeed,
-} from "../api/profileApi";
 import { useProfilePageController } from "../controllers/useProfilePageController";
 
-type BaseProfileFeedViewProps = {
-  headerActions?: ReactNode;
-  postsLabel?: string;
-  emptyMessage?: string;
+type ProfileFeedViewProps = {
+  profileKey: string;
   viewer?: User | null;
 };
 
-type OwnProfileFeedViewProps = BaseProfileFeedViewProps & {
-  mode: "own";
-};
+function ProfileFeedLoadingState() {
+  return (
+    <main className="relative mx-auto flex w-full max-w-5xl px-4 pb-16 pt-12 sm:px-6">
+      <div className="w-full rounded-[2rem] border border-border/70 bg-card/70 p-8 shadow-sm backdrop-blur sm:p-10">
+        <div className="flex items-center gap-4">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand/10 text-brand">
+            <Loader2 className="h-7 w-7 animate-spin" />
+          </div>
+          <div className="space-y-1">
+            <p className="text-lg font-semibold text-foreground">Loading profile</p>
+            <p className="text-sm text-foreground-muted">
+              Pulling profile details, connections, and recent posts.
+            </p>
+          </div>
+        </div>
 
-type OtherProfileFeedViewProps = BaseProfileFeedViewProps & {
-  mode: "other";
-  handle: string;
-};
-
-type ProfileFeedViewProps = OwnProfileFeedViewProps | OtherProfileFeedViewProps;
-
-export default function ProfileFeedView(props: ProfileFeedViewProps) {
-  const {
-    mode,
-    headerActions,
-    postsLabel = "Posts",
-    emptyMessage = "No posts yet.",
-  } = props;
-
-  const handle = mode === "other" ? props.handle : undefined;
-  const profileKey = mode === "own" ? "me" : (handle ?? "default");
-
-  const fetchFn = useCallback(
-    (page: number, limit: number) =>
-      mode === "own"
-        ? getCurrentUserProfileFeed(page, limit)
-        : getUserProfileFeed(handle ?? "", page, limit),
-    [mode, handle],
+        <div className="mt-8 space-y-4">
+          <div className="h-36 rounded-3xl bg-surface-hover/80" />
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
+            <div className="space-y-4">
+              <div className="h-28 rounded-3xl bg-surface-hover/80" />
+              <div className="h-28 rounded-3xl bg-surface-hover/70" />
+            </div>
+            <div className="h-40 rounded-3xl bg-surface-hover/70" />
+          </div>
+        </div>
+      </div>
+    </main>
   );
+}
 
+export default function ProfileFeedView({
+  profileKey,
+  viewer,
+}: ProfileFeedViewProps) {
   const controller = useProfilePageController({
-    fetchFn,
-    isOwnProfile: mode === "own",
     profileKey,
-    viewerId: props.viewer?.id ?? null,
+    viewerId: viewer?.id ?? null,
   });
   const { feed, ui } = controller;
   const {
@@ -70,10 +69,21 @@ export default function ProfileFeedView(props: ProfileFeedViewProps) {
     isLoadingMore,
     handleLoadMore,
   } = feed;
+  const ownProfileHref = profile.handle
+    ? `/profile/${profile.handle}`
+    : profile.id
+      ? `/profile/${profile.id}`
+      : viewer?.handle
+        ? `/profile/${viewer.handle}`
+        : viewer?.id
+          ? `/profile/${viewer.id}`
+          : "/feed";
+  const isOwnProfile = canEditProfile;
+  const emptyMessage = isOwnProfile
+    ? "You have not created or shared any posts yet."
+    : "No posts yet.";
 
-  const resolvedHeaderActions = canEditProfile ? null : headerActions;
-
-  if (mode === "other" && !isLoading && (profileError || isUnauthorized)) {
+  if (!isLoading && !isOwnProfile && (profileError || isUnauthorized)) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6 px-4 text-center">
         <div className="space-y-2">
@@ -89,7 +99,7 @@ export default function ProfileFeedView(props: ProfileFeedViewProps) {
         <div className="flex items-center gap-3">
           <Link
             className="ui-btn-ghost rounded-full px-5 py-2.5 text-sm font-semibold transition-colors"
-            href="/profile"
+            href={ownProfileHref}
           >
             My profile
           </Link>
@@ -99,11 +109,7 @@ export default function ProfileFeedView(props: ProfileFeedViewProps) {
   }
 
   if (isLoading) {
-    return (
-      <main className="relative mx-auto flex w-full max-w-5xl items-center justify-center px-4 pb-16 pt-12 sm:px-6">
-        <span className="h-5 w-5 animate-spin rounded-full border-2 border-border border-t-brand" />
-      </main>
-    );
+    return <ProfileFeedLoadingState />;
   }
 
   if (isUnauthorized) {
@@ -133,7 +139,6 @@ export default function ProfileFeedView(props: ProfileFeedViewProps) {
         name={profile.name}
         handle={profile.handle}
         bio={profile.bio}
-        headerActions={resolvedHeaderActions}
         postsCount={totalPosts ?? posts.length}
         friendsCount={profile.friendsCount ?? 0}
         followersCount={profile.followersCount ?? 0}
@@ -179,7 +184,7 @@ export default function ProfileFeedView(props: ProfileFeedViewProps) {
         posts={posts}
         profile={profile}
         canEditProfile={canEditProfile}
-        postsLabel={postsLabel}
+        postsLabel="Posts"
         emptyMessage={emptyMessage}
         hasMorePosts={hasMorePosts}
         isLoadingMore={isLoadingMore}
@@ -192,7 +197,7 @@ export default function ProfileFeedView(props: ProfileFeedViewProps) {
         onClose={ui.closeListModal}
         listType={ui.listModalType}
         userId={profile.id ?? ""}
-        currentUserId={props.viewer?.id ?? null}
+        currentUserId={viewer?.id ?? null}
       />
       <FriendRequestsModal
         isOpen={ui.friendRequestsModalOpen}

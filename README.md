@@ -1,36 +1,105 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# fbClone Frontend
 
-## Getting Started
+Frontend for the `fbClone` project, built with Next.js App Router.
 
-First, run the development server:
+This app is responsible for:
+- rendering the main feed, profile pages, post permalink, login, and register flows
+- calling the backend API for auth, profile, posts, comments, notifications, follows, and search
+- handling interactive client state such as modal visibility, compose draft, theme preference, and cached UI state
+
+## Stack
+
+- Next.js 16
+- React 19
+- TypeScript
+- TanStack Query
+- Zustand
+- Tailwind CSS v4
+- `react-hook-form` + `zod`
+- `socket.io-client`
+- `next-themes`
+
+## Project Structure
+
+```text
+frontend/
+  app/
+    (app)/        main application routes
+    (auth)/       login and register routes
+    components/   shared app shell and layout pieces
+    feature/      feature-based modules: feed, post, profile, auth, story
+    share/        shared API utils, providers, hooks, stores, constants
+    globals.css
+    layout.tsx
+  components/     shared UI components
+  lib/            small shared utilities
+  public/
+  .env.local
+  package.json
+```
+
+## Current Data Flow
+
+The frontend currently follows these rules:
+
+- `currentUser` is not persisted in Zustand.
+- app-wide persisted storage is kept for UI state only, such as theme preference.
+- when it is clean and useful, data is fetched in a nearby Server Component and passed to the Client Component that needs it.
+- React Context is kept narrow and only used where it is still justified, instead of becoming a general data store.
+- highly interactive areas can still use client fetches when pushing everything to the server would make the code harder to maintain.
+
+Examples in the current codebase:
+- `app/(app)/layout.tsx` fetches the current user for the main app shell branch.
+- `app/(app)/profile/page.tsx`, `app/(app)/profile/[handle]/page.tsx`, and `app/(app)/profile/edit/page.tsx` fetch server-side data close to the route and pass it down.
+- `app/share/stores/appSessionStore.ts` persists theme/UI state only.
+
+## Environment Variables
+
+Create `frontend/.env.local` with:
+
+```bash
+NEXT_PUBLIC_API_BASE_URL=http://localhost:3001/api
+```
+
+If the backend runs on another host or port, update this value accordingly.
+
+## Development
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Available Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run dev
+npm run build
+npm run start
+npm run lint
+```
 
-## Learn More
+## Build
 
-To learn more about Next.js, take a look at the following resources:
+Production build:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run build
+npm run start
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Notes
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- This frontend expects the backend API to be available and to support cookie-based auth for server-side requests.
+- Notifications use `socket.io-client` on the frontend.
+- Query caching is handled with TanStack Query.
+- Local persisted state should stay limited to UI concerns; avoid storing user/profile auth data in browser storage.

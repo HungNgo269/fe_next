@@ -57,7 +57,10 @@ export function useEditProfilePageController({
   initialLoadError,
 }: UseEditProfilePageControllerOptions) {
   const router = useRouter();
-  const resolvedInitialProfile = initialProfile ?? { ...EMPTY_PROFILE };
+  const resolvedInitialProfile = useMemo(
+    () => initialProfile ?? { ...EMPTY_PROFILE },
+    [initialProfile],
+  );
 
   const [profile, setProfile] = useState<UserProfile>(() => resolvedInitialProfile);
   const [isSaving, setIsSaving] = useState(false);

@@ -3,28 +3,20 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { getUserProfileFeed } from "../api/profileApi";
 import { mergeFeedPosts, type FeedPostsInfiniteData } from "@/app/feature/feed/queries/feed.cache";
 import { feedQueryKeys } from "@/app/feature/feed/queries/feed.query-keys";
 import { mergeUniquePosts } from "@/app/feature/post/utils/postCache";
-import type { ApiResponse } from "@/app/share/utils/api-types";
 import type { ProfileFeedResponse } from "../types/api.types";
 import { profileQueryKeys } from "./profile.query-keys";
 import type { UserProfile } from "../types/profile";
 
 const PAGE_SIZE = 5;
 type ProfileFeedQueryError = Error & { status?: number };
-
 type ProfileFeedState = Pick<ProfileFeedResponse, "posts" | "pagination">;
 
-export type FetchProfileFeedFn = (
-  page: number,
-  limit: number,
-) => Promise<ApiResponse<ProfileFeedResponse>>;
-
-export type UseProfileFeedQueryOptions = {
-  fetchFn: FetchProfileFeedFn;
-  isOwnProfile?: boolean;
-  profileKey?: string;
+type UseProfileFeedQueryOptions = {
+  profileKey: string;
   viewerId?: string | null;
 };
 
@@ -55,9 +47,7 @@ const toUserProfile = (user: ProfileFeedResponse["user"]): UserProfile => ({
 });
 
 export function useProfileFeedQuery({
-  fetchFn,
-  isOwnProfile = false,
-  profileKey = "default",
+  profileKey,
   viewerId,
 }: UseProfileFeedQueryOptions) {
   const queryClient = useQueryClient();
@@ -69,9 +59,9 @@ export function useProfileFeedQuery({
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const query = useQuery({
-    queryKey: profileQueryKeys.detail(isOwnProfile ? "me" : "other", profileKey),
+    queryKey: profileQueryKeys.detail(profileKey),
     queryFn: async () => {
-      const result = await fetchFn(1, PAGE_SIZE);
+      const result = await getUserProfileFeed(profileKey, 1, PAGE_SIZE);
       if (!result.ok) {
         const error = new Error("Unable to load profile.") as ProfileFeedQueryError;
         error.status = (result.error as { status?: number }).status;
@@ -85,15 +75,14 @@ export function useProfileFeedQuery({
 
   useEffect(() => {
     setLoadedFeed(null);
-  }, [isOwnProfile, profileKey]);
+  }, [profileKey]);
 
   useEffect(() => {
     if (!query.data) {
       return;
     }
 
-    const nextProfile = toUserProfile(query.data.user);
-    setProfile(nextProfile);
+    setProfile(toUserProfile(query.data.user));
     setProfileError("");
     setIsUnauthorized(false);
     queryClient.setQueryData<FeedPostsInfiniteData>(feedQueryKeys.list(), (old) =>
@@ -141,7 +130,7 @@ export function useProfileFeedQuery({
 
   const canEditProfile =
     Boolean(currentUserId) &&
-    (isOwnProfile ||
+    (profileKey === "me" ||
       (Boolean(resolvedProfile.id) && currentUserId === resolvedProfile.id));
   const posts = feed?.posts ?? [];
   const pagination = feed?.pagination;
@@ -153,7 +142,7 @@ export function useProfileFeedQuery({
 
     setIsLoadingMore(true);
     try {
-      const result = await fetchFn(pagination.page + 1, PAGE_SIZE);
+      const result = await getUserProfileFeed(profileKey, pagination.page + 1, PAGE_SIZE);
       if (!result.ok) {
         toast.error("Unable to load more posts.");
         return;
@@ -181,7 +170,7 @@ export function useProfileFeedQuery({
     } finally {
       setIsLoadingMore(false);
     }
-  }, [feed, fetchFn, isLoadingMore, pagination, queryClient]);
+  }, [feed, isLoadingMore, pagination, profileKey, queryClient]);
 
   return {
     profile: resolvedProfile,

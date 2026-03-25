@@ -3,27 +3,20 @@
 import { useCallback, useMemo, useState } from "react";
 import { useLogout } from "@/app/share/hooks/useLogout";
 import type { UserListType } from "../types/user-list.types";
-import type { FetchProfileFeedFn } from "../queries/useProfileFeedQuery";
 import { useProfileFeedQuery } from "../queries/useProfileFeedQuery";
 import { useFriendRequestsQuery } from "../queries/useFriendRequestsQuery";
 
 export type UseProfilePageControllerOptions = {
-  fetchFn: FetchProfileFeedFn;
-  isOwnProfile: boolean;
   profileKey: string;
   viewerId?: string | null;
 };
 
 export function useProfilePageController({
-  fetchFn,
-  isOwnProfile,
   profileKey,
   viewerId,
 }: UseProfilePageControllerOptions) {
   const logoutUser = useLogout();
   const feed = useProfileFeedQuery({
-    fetchFn,
-    isOwnProfile,
     profileKey,
     viewerId,
   });

@@ -18,12 +18,6 @@ const mapToUserProfile = (data: ProfileResponse): UserProfile => ({
   isFollowing: data.isFollowing ?? false,
 });
 
-export const getCurrentUserProfileFeedServer = async (
-  page = 1,
-  limit = 5,
-): Promise<ApiResponse<ProfileFeedResponse>> =>
-  serverGetJson<ProfileFeedResponse>(`/users/me/profile?page=${page}&limit=${limit}`);
-
 export const getCurrentUserProfileServer = async (): Promise<
   ApiResponse<UserProfile>
 > => {
@@ -39,10 +33,10 @@ export const getCurrentUserProfileServer = async (): Promise<
 };
 
 export const getUserProfileFeedServer = async (
-  userKey: string,
+  profileKey: string,
   page = 1,
   limit = 5,
 ): Promise<ApiResponse<ProfileFeedResponse>> =>
   serverGetJson<ProfileFeedResponse>(
-    `/users/${encodeURIComponent(userKey)}/profile?page=${page}&limit=${limit}`,
+    `/users/${encodeURIComponent(profileKey)}/profile?page=${page}&limit=${limit}`,
   );
