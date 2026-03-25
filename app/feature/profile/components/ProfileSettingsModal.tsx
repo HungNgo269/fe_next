@@ -32,7 +32,7 @@ export default function ProfileSettingsModal({
               type="button"
               className="w-full px-4 py-3 text-center text-sm font-medium text-foreground transition hover:bg-surface-hover"
             >
-              Thong bao
+              Notifications
             </button>
             <button
               type="button"

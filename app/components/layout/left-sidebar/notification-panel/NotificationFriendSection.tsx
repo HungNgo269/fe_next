@@ -94,7 +94,7 @@ export default function NotificationFriendSection({
       {!friendRequestLoading &&
       incomingRequests.length === 0 &&
       friendActivityNotifications.length === 0 ? (
-        <div className="rounded-xl border border-border/60 px-3 py-5 text-center text-xs text-foreground-muted sm:rounded-2xl sm:py-6">
+        <div className="rounded-xl px-3 py-5 text-center text-xs text-foreground-muted sm:rounded-2xl sm:py-6">
           Chưa có thông báo kết bạn.
         </div>
       ) : null}
@@ -116,8 +116,12 @@ export default function NotificationFriendSection({
                   )}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm leading-5 text-foreground">{item.title}</p>
-                  <p className="mt-1 text-xs text-foreground-muted">{item.time}</p>
+                  <p className="text-sm leading-5 text-foreground">
+                    {item.title}
+                  </p>
+                  <p className="mt-1 text-xs text-foreground-muted">
+                    {item.time}
+                  </p>
                 </div>
               </div>
             </div>

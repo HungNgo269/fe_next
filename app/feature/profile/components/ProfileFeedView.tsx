@@ -43,7 +43,7 @@ export default function ProfileFeedView({ profileKey }: ProfileFeedViewProps) {
         ? `/profile/${viewer.handle}`
         : viewer?.id
           ? `/profile/${viewer.id}`
-          : "/feed";
+          : "/";
   const isOwnProfile = canEditProfile;
   const emptyMessage = isOwnProfile
     ? "You have not created or shared any posts yet."

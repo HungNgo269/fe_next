@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { FileText } from "lucide-react";
 import Avatar from "@/app/feature/post/components/ui/Avatar";
-import type { SidebarSearchAllResult, SidebarSearchUser } from "@/app/share/api/searchApi";
+import type {
+  SidebarSearchAllResult,
+  SidebarSearchUser,
+} from "@/app/share/api/searchApi";
 import { formatRelativeTime } from "@/app/share/utils/format";
 import SearchPanelResultsSkeleton from "./SearchPanelResultsSkeleton";
 
@@ -35,13 +38,13 @@ export default function SearchPanelResults({
       </h4>
 
       {trimmedQuery.length < minQueryLength ? (
-        <div className="rounded-xl border border-border/60 px-3 py-6 text-center text-xs text-foreground-muted">
+        <div className="rounded-xl px-3 py-6 text-center text-xs text-foreground-muted">
           Nhập tối thiểu {minQueryLength} ký tự để tìm kiếm
         </div>
       ) : loading ? (
         <SearchPanelResultsSkeleton />
       ) : !hasResults ? (
-        <div className="rounded-xl border border-border/60 px-3 py-6 text-center text-xs text-foreground-muted">
+        <div className="rounded-xl px-3 py-6 text-center text-xs text-foreground-muted">
           Không thấy kết quả
         </div>
       ) : (
@@ -51,7 +54,9 @@ export default function SearchPanelResults({
               <h5 className="text-xs font-semibold uppercase  text-foreground-muted">
                 Người dùng
               </h5>
-              <span className="text-xs text-foreground-muted">{results.totalUsers}</span>
+              <span className="text-xs text-foreground-muted">
+                {results.totalUsers}
+              </span>
             </div>
 
             {results.users.length > 0 ? (
@@ -86,7 +91,9 @@ export default function SearchPanelResults({
               <h5 className="text-xs font-semibold uppercase  text-foreground-muted">
                 Bài viết
               </h5>
-              <span className="text-xs text-foreground-muted">{results.totalPosts}</span>
+              <span className="text-xs text-foreground-muted">
+                {results.totalPosts}
+              </span>
             </div>
 
             {results.posts.length > 0 ? (
@@ -105,8 +112,12 @@ export default function SearchPanelResults({
                       {post.content}
                     </p>
                     <p className="truncate text-xs text-foreground-muted">
-                      {post.authorId ? `User ${post.authorId}` : "Unknown author"}
-                      {post.createdAt ? ` | ${formatRelativeTime(post.createdAt)}` : ""}
+                      {post.authorId
+                        ? `User ${post.authorId}`
+                        : "Unknown author"}
+                      {post.createdAt
+                        ? ` | ${formatRelativeTime(post.createdAt)}`
+                        : ""}
                     </p>
                   </div>
                 </Link>

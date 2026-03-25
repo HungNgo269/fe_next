@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
-import { useAppSessionStore } from "@/app/share/stores/appSessionStore";
 import { useLogout } from "@/app/share/hooks/useLogout";
 import type { NavItem } from "../left-sidebar/constants";
 
@@ -20,11 +19,8 @@ export function useLeftSidebar({
 }: UseLeftSidebarOptions) {
   const pathname = usePathname();
 
-  const { setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   const logoutUser = useLogout();
-
-  const themePreference = useAppSessionStore((state) => state.themePreference);
-  const setThemePreference = useAppSessionStore((state) => state.setThemePreference);
 
   const [expanded, setExpanded] = useState(false);
   const [activeLabel, setActiveLabel] = useState("");
@@ -32,7 +28,12 @@ export function useLeftSidebar({
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [showSearchPanel, setShowSearchPanel] = useState(false);
   const [showNotificationPanel, setShowNotificationPanel] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const prevNotificationPanelOpenRef = useRef(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const badgeCounts = {
     notification: notificationCount,
@@ -46,9 +47,10 @@ export function useLeftSidebar({
     prevNotificationPanelOpenRef.current = showNotificationPanel;
   }, [onNotificationSelect, showNotificationPanel]);
 
+  const themePreference = mounted && resolvedTheme === "dark" ? "dark" : "light";
+
   const toggleTheme = () => {
     const nextTheme = themePreference === "light" ? "dark" : "light";
-    setThemePreference(nextTheme);
     setTheme(nextTheme);
   };
 

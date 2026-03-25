@@ -30,7 +30,7 @@ export default function EditProfilePageClient({
     ? `/profile/${profile.handle}`
     : profile.id
       ? `/profile/${profile.id}`
-      : "/feed";
+      : "/";
 
   return (
     <ProfileShell>
