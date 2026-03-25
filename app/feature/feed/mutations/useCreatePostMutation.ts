@@ -4,12 +4,14 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { profileQueryKeys } from "@/app/feature/profile/queries/profile.query-keys";
 import { createPostRequest } from "@/app/feature/post/api/postApi";
-import type { Post, User } from "@/app/feature/post/types/api.types";
+import type { Post } from "@/app/feature/post/types/api.types";
 import { useRequireAuthAction } from "@/app/feature/post/hooks/useRequireAuthAction";
 import { useFeedCacheUpdater } from "@/app/share/hooks/useFeedCacheUpdater";
+import { useUser } from "@/app/share/providers/UserProvider";
 import { feedQueryKeys } from "../queries/feed.query-keys";
 
-export function useCreatePostMutation(currentUser: User | null) {
+export function useCreatePostMutation() {
+  const currentUser = useUser();
   const queryClient = useQueryClient();
   const { runIfAuth } = useRequireAuthAction();
   const cache = useFeedCacheUpdater();

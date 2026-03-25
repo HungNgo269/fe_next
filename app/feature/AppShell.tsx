@@ -13,7 +13,6 @@ type AppShellProps = {
 export default function AppShell({ children }: AppShellProps) {
   const router = useRouter();
   const currentUser = useUser();
-  const isAuthenticated = Boolean(currentUser);
   const {
     notifications,
     notificationCount,
@@ -27,8 +26,6 @@ export default function AppShell({ children }: AppShellProps) {
     <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
       {/* có lẽ nên phân ra nhiều feature hơn khi app lớn, kiểu để vào đây message, noti,.. thay vì ôm hết */}
       <LeftSidebar
-        currentUser={currentUser}
-        isAuthenticated={isAuthenticated}
         onRequireAuth={() => router.push("/login")}
         notifications={notifications}
         notificationCount={notificationCount}

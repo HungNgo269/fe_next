@@ -2,13 +2,13 @@
 
 import Image from "next/image";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
-import type { User } from "@/app/feature/post/types/api.types";
 import ActionChip from "@/app/feature/post/components/ui/ActionChip";
 import Avatar from "@/app/feature/post/components/ui/Avatar";
 import { IconImage } from "@/app/share/components/icons";
 import { usePostUIStore } from "@/app/feature/post/stores/postStore";
 import { useCreatePostMutation } from "@/app/feature/feed/mutations/useCreatePostMutation";
 import { useAutoResizeTextarea } from "@/app/share/hooks/useAutoResizeTextarea";
+import { useUser } from "@/app/share/providers/UserProvider";
 
 type SelectedComposerMedia = {
   id: string;
@@ -18,10 +18,11 @@ type SelectedComposerMedia = {
 
 const MAX_POST_MEDIA_FILES = 10;
 
-function FeedComposer({ currentUser }: { currentUser: User }) {
+function FeedComposer() {
+  const currentUser = useUser();
   const composerText = usePostUIStore((s) => s.composerText);
   const setComposerText = usePostUIStore((s) => s.setComposerText);
-  const { handleCreatePost } = useCreatePostMutation(currentUser);
+  const { handleCreatePost } = useCreatePostMutation();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const composerTextareaRef = useAutoResizeTextarea<HTMLTextAreaElement>(
     composerText,
@@ -100,6 +101,10 @@ function FeedComposer({ currentUser }: { currentUser: User }) {
     setComposerText("");
     clearMedia();
   };
+
+  if (!currentUser) {
+    return null;
+  }
 
   return (
     <div className=" rounded-md p-5">

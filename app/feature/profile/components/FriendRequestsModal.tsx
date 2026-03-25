@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { X, Loader2, Clock } from "lucide-react";
+import { X, Clock } from "lucide-react";
 import { useFriendRequestsController } from "../controllers/useFriendRequestsController";
+import FriendRequestsModalSkeleton from "../skeleton/FriendRequestsModalSkeleton";
 import FriendRequestRow from "./FriendRequestRow";
 
 interface FriendRequestsModalProps {
@@ -75,9 +76,7 @@ export default function FriendRequestsModal({
 
           <div className="h-[350px] overflow-y-auto p-4">
             {isLoading ? (
-              <div className="flex h-full items-center justify-center">
-                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-              </div>
+              <FriendRequestsModalSkeleton />
             ) : displayed.length === 0 ? (
               <div className="flex h-full flex-col items-center justify-center gap-2 text-center text-muted-foreground">
                 <Clock className="h-8 w-8 opacity-40" />

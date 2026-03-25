@@ -2,14 +2,11 @@ import { Suspense } from "react";
 import FeedStoriesServer from "@/app/feature/feed/components/FeedStoriesServer";
 import FeedPostsClient from "@/app/feature/feed/components/FeedPostsClient";
 import FeedSuggestionsServer from "@/app/feature/feed/components/FeedSuggestionsServer";
-import {
-  fetchCurrentUserServer,
-  fetchFeedPostsOnlySsr,
-} from "@/app/feature/feed/api/feedApi.server";
-import FeedStoriesSkeleton from "@/app/share/skeleton/FeedStoriesSkeleton";
-import FeedComposerSkeleton from "@/app/share/skeleton/FeedComposerSkeleton";
-import FeedPostListSkeleton from "@/app/share/skeleton/FeedPostListSkeleton";
-import SuggestionListSkeleton from "@/app/share/skeleton/SuggestionListSkeleton";
+import { fetchFeedPostsOnlySsr } from "@/app/feature/feed/api/feedApi.server";
+import FeedStoriesSkeleton from "@/app/feature/feed/skeleton/FeedStoriesSkeleton";
+import FeedComposerSkeleton from "@/app/feature/feed/skeleton/FeedComposerSkeleton";
+import FeedPostListSkeleton from "@/app/feature/feed/skeleton/FeedPostListSkeleton";
+import SuggestionListSkeleton from "@/app/feature/suggestion/skeleton/SuggestionListSkeleton";
 
 function FeedPostsSectionFallback() {
   return (
@@ -21,12 +18,7 @@ function FeedPostsSectionFallback() {
 }
 
 export default async function FeedPage() {
-  const [currentUser, feedPostsData] = await Promise.all([
-    fetchCurrentUserServer(),
-    fetchFeedPostsOnlySsr(),
-  ]);
-
-  const currentUserId = currentUser?.id ?? null;
+  const feedPostsData = await fetchFeedPostsOnlySsr();
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
@@ -57,14 +49,13 @@ export default async function FeedPage() {
 
           <div id="stories">
             <Suspense fallback={<FeedStoriesSkeleton count={4} />}>
-              <FeedStoriesServer currentUserId={currentUserId} />
+              <FeedStoriesServer />
             </Suspense>
           </div>
 
           <div id="posts">
             <Suspense fallback={<FeedPostsSectionFallback />}>
               <FeedPostsClient
-                currentUser={currentUser}
                 initialPagination={feedPostsData.pagination}
                 initialPosts={feedPostsData.posts}
                 feedError={feedPostsData.feedError}
@@ -75,7 +66,7 @@ export default async function FeedPage() {
 
         <aside className="w-full space-y-6 lg:w-[320px] lg:flex-none" id="suggestions">
           <Suspense fallback={<SuggestionListSkeleton count={3} />}>
-            <FeedSuggestionsServer currentUserId={currentUserId} />
+            <FeedSuggestionsServer />
           </Suspense>
         </aside>
       </main>

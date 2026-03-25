@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Loader2 } from "lucide-react";
-import type { User } from "@/app/feature/post/types/api.types";
 import PostDetailModal from "@/app/feature/post/components/PostDetailModal";
+import { useUser } from "@/app/share/providers/UserProvider";
 import ProfileActions from "./ProfileActions";
 import ProfileHeader from "./ProfileHeader";
 import ProfilePostFeed from "./ProfilePostFeed";
@@ -11,47 +10,14 @@ import ProfileStatusCard from "./ProfileStatusCard";
 import FriendRequestsModal from "./FriendRequestsModal";
 import UserListModal from "./UserListModal";
 import { useProfilePageController } from "../controllers/useProfilePageController";
+import ProfileFeedViewSkeleton from "../skeleton/ProfileFeedViewSkeleton";
 
 type ProfileFeedViewProps = {
   profileKey: string;
-  viewer?: User | null;
 };
 
-function ProfileFeedLoadingState() {
-  return (
-    <main className="relative mx-auto flex w-full max-w-5xl px-4 pb-16 pt-12 sm:px-6">
-      <div className="w-full rounded-[2rem] border border-border/70 bg-card/70 p-8 shadow-sm backdrop-blur sm:p-10">
-        <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand/10 text-brand">
-            <Loader2 className="h-7 w-7 animate-spin" />
-          </div>
-          <div className="space-y-1">
-            <p className="text-lg font-semibold text-foreground">Loading profile</p>
-            <p className="text-sm text-foreground-muted">
-              Pulling profile details, connections, and recent posts.
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-8 space-y-4">
-          <div className="h-36 rounded-3xl bg-surface-hover/80" />
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
-            <div className="space-y-4">
-              <div className="h-28 rounded-3xl bg-surface-hover/80" />
-              <div className="h-28 rounded-3xl bg-surface-hover/70" />
-            </div>
-            <div className="h-40 rounded-3xl bg-surface-hover/70" />
-          </div>
-        </div>
-      </div>
-    </main>
-  );
-}
-
-export default function ProfileFeedView({
-  profileKey,
-  viewer,
-}: ProfileFeedViewProps) {
+export default function ProfileFeedView({ profileKey }: ProfileFeedViewProps) {
+  const viewer = useUser();
   const controller = useProfilePageController({
     profileKey,
     viewerId: viewer?.id ?? null,
@@ -109,7 +75,7 @@ export default function ProfileFeedView({
   }
 
   if (isLoading) {
-    return <ProfileFeedLoadingState />;
+    return <ProfileFeedViewSkeleton />;
   }
 
   if (isUnauthorized) {
@@ -182,7 +148,6 @@ export default function ProfileFeedView({
 
       <ProfilePostFeed
         posts={posts}
-        profile={profile}
         canEditProfile={canEditProfile}
         postsLabel="Posts"
         emptyMessage={emptyMessage}
@@ -197,7 +162,6 @@ export default function ProfileFeedView({
         onClose={ui.closeListModal}
         listType={ui.listModalType}
         userId={profile.id ?? ""}
-        currentUserId={viewer?.id ?? null}
       />
       <FriendRequestsModal
         isOpen={ui.friendRequestsModalOpen}

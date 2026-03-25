@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { LogOut, Moon, Sun } from "lucide-react";
 import type { SidebarNotificationItem } from "@/app/feature/feed/types/feed";
-import type { User } from "@/app/feature/post/types/api.types";
 import { mobileNavItems, navItems } from "./left-sidebar/constants";
 import SidebarBrand from "./left-sidebar/SidebarBrand";
 import SidebarNavItem from "./left-sidebar/SidebarNavItem";
@@ -12,11 +11,10 @@ import NotificationPanel from "./left-sidebar/NotificationPanel";
 import SearchPanel from "./left-sidebar/SearchPanel";
 import { Sheet, SheetContent } from "@/app/share/components/ui/sheet";
 import LoginRequiredDialog from "@/app/share/components/LoginRequiredDialog";
+import { useUser } from "@/app/share/providers/UserProvider";
 import { useLeftSidebar } from "./hooks/useLeftSidebar";
 
 type LeftSidebarProps = {
-  currentUser: User | null;
-  isAuthenticated: boolean;
   onRequireAuth: () => void;
   notifications: SidebarNotificationItem[];
   notificationCount: number;
@@ -25,14 +23,14 @@ type LeftSidebarProps = {
 };
 
 export default function LeftSidebar({
-  currentUser,
-  isAuthenticated,
   onRequireAuth,
   notifications,
   notificationCount,
   notificationLoading,
   onNotificationSelect,
 }: LeftSidebarProps) {
+  const currentUser = useUser();
+  const isAuthenticated = Boolean(currentUser);
   const {
     pathname,
     themePreference,

@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { Loader2 } from "lucide-react";
 import ProfileShell from "@/app/feature/profile/components/ProfileShell";
 import ProfileStatusCard from "@/app/feature/profile/components/ProfileStatusCard";
 import EditProfileAvatarForm from "@/app/feature/profile/components/edit-profile/EditProfileAvatarForm";
 import EditProfileDetailsForm from "@/app/feature/profile/components/edit-profile/EditProfileDetailsForm";
 import { useEditProfilePageController } from "@/app/feature/profile/controllers/useEditProfilePageController";
+import EditProfilePageSkeleton from "@/app/feature/profile/skeleton/EditProfilePageSkeleton";
 import type { UserProfile } from "@/app/feature/profile/types/profile";
 
 type EditProfilePageClientProps = {
@@ -35,9 +35,7 @@ export default function EditProfilePageClient({
   return (
     <ProfileShell>
       {status.isLoading ? (
-        <main className="relative mx-auto w-full max-w-3xl px-4 pb-16 pt-12 sm:px-6">
-          <Loader2 aria-hidden="true" className="h-10 w-10 animate-spin" />
-        </main>
+        <EditProfilePageSkeleton />
       ) : status.isUnauthorized ? (
         <main className="relative mx-auto w-full max-w-3xl px-4 pb-16 pt-12 sm:px-6">
           <ProfileStatusCard

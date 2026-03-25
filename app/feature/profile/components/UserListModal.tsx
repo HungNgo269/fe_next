@@ -3,7 +3,9 @@
 import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Loader2, Search, X } from "lucide-react";
+import { useUser } from "@/app/share/providers/UserProvider";
 import ProfileAvatarPreview from "./ProfileAvatarPreview";
+import UserListModalSkeleton from "../skeleton/UserListModalSkeleton";
 import { useUserListFollowMutation } from "../mutations/useUserListFollowMutation";
 import { useUserListQuery } from "../queries/useUserListQuery";
 import type { UserListType } from "../types/user-list.types";
@@ -13,7 +15,6 @@ interface UserListModalProps {
   onClose: () => void;
   listType: UserListType | null;
   userId: string;
-  currentUserId?: string | null;
 }
 
 const LIST_TITLES: Record<UserListType, string> = {
@@ -27,8 +28,8 @@ export default function UserListModal({
   onClose,
   listType,
   userId,
-  currentUserId,
 }: UserListModalProps) {
+  const currentUserId = useUser()?.id ?? null;
   const [searchQuery, setSearchQuery] = useState("");
   const { queryKey, users, isLoading } = useUserListQuery(isOpen, listType, userId);
   const { toggle, isBusy } = useUserListFollowMutation(queryKey);
@@ -77,9 +78,7 @@ export default function UserListModal({
 
             <div className="h-[350px] overflow-y-auto pr-2">
               {isLoading ? (
-                <div className="flex h-full items-center justify-center">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                </div>
+                <UserListModalSkeleton />
               ) : filteredUsers.length === 0 ? (
                 <div className="flex h-full flex-col items-center justify-center text-center text-muted-foreground">
                   <p>No results found.</p>

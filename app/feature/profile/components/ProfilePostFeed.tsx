@@ -1,16 +1,13 @@
 "use client";
 
-import { useMemo } from "react";
-import { Loader2 } from "lucide-react";
 import FeedComposer from "@/app/feature/feed/components/FeedComposer";
+import FeedPostListSkeleton from "@/app/feature/feed/skeleton/FeedPostListSkeleton";
 import PostCard from "@/app/feature/post/components/PostCard";
 import type { Post } from "@/app/feature/post/types/api.types";
 import { useInfiniteScrollTrigger } from "@/app/share/hooks/useInfiniteScrollTrigger";
-import type { UserProfile } from "../types/profile";
 
 interface ProfilePostFeedProps {
   posts: Post[];
-  profile: UserProfile;
   canEditProfile: boolean;
   postsLabel: string;
   emptyMessage: string;
@@ -21,7 +18,6 @@ interface ProfilePostFeedProps {
 
 export default function ProfilePostFeed({
   posts,
-  profile,
   canEditProfile,
   postsLabel,
   emptyMessage,
@@ -35,24 +31,13 @@ export default function ProfilePostFeed({
     onLoadMore,
   });
 
-  const composerUser = useMemo(
-    () => ({
-      id: profile.id ?? "",
-      name: profile.name,
-      email: profile.email ?? "",
-      avatarUrl: profile.avatar,
-      gender: profile.gender ?? undefined,
-    }),
-    [profile.id, profile.name, profile.email, profile.avatar, profile.gender],
-  );
-
   return (
     <section className="space-y-3">
       <header className="mb-4 flex items-center justify-between gap-2">
         <h2 className="text-lg font-semibold text-foreground">{postsLabel}</h2>
       </header>
 
-      {canEditProfile ? <FeedComposer currentUser={composerUser} /> : null}
+      {canEditProfile ? <FeedComposer /> : null}
 
       {posts.length === 0 ? (
         <p className="ui-text-muted text-sm">{emptyMessage}</p>
@@ -72,14 +57,8 @@ export default function ProfilePostFeed({
                 ref={loadMoreSentinelRef}
               />
               {isLoadingMore ? (
-                <div
-                  aria-live="polite"
-                  className="inline-flex items-center justify-center"
-                >
-                  <Loader2
-                    aria-hidden="true"
-                    className="h-4 w-4 animate-spin"
-                  />
+                <div aria-live="polite" className="w-full">
+                  <FeedPostListSkeleton count={1} />
                 </div>
               ) : (
                 <button

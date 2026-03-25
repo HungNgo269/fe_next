@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { FileText, Loader2 } from "lucide-react";
+import { FileText } from "lucide-react";
 import Avatar from "@/app/feature/post/components/ui/Avatar";
 import type { SidebarSearchAllResult, SidebarSearchUser } from "@/app/share/api/searchApi";
 import { formatRelativeTime } from "@/app/share/utils/format";
+import SearchPanelResultsSkeleton from "./SearchPanelResultsSkeleton";
 
 type SearchPanelResultsProps = {
   trimmedQuery: string;
@@ -38,9 +39,7 @@ export default function SearchPanelResults({
           Nhập tối thiểu {minQueryLength} ký tự để tìm kiếm
         </div>
       ) : loading ? (
-        <div className="flex items-center justify-center rounded-xl border border-border/60 py-8 text-foreground-muted">
-          <Loader2 className="h-5 w-5 animate-spin" />
-        </div>
+        <SearchPanelResultsSkeleton />
       ) : !hasResults ? (
         <div className="rounded-xl border border-border/60 px-3 py-6 text-center text-xs text-foreground-muted">
           Không thấy kết quả

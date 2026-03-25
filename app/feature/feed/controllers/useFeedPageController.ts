@@ -3,18 +3,16 @@
 import { useCallback } from "react";
 import { usePostUIStore } from "@/app/feature/post/stores/postStore";
 import { useInfiniteScrollTrigger } from "@/app/share/hooks/useInfiniteScrollTrigger";
-import type { FeedPagination, Post, User } from "@/app/feature/post/types/api.types";
+import type { FeedPagination, Post } from "@/app/feature/post/types/api.types";
 import { useFeedPostsInfiniteQuery } from "../queries/useFeedPostsInfiniteQuery";
 
 type UseFeedPageControllerOptions = {
-  currentUser: User | null;
   initialPosts: Post[];
   initialPagination: FeedPagination;
   feedError?: string;
 };
 
 export function useFeedPageController({
-  currentUser,
   initialPosts,
   initialPagination,
   feedError,
@@ -39,7 +37,6 @@ export function useFeedPageController({
   });
 
   return {
-    currentUser,
     posts: query.posts,
     feedError,
     hasMore: query.hasMore,

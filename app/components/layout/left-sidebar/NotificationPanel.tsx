@@ -1,11 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Loader2 } from "lucide-react";
 import type { SidebarNotificationItem } from "@/app/feature/feed/types/feed";
 import { useFriendRequestsController } from "@/app/feature/profile/controllers/useFriendRequestsController";
 import NotificationPanelHeader from "./notification-panel/NotificationPanelHeader";
 import NotificationFriendSection from "./notification-panel/NotificationFriendSection";
+import NotificationPanelSkeleton from "./notification-panel/NotificationPanelSkeleton";
 import NotificationPostSection from "./notification-panel/NotificationPostSection";
 
 type NotificationPanelProps = {
@@ -57,11 +57,7 @@ export default function NotificationPanel({
   const visiblePostNotifications = postNotifications.slice(0, visiblePostCount);
 
   if (loading) {
-    return (
-      <div className="h-full w-full bg-background">
-        <Loader2 aria-hidden="true" className="h-10 w-10 animate-spin" />
-      </div>
-    );
+    return <NotificationPanelSkeleton />;
   }
 
   return (

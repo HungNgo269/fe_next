@@ -1,26 +1,26 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
 import FeedComposer from "@/app/feature/feed/components/FeedComposer";
+import FeedPostListSkeleton from "@/app/feature/feed/skeleton/FeedPostListSkeleton";
 import PostCard from "@/app/feature/post/components/PostCard";
 import PostDetailModal from "@/app/feature/post/components/PostDetailModal";
 import LoginRequiredDialog from "@/app/share/components/LoginRequiredDialog";
-import type { FeedPagination, Post, User } from "@/app/feature/post/types/api.types";
+import { useUser } from "@/app/share/providers/UserProvider";
+import type { FeedPagination, Post } from "@/app/feature/post/types/api.types";
 import { useFeedPageController } from "../controllers/useFeedPageController";
 
 type FeedPostsClientProps = {
-  currentUser: User | null;
   initialPosts: Post[];
   initialPagination: FeedPagination;
   feedError?: string;
 };
 
 export default function FeedPostsClient({
-  currentUser,
   initialPosts,
   initialPagination,
   feedError,
 }: FeedPostsClientProps) {
+  const currentUser = useUser();
   const {
     posts,
     hasMore,
@@ -29,7 +29,6 @@ export default function FeedPostsClient({
     showLoginDialog,
     closeLoginDialog,
   } = useFeedPageController({
-    currentUser,
     initialPosts,
     initialPagination,
     feedError,
@@ -43,7 +42,7 @@ export default function FeedPostsClient({
         </div>
       ) : null}
 
-      {currentUser ? <FeedComposer currentUser={currentUser} /> : null}
+      {currentUser ? <FeedComposer /> : null}
 
       <div className="space-y-6">
         {posts.map((post) => (
@@ -59,8 +58,8 @@ export default function FeedPostsClient({
             />
 
             {isLoadingMore ? (
-              <div aria-live="polite" className="inline-flex items-center justify-center">
-                <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
+              <div aria-live="polite" className="w-full">
+                <FeedPostListSkeleton count={1} />
               </div>
             ) : null}
           </div>

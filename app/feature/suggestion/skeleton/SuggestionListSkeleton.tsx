@@ -29,4 +29,3 @@ export default function SuggestionListSkeleton({ count = 3 }: { count?: number }
     </div>
   );
 }
-

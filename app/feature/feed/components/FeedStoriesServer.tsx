@@ -1,17 +1,17 @@
 import Link from "next/link";
 import Image from "next/image";
+import { fetchCurrentUserServer } from "@/app/feature/feed/api/feedApi.server";
 import {
   fetchStoryUsersServer,
   mapUsersToStories,
 } from "@/app/feature/story/api/storyApi.server";
 
-export default async function FeedStoriesServer({
-  currentUserId,
-}: {
-  currentUserId?: string | null;
-}) {
-  const users = await fetchStoryUsersServer();
-  const stories = mapUsersToStories(users, currentUserId);
+export default async function FeedStoriesServer() {
+  const [currentUser, users] = await Promise.all([
+    fetchCurrentUserServer(),
+    fetchStoryUsersServer(),
+  ]);
+  const stories = mapUsersToStories(users, currentUser?.id ?? null);
 
   if (stories.length === 0) {
     return null;

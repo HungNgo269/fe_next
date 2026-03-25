@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import {
   searchUsersAndPosts,
   type SidebarSearchAllResult,
@@ -20,6 +20,7 @@ const createEmptySearchResults = (): SidebarSearchAllResult => ({
 });
 
 export function useSidebarSearch(open: boolean) {
+  const [isPending, startResultsTransition] = useTransition();
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<SidebarSearchAllResult>(
@@ -113,8 +114,10 @@ export function useSidebarSearch(open: boolean) {
           if (requestId !== requestIdRef.current || controller.signal.aborted) {
             return;
           }
-          setResults(nextResults);
-          lastFetchedQueryRef.current = trimmedQuery;
+          startResultsTransition(() => {
+            setResults(nextResults);
+            lastFetchedQueryRef.current = trimmedQuery;
+          });
         } finally {
           if (requestId === requestIdRef.current) {
             setLoading(false);
@@ -133,7 +136,7 @@ export function useSidebarSearch(open: boolean) {
   return {
     query,
     trimmedQuery,
-    loading,
+    loading: loading || isPending,
     results,
     hasResults,
     inputRef,
