@@ -24,7 +24,7 @@ export default function SearchPanelHistory({
     <section className="space-y-1.5 sm:space-y-2">
       <div className="flex items-center justify-between px-1">
         <h4 className="text-xs font-semibold uppercase  text-foreground-muted">
-          Mới đây
+          Recent
         </h4>
         {history.length > 0 ? (
           <button
@@ -32,7 +32,7 @@ export default function SearchPanelHistory({
             onClick={onClearHistory}
             className="text-xs font-semibold text-brand transition hover:opacity-80"
           >
-            Xóa tất cả
+            Clear all
           </button>
         ) : null}
       </div>

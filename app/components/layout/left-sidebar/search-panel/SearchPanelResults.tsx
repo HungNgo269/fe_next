@@ -34,25 +34,25 @@ export default function SearchPanelResults({
   return (
     <section className="space-y-3">
       <h4 className="px-1 text-xs font-semibold uppercase  text-foreground-muted">
-        Kết quả tìm kiếm
+        Search results
       </h4>
 
       {trimmedQuery.length < minQueryLength ? (
         <div className="rounded-xl px-3 py-6 text-center text-xs text-foreground-muted">
-          Nhập tối thiểu {minQueryLength} ký tự để tìm kiếm
+          Enter at least {minQueryLength} characters to search
         </div>
       ) : loading ? (
         <SearchPanelResultsSkeleton />
       ) : !hasResults ? (
         <div className="rounded-xl px-3 py-6 text-center text-xs text-foreground-muted">
-          Không thấy kết quả
+          No results found
         </div>
       ) : (
         <>
           <section className="space-y-1.5 sm:space-y-2">
             <div className="flex items-center justify-between px-1">
               <h5 className="text-xs font-semibold uppercase  text-foreground-muted">
-                Người dùng
+                Users
               </h5>
               <span className="text-xs text-foreground-muted">
                 {results.totalUsers}
@@ -81,7 +81,7 @@ export default function SearchPanelResults({
               ))
             ) : (
               <div className="rounded-xl border border-border/60 px-3 py-4 text-center text-xs text-foreground-muted">
-                Không có kết quả
+                No results
               </div>
             )}
           </section>
@@ -89,7 +89,7 @@ export default function SearchPanelResults({
           <section className="space-y-1.5 sm:space-y-2">
             <div className="flex items-center justify-between px-1">
               <h5 className="text-xs font-semibold uppercase  text-foreground-muted">
-                Bài viết
+                Posts
               </h5>
               <span className="text-xs text-foreground-muted">
                 {results.totalPosts}
@@ -124,7 +124,7 @@ export default function SearchPanelResults({
               ))
             ) : (
               <div className="rounded-xl border border-border/60 px-3 py-4 text-center text-xs text-foreground-muted">
-                Không có kết quả
+                No results
               </div>
             )}
           </section>

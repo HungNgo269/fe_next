@@ -2,6 +2,8 @@ import { clientGetJson, clientPostJson } from "@/app/share/utils/api";
 import type {
   LoginPayload,
   LoginResponse,
+  RegisterCodeRequestPayload,
+  RegisterCodeRequestResponse,
   RegisterPayload,
   RegisterResponse,
 } from "../types/auth";
@@ -13,6 +15,11 @@ export const login = (payload: LoginPayload) =>
 
 export const register = (payload: RegisterPayload) =>
   clientPostJson<RegisterResponse>("/auth/register", payload, {
+    skipAuthRefresh: true,
+  });
+
+export const requestRegisterCode = (payload: RegisterCodeRequestPayload) =>
+  clientPostJson<RegisterCodeRequestResponse>("/auth/register/request-code", payload, {
     skipAuthRefresh: true,
   });
 

@@ -6,7 +6,7 @@ type FormAlertProps = {
 
 const VARIANTS: Record<NonNullable<FormAlertProps["variant"]>, string> = {
   error: "border-rose-200/70 bg-rose-50/80 text-rose-700",
-  success: "border-emerald-200/70 bg-emerald-50/80 text-emerald-700",
+  success: "border-border bg-auth-field text-foreground",
 };
 
 export default function FormAlert({

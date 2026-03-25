@@ -33,10 +33,6 @@ export default function NotificationFriendSection({
 }: NotificationFriendSectionProps) {
   return (
     <section className="space-y-1.5 sm:space-y-2">
-      <h4 className="px-1 text-xs font-semibold uppercase  text-foreground-muted">
-        Kết bạn
-      </h4>
-
       {friendRequestLoading ? <Loader2 /> : null}
 
       {!friendRequestLoading
@@ -54,7 +50,7 @@ export default function NotificationFriendSection({
                       {request.handle ? `@${request.handle}` : request.name}
                     </p>
                     <p className="mt-0.5 text-sm leading-5 text-foreground-muted">
-                      đã gửi lời mời kết bạn
+                      sent you a friend request
                     </p>
                   </div>
                 </div>
@@ -70,7 +66,7 @@ export default function NotificationFriendSection({
                     ) : (
                       <UserCheck className="h-3.5 w-3.5" />
                     )}
-                    Xac nhan
+                    Confirm
                   </button>
                   <button
                     type="button"
@@ -83,21 +79,13 @@ export default function NotificationFriendSection({
                     ) : (
                       <X className="h-3.5 w-3.5" />
                     )}
-                    Xóa yêu cầu
+                    Delete request
                   </button>
                 </div>
               </div>
             );
           })
         : null}
-
-      {!friendRequestLoading &&
-      incomingRequests.length === 0 &&
-      friendActivityNotifications.length === 0 ? (
-        <div className="rounded-xl px-3 py-5 text-center text-xs text-foreground-muted sm:rounded-2xl sm:py-6">
-          Chưa có thông báo kết bạn.
-        </div>
-      ) : null}
 
       {friendActivityNotifications.length > 0
         ? friendActivityNotifications.map((item) => (

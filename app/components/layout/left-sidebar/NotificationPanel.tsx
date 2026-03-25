@@ -55,6 +55,11 @@ export default function NotificationPanel({
   );
 
   const visiblePostNotifications = postNotifications.slice(0, visiblePostCount);
+  const hasFriendContent =
+    friendRequestLoading ||
+    incomingRequests.length > 0 ||
+    friendActivityNotifications.length > 0;
+  const hasPostContent = postNotifications.length > 0;
 
   if (loading) {
     return <NotificationPanelSkeleton />;
@@ -65,26 +70,36 @@ export default function NotificationPanel({
       <NotificationPanelHeader onBack={onBack} />
 
       <div className="h-[calc(100vh-57px)] space-y-3 overflow-y-auto px-2.5 py-2.5 sm:space-y-5 sm:px-3 sm:py-3">
-        <NotificationFriendSection
-          friendRequestLoading={friendRequestLoading}
-          incomingRequests={incomingRequests}
-          friendActivityNotifications={friendActivityNotifications}
-          onAccept={accept}
-          onDecline={decline}
-          isAccepting={isAccepting}
-          isDeclining={isDeclining}
-        />
+        {!hasFriendContent && !hasPostContent ? (
+          <div className="rounded-xl px-3 py-6 text-center text-sm text-foreground-muted sm:rounded-2xl">
+            No notifications yet.
+          </div>
+        ) : null}
 
-        <NotificationPostSection
-          visiblePostCount={visiblePostCount}
-          postNotifications={postNotifications}
-          visiblePostNotifications={visiblePostNotifications}
-          onLoadMore={() =>
-            setVisiblePostCount((prev) =>
-              Math.min(prev + POST_PAGE_SIZE, postNotifications.length),
-            )
-          }
-        />
+        {hasFriendContent ? (
+          <NotificationFriendSection
+            friendRequestLoading={friendRequestLoading}
+            incomingRequests={incomingRequests}
+            friendActivityNotifications={friendActivityNotifications}
+            onAccept={accept}
+            onDecline={decline}
+            isAccepting={isAccepting}
+            isDeclining={isDeclining}
+          />
+        ) : null}
+
+        {hasPostContent ? (
+          <NotificationPostSection
+            visiblePostCount={visiblePostCount}
+            postNotifications={postNotifications}
+            visiblePostNotifications={visiblePostNotifications}
+            onLoadMore={() =>
+              setVisiblePostCount((prev) =>
+                Math.min(prev + POST_PAGE_SIZE, postNotifications.length),
+              )
+            }
+          />
+        ) : null}
       </div>
     </div>
   );

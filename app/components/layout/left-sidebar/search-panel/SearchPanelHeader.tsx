@@ -32,7 +32,7 @@ export default function SearchPanelHeader({
           </button>
         ) : null}
         <h3 className="text-xl font-semibold leading-none text-foreground sm:text-2xl">
-          Tìm kiếm
+          Search
         </h3>
       </div>
 
@@ -42,7 +42,7 @@ export default function SearchPanelHeader({
           ref={inputRef}
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
-          placeholder="Tìm kiếm người dùng, bài viết."
+          placeholder="Search for people and posts."
           className="h-11 w-full rounded-xl border border-border/70 bg-surface-hover/60 pl-9 pr-10 text-sm text-foreground outline-none transition placeholder:text-foreground-muted focus:border-brand/60"
         />
         {query ? (

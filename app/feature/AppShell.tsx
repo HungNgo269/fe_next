@@ -24,7 +24,7 @@ export default function AppShell({ children }: AppShellProps) {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
-      {/* có lẽ nên phân ra nhiều feature hơn khi app lớn, kiểu để vào đây message, noti,.. thay vì ôm hết */}
+      {/* This should probably be split into more features as the app grows, instead of grouping messages and notifications here. */}
       <LeftSidebar
         onRequireAuth={() => router.push("/login")}
         notifications={notifications}
