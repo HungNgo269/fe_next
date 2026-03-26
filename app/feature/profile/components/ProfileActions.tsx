@@ -3,6 +3,10 @@
 import { Loader2, UserPlus, Users } from "lucide-react";
 import type { FriendshipStatus } from "../types/api.types";
 import { useProfileConnectionMutations } from "../mutations/useProfileConnectionMutations";
+import { useActionState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { logoutFormAction } from "@/app/feature/auth/actions/auth.actions";
+import { IDLE_FORM_ACTION_STATE } from "@/app/share/types/action-state";
 
 type OwnProfileActionsProps = {
   variant: "own";
@@ -10,15 +14,24 @@ type OwnProfileActionsProps = {
   onOpenFriendRequests: () => void;
 };
 
+type LogoutProfileActionsProps = {
+  variant: "logout";
+};
+
 type OtherProfileActionsProps = {
   variant: "other";
   profileId: string;
-  profileKey: string;
+  profileKey?: string;
   isFollowing: boolean;
+  followersCount: number;
+  friendsCount: number;
   friendshipStatus: FriendshipStatus;
 };
 
-type ProfileActionsProps = OwnProfileActionsProps | OtherProfileActionsProps;
+type ProfileActionsProps =
+  | OwnProfileActionsProps
+  | LogoutProfileActionsProps
+  | OtherProfileActionsProps;
 
 const BUTTON_BASE =
   "inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition-colors disabled:opacity-60";
@@ -48,10 +61,10 @@ function OwnProfileActions({
 
 function OtherProfileActions({
   profileId,
-  profileKey,
+  profileKey = profileId,
   isFollowing,
   friendshipStatus,
-}: Omit<OtherProfileActionsProps, "variant">) {
+}: Omit<OtherProfileActionsProps, "variant" | "followersCount" | "friendsCount">) {
   const {
     follow,
     unfollow,
@@ -162,7 +175,38 @@ function OtherProfileActions({
   );
 }
 
+function LogoutAction() {
+  const router = useRouter();
+  const [state, formAction, isPending] = useActionState(
+    logoutFormAction,
+    IDLE_FORM_ACTION_STATE,
+  );
+
+  useEffect(() => {
+    if (state.success) {
+      router.replace("/login");
+      router.refresh();
+    }
+  }, [router, state]);
+
+  return (
+    <form action={formAction} className="flex-1">
+      <button
+        type="submit"
+        disabled={isPending}
+        className="inline-flex w-full items-center justify-center rounded-xl bg-gray-200 px-4 py-2.5 text-sm font-semibold text-secondary-foreground transition-colors hover:brightness-95 disabled:opacity-60"
+      >
+        {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Logout"}
+      </button>
+    </form>
+  );
+}
+
 export default function ProfileActions(props: ProfileActionsProps) {
+  if (props.variant === "logout") {
+    return <LogoutAction />;
+  }
+
   if (props.variant === "own") {
     return (
       <OwnProfileActions

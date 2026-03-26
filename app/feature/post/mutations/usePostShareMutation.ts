@@ -5,7 +5,7 @@ import { useCallback } from "react";
 import { useFeedCacheUpdater } from "@/app/share/hooks/useFeedCacheUpdater";
 import { useUser } from "@/app/share/providers/UserProvider";
 import { getFeedPostsFromCache } from "@/app/feature/feed/queries/feed.cache";
-import { createShareRequest } from "../api/postShareApi";
+import { createShareAction } from "../actions/post.actions";
 import { useRequireAuthAction } from "../hooks/useRequireAuthAction";
 import type { Post } from "../types/api.types";
 
@@ -16,7 +16,7 @@ export function usePostShareMutation(postId: string) {
   const cache = useFeedCacheUpdater();
 
   const shareToProfileMutation = useMutation({
-    mutationFn: () => createShareRequest(postId),
+    mutationFn: () => createShareAction(postId),
     onSuccess: (result) => {
       if (!result.ok || !currentUser) return;
       const sourcePost = getFeedPostsFromCache(queryClient).find(

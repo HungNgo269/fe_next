@@ -3,7 +3,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { profileQueryKeys } from "@/app/feature/profile/queries/profile.query-keys";
-import { createPostRequest } from "@/app/feature/post/api/postApi";
+import { createPostAction } from "@/app/feature/post/actions/post.actions";
 import type { Post } from "@/app/feature/post/types/api.types";
 import { useRequireAuthAction } from "@/app/feature/post/hooks/useRequireAuthAction";
 import { useFeedCacheUpdater } from "@/app/share/hooks/useFeedCacheUpdater";
@@ -18,7 +18,7 @@ export function useCreatePostMutation() {
 
   const createMutation = useMutation({
     mutationFn: (payload: { content: string; mediaFiles: File[] }) =>
-      createPostRequest(payload.content, payload.mediaFiles),
+      createPostAction(payload.content, payload.mediaFiles),
     onSuccess: async (result, payload) => {
       if (!result.ok || !currentUser) return;
 

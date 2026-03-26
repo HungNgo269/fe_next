@@ -120,14 +120,7 @@ export default function ProfileFeedView({ profileKey }: ProfileFeedViewProps) {
               >
                 Edit profile
               </Link>
-              <button
-                type="button"
-                onClick={() => void ui.handleLogout()}
-                disabled={ui.isLoggingOut}
-                className="inline-flex flex-1 items-center justify-center rounded-xl bg-gray-200 px-4 py-2.5 text-sm font-semibold text-secondary-foreground transition-colors hover:brightness-95 disabled:opacity-60"
-              >
-                Logout
-              </button>
+              <ProfileActions variant="logout" />
             </div>
             <ProfileActions
               variant="own"
@@ -139,8 +132,9 @@ export default function ProfileFeedView({ profileKey }: ProfileFeedViewProps) {
           <ProfileActions
             variant="other"
             profileId={profile.id ?? ""}
-            profileKey={profileKey}
             isFollowing={profile.isFollowing ?? false}
+            followersCount={profile.followersCount ?? 0}
+            friendsCount={profile.friendsCount ?? 0}
             friendshipStatus={profile.friendshipStatus ?? "NONE"}
           />
         )}

@@ -18,6 +18,7 @@ type ServerRequestOptions = {
   headers?: Record<string, string>;
   cache?: RequestCache;
   next?: NextFetchRequestConfig;
+  skipJsonContentType?: boolean;
 };
 
 type NextFetchRequestConfig = {
@@ -81,10 +82,12 @@ const readResponseBody = async (response: Response): Promise<unknown> => {
 };
 
 const getRequestHeaders = async (options?: ServerRequestOptions) => {
-  const headers: Record<string, string> = {
-    ...JSON_HEADERS,
-    ...(options?.headers ?? {}),
-  };
+  const headers: Record<string, string> = options?.skipJsonContentType
+    ? { ...(options?.headers ?? {}) }
+    : {
+        ...JSON_HEADERS,
+        ...(options?.headers ?? {}),
+      };
 
   if (options?.includeAuth === false) {
     return headers;
@@ -101,15 +104,21 @@ const getRequestHeaders = async (options?: ServerRequestOptions) => {
 
 const runServerRequest = async <T>(
   path: string,
-  method: "GET" | "POST",
+  method: "GET" | "POST" | "PATCH" | "DELETE",
   options?: ServerRequestOptions,
-  body?: unknown,
+  body?: BodyInit | object,
 ): Promise<ApiResponse<T>> => {
   try {
+    const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
     const response = await fetch(`${API_BASE_URL}${path}`, {
       method,
       headers: await getRequestHeaders(options),
-      body: body === undefined ? undefined : JSON.stringify(body),
+      body:
+        body === undefined
+          ? undefined
+          : isFormData
+            ? body
+            : JSON.stringify(body),
       credentials: "include",
       cache: options?.cache ?? "no-store",
       next: options?.next,
@@ -143,11 +152,29 @@ const runServerRequest = async <T>(
 
 export const serverPostJson = async <T>(
   path: string,
-  body?: unknown,
+  body?: object,
   options?: ServerRequestOptions,
 ): Promise<ApiResponse<T>> => runServerRequest(path, "POST", options, body);
+
+export const serverPostForm = async <T>(
+  path: string,
+  body: FormData,
+  options?: ServerRequestOptions,
+): Promise<ApiResponse<T>> =>
+  runServerRequest(path, "POST", { ...options, skipJsonContentType: true }, body);
 
 export const serverGetJson = async <T>(
   path: string,
   options?: ServerRequestOptions,
 ): Promise<ApiResponse<T>> => runServerRequest(path, "GET", options);
+
+export const serverPatchJson = async <T>(
+  path: string,
+  body?: object,
+  options?: ServerRequestOptions,
+): Promise<ApiResponse<T>> => runServerRequest(path, "PATCH", options, body);
+
+export const serverDeleteJson = async <T>(
+  path: string,
+  options?: ServerRequestOptions,
+): Promise<ApiResponse<T>> => runServerRequest(path, "DELETE", options);

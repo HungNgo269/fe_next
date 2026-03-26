@@ -2,8 +2,11 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
-import { updatePostRequest, deletePostRequest } from "../api/postApi";
-import { createPostReportRequest } from "../api/postReportApi";
+import {
+  createPostReportAction,
+  deletePostAction,
+  updatePostAction,
+} from "../actions/post.actions";
 import { usePostUIStore } from "../stores/postStore";
 import { getFeedPostsFromCache } from "@/app/feature/feed/queries/feed.cache";
 import { useRequireAuthAction } from "../hooks/useRequireAuthAction";
@@ -26,7 +29,7 @@ export function usePostMutations(postId: string) {
   const isOwner = isPostOwner(postId);
 
   const updateMutation = useMutation({
-    mutationFn: (content: string) => updatePostRequest(postId, content),
+    mutationFn: (content: string) => updatePostAction(postId, content),
     onSuccess: (result, content) => {
       if (!result.ok) return;
       cache.updatePostContent(postId, content);
@@ -35,7 +38,7 @@ export function usePostMutations(postId: string) {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: () => deletePostRequest(postId),
+    mutationFn: () => deletePostAction(postId),
     onSuccess: (result) => {
       if (!result.ok) return;
       cache.removePost(postId);
@@ -45,7 +48,7 @@ export function usePostMutations(postId: string) {
 
   const reportMutation = useMutation({
     mutationFn: ({ text }: { text?: string }) =>
-      createPostReportRequest(postId, text),
+      createPostReportAction(postId, text),
   });
 
   const handleStartEdit = useCallback(() => {

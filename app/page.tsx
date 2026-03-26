@@ -2,7 +2,7 @@ import LoginForm from "@/app/feature/auth/components/LoginForm";
 import AuthHeroPanel from "@/app/feature/auth/components/AuthHeroPanel";
 import FeedPage from "@/app/feature/feed/components/FeedPage";
 import { fetchCurrentUserServer } from "@/app/feature/feed/api/feedApi.server";
-import AppShell from "@/app/feature/AppShell";
+import AppShell from "@/app/components/layout/AppShell";
 import { UserProvider } from "@/app/share/providers/UserProvider";
 
 export default async function HomePage() {

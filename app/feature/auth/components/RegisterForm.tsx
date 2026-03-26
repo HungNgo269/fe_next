@@ -6,7 +6,10 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import FormAlert from "@/app/share/components/FormAlert";
-import { register as registerUser, requestRegisterCode } from "../api/authApi";
+import {
+  registerAction,
+  requestRegisterCodeAction,
+} from "../actions/auth.actions";
 import { registerSchema, type RegisterFormValues } from "../schema/authSchema";
 
 const buildErrorTitle = (status?: number) => {
@@ -71,7 +74,7 @@ export default function RegisterForm() {
     setSuccessTitle(undefined);
     setIsRequestingCode(true);
 
-    const result = await requestRegisterCode({ email: values.email });
+    const result = await requestRegisterCodeAction({ email: values.email });
 
     setIsRequestingCode(false);
     if (!result.ok) {
@@ -100,7 +103,7 @@ export default function RegisterForm() {
     setSuccessTitle(undefined);
     setIsRegistering(true);
 
-    const result = await registerUser({
+    const result = await registerAction({
       ...pendingValues,
       emailVerificationCode: verificationCode.trim(),
       emailVerificationToken: verificationToken,
@@ -128,7 +131,9 @@ export default function RegisterForm() {
     setSuccessTitle(undefined);
     setIsRequestingCode(true);
 
-    const result = await requestRegisterCode({ email: pendingValues.email });
+    const result = await requestRegisterCodeAction({
+      email: pendingValues.email,
+    });
 
     setIsRequestingCode(false);
     if (!result.ok) {

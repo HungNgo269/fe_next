@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import AppShell from "../feature/AppShell";
+import AppShell from "../components/layout/AppShell";
 import { fetchCurrentUserServer } from "@/app/feature/feed/api/feedApi.server";
 import { UserProvider } from "@/app/share/providers/UserProvider";
 

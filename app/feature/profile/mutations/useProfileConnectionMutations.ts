@@ -2,14 +2,14 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  acceptFriendRequestApi,
-  cancelFriendRequestApi,
-  declineFriendRequestApi,
-  followUserApi,
-  removeFriendApi,
-  sendFriendRequestApi,
-  unfollowUserApi,
-} from "../api/profileApi";
+  acceptFriendRequestAction,
+  cancelFriendRequestAction,
+  declineFriendRequestAction,
+  followUserAction,
+  removeFriendAction,
+  sendFriendRequestAction,
+  unfollowUserAction,
+} from "../actions/profile.actions";
 import type { ProfileFeedResponse, FriendshipStatus } from "../types/api.types";
 import { useSafeOptimisticMutation } from "@/app/share/hooks/useSafeOptimisticMutation";
 import { profileQueryKeys } from "../queries/profile.query-keys";
@@ -59,10 +59,14 @@ export function useProfileConnectionMutations(userId: string, profileKey: string
     void queryClient.invalidateQueries({ queryKey: profileQueryKeys.friendRequests() });
   };
 
-  const followMutation = useSafeOptimisticMutation<void, void, ProfileFeedResponse | undefined>({
+  const followMutation = useSafeOptimisticMutation<
+    void,
+    void,
+    ProfileFeedResponse | undefined
+  >({
     queryKey: profileQueryKey,
     mutationFn: async () => {
-      const result = await followUserApi(userId);
+      const result = await followUserAction(userId);
       if (!result.ok && result.error.status !== 409) {
         throw new Error(result.error.messages[0] ?? "Unable to follow user.");
       }
@@ -81,10 +85,14 @@ export function useProfileConnectionMutations(userId: string, profileKey: string
     errorMessage: "Unable to follow user.",
   });
 
-  const unfollowMutation = useSafeOptimisticMutation<void, void, ProfileFeedResponse | undefined>({
+  const unfollowMutation = useSafeOptimisticMutation<
+    void,
+    void,
+    ProfileFeedResponse | undefined
+  >({
     queryKey: profileQueryKey,
     mutationFn: async () => {
-      const result = await unfollowUserApi(userId);
+      const result = await unfollowUserAction(userId);
       if (!result.ok && result.error.status !== 404) {
         throw new Error(result.error.messages[0] ?? "Unable to unfollow user.");
       }
@@ -103,10 +111,14 @@ export function useProfileConnectionMutations(userId: string, profileKey: string
     errorMessage: "Unable to unfollow user.",
   });
 
-  const sendRequest = useSafeOptimisticMutation<void, void, ProfileFeedResponse | undefined>({
+  const sendRequest = useSafeOptimisticMutation<
+    void,
+    void,
+    ProfileFeedResponse | undefined
+  >({
     queryKey: profileQueryKey,
     mutationFn: async () => {
-      const result = await sendFriendRequestApi(userId);
+      const result = await sendFriendRequestAction(userId);
       if (!result.ok && result.error.status !== 409) {
         throw new Error(result.error.messages[0] ?? "Unable to send friend request.");
       }
@@ -125,10 +137,14 @@ export function useProfileConnectionMutations(userId: string, profileKey: string
     errorMessage: "Unable to send friend request.",
   });
 
-  const cancelRequest = useSafeOptimisticMutation<void, void, ProfileFeedResponse | undefined>({
+  const cancelRequest = useSafeOptimisticMutation<
+    void,
+    void,
+    ProfileFeedResponse | undefined
+  >({
     queryKey: profileQueryKey,
     mutationFn: async () => {
-      const result = await cancelFriendRequestApi(userId);
+      const result = await cancelFriendRequestAction(userId);
       if (!result.ok && result.error.status !== 404) {
         throw new Error(result.error.messages[0] ?? "Unable to cancel friend request.");
       }
@@ -147,10 +163,14 @@ export function useProfileConnectionMutations(userId: string, profileKey: string
     errorMessage: "Unable to cancel friend request.",
   });
 
-  const acceptRequest = useSafeOptimisticMutation<void, void, ProfileFeedResponse | undefined>({
+  const acceptRequest = useSafeOptimisticMutation<
+    void,
+    void,
+    ProfileFeedResponse | undefined
+  >({
     queryKey: profileQueryKey,
     mutationFn: async () => {
-      const result = await acceptFriendRequestApi(userId);
+      const result = await acceptFriendRequestAction(userId);
       if (!result.ok && result.error.status !== 404 && result.error.status !== 409) {
         throw new Error(result.error.messages[0] ?? "Unable to accept friend request.");
       }
@@ -170,10 +190,14 @@ export function useProfileConnectionMutations(userId: string, profileKey: string
     errorMessage: "Unable to accept friend request.",
   });
 
-  const declineRequest = useSafeOptimisticMutation<void, void, ProfileFeedResponse | undefined>({
+  const declineRequest = useSafeOptimisticMutation<
+    void,
+    void,
+    ProfileFeedResponse | undefined
+  >({
     queryKey: profileQueryKey,
     mutationFn: async () => {
-      const result = await declineFriendRequestApi(userId);
+      const result = await declineFriendRequestAction(userId);
       if (!result.ok && result.error.status !== 404 && result.error.status !== 409) {
         throw new Error(result.error.messages[0] ?? "Unable to decline friend request.");
       }
@@ -192,10 +216,14 @@ export function useProfileConnectionMutations(userId: string, profileKey: string
     errorMessage: "Unable to decline friend request.",
   });
 
-  const removeFriend = useSafeOptimisticMutation<void, void, ProfileFeedResponse | undefined>({
+  const removeFriend = useSafeOptimisticMutation<
+    void,
+    void,
+    ProfileFeedResponse | undefined
+  >({
     queryKey: profileQueryKey,
     mutationFn: async () => {
-      const result = await removeFriendApi(userId);
+      const result = await removeFriendAction(userId);
       if (!result.ok && result.error.status !== 404) {
         throw new Error(result.error.messages[0] ?? "Unable to remove friend.");
       }

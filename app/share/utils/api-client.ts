@@ -23,12 +23,6 @@ const apiClient = axios.create({
   withCredentials: true,
 });
 
-const refreshClient = axios.create({
-  baseURL: API_BASE_URL,
-  headers: JSON_HEADERS,
-  withCredentials: true,
-});
-
 let refreshPromise: Promise<void> | null = null;
 
 export const toApiError = (error: unknown): ApiError => {
@@ -44,7 +38,14 @@ export const toApiError = (error: unknown): ApiError => {
 };
 
 export const refreshTokens = async (): Promise<void> => {
-  await refreshClient.post(stripLeadingSlash("/auth/refresh"));
+  const response = await fetch("/api/auth/refresh", {
+    method: "POST",
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new Error("Unable to refresh tokens.");
+  }
 };
 
 apiClient.interceptors.response.use(
@@ -98,21 +99,6 @@ apiClient.interceptors.request.use((config) => {
 
   return config;
 });
-
-export const withFormDataHeaders = (requestConfig: ApiRequestConfig) => {
-  const headers = { ...(requestConfig.headers ?? {}) } as Record<string, string>;
-  delete headers["Content-Type"];
-  delete headers["content-type"];
-
-  return {
-    ...requestConfig,
-    headers: {
-      ...headers,
-      "Content-Type": undefined,
-      "content-type": undefined,
-    },
-  };
-};
 
 export const toRequestPath = (path: string) => stripLeadingSlash(path);
 

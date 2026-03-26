@@ -2,10 +2,10 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  acceptFriendRequestApi,
-  cancelFriendRequestApi,
-  declineFriendRequestApi,
-} from "../api/profileApi";
+  acceptFriendRequestAction,
+  cancelFriendRequestAction,
+  declineFriendRequestAction,
+} from "../actions/profile.actions";
 import { profileQueryKeys } from "../queries/profile.query-keys";
 
 export function useFriendRequestMutations() {
@@ -17,17 +17,17 @@ export function useFriendRequestMutations() {
   };
 
   const acceptMutation = useMutation({
-    mutationFn: (userId: string) => acceptFriendRequestApi(userId),
+    mutationFn: (userId: string) => acceptFriendRequestAction(userId),
     onSettled: invalidateAll,
   });
 
   const declineMutation = useMutation({
-    mutationFn: (userId: string) => declineFriendRequestApi(userId),
+    mutationFn: (userId: string) => declineFriendRequestAction(userId),
     onSettled: invalidateAll,
   });
 
   const cancelMutation = useMutation({
-    mutationFn: (userId: string) => cancelFriendRequestApi(userId),
+    mutationFn: (userId: string) => cancelFriendRequestAction(userId),
     onSettled: invalidateAll,
   });
 

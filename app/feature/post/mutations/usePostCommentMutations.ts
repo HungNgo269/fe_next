@@ -5,11 +5,11 @@ import { useCallback } from "react";
 import { useFeedCacheUpdater } from "@/app/share/hooks/useFeedCacheUpdater";
 import { useUser } from "@/app/share/providers/UserProvider";
 import {
-  createCommentRequest,
-  deleteCommentRequest,
-  updateCommentRequest,
-} from "../api/postCommentApi";
-import { createCommentReportRequest } from "../api/postReportApi";
+  createCommentAction,
+  createCommentReportAction,
+  deleteCommentAction,
+  updateCommentAction,
+} from "../actions/post.actions";
 import { useOwnership } from "../hooks/useOwnership";
 import { useRequireAuthAction } from "../hooks/useRequireAuthAction";
 import { usePostUIStore } from "../stores/postStore";
@@ -32,7 +32,7 @@ export function usePostCommentMutations(postId: string) {
     }: {
       content: string;
       parentId?: string;
-    }) => createCommentRequest(postId, content, parentId),
+    }) => createCommentAction(postId, content, parentId),
     onSuccess: (result, variables) => {
       if (!result.ok || !currentUser) return;
       cache.appendComment(postId, {
@@ -63,7 +63,7 @@ export function usePostCommentMutations(postId: string) {
     }: {
       commentId: string;
       content: string;
-    }) => updateCommentRequest(commentId, content),
+    }) => updateCommentAction(commentId, content),
     onSuccess: (result, { commentId }) => {
       if (!result.ok) return;
       cache.updateComment(postId, commentId, {
@@ -74,7 +74,7 @@ export function usePostCommentMutations(postId: string) {
   });
 
   const deleteCommentMutation = useMutation({
-    mutationFn: (commentId: string) => deleteCommentRequest(commentId),
+    mutationFn: (commentId: string) => deleteCommentAction(commentId),
     onSuccess: (result, commentId) => {
       if (!result.ok) return;
       cache.removeComment(postId, commentId);
@@ -88,7 +88,7 @@ export function usePostCommentMutations(postId: string) {
     }: {
       commentId: string;
       text?: string;
-    }) => createCommentReportRequest(commentId, text),
+    }) => createCommentReportAction(commentId, text),
   });
 
   const handleAddComment = useCallback(() => {

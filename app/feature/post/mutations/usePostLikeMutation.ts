@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef } from "react";
 import { useRequireAuthAction } from "../hooks/useRequireAuthAction";
 import { useFeedCacheUpdater } from "@/app/share/hooks/useFeedCacheUpdater";
-import { createLikeRequest, deleteLikeRequest } from "../api/postLikeApi";
+import { createLikeAction, deleteLikeAction } from "../actions/post.actions";
 import { findPostInCaches } from "../utils/postCache";
 
 export function usePostLikeMutation(postId: string, currentLiked?: boolean) {
@@ -45,14 +45,14 @@ export function usePostLikeMutation(postId: string, currentLiked?: boolean) {
   const likeMutation = useMutation({
     mutationFn: async (variables: { nextLiked: boolean }) => {
       if (!variables.nextLiked) {
-        const result = await deleteLikeRequest(postId);
+        const result = await deleteLikeAction(postId);
         if (!result.ok && result.error.status !== 404) {
           throw new Error(result.error.messages[0] ?? "Unable to unlike.");
         }
         return;
       }
 
-      const result = await createLikeRequest(postId);
+      const result = await createLikeAction(postId);
       if (!result.ok) {
         if (result.error.status === 409) return;
         throw new Error(result.error.messages[0] ?? "Unable to like.");

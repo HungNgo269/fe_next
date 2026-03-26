@@ -33,9 +33,19 @@ export type AuthUser = {
   avatarUrl?: string | null;
 };
 
+export type AuthTokens = {
+  accessToken: string;
+  refreshToken: string;
+};
+
 export type LoginResponse = {
   message: string;
   user: AuthUser;
+  tokens: AuthTokens;
+  otpTriggered: boolean;
 };
 
-export type RegisterResponse = LoginResponse;
+export type RegisterResponse = {
+  message: string;
+  user: AuthUser;
+};

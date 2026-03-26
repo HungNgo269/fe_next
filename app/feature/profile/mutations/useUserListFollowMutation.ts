@@ -2,7 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { UserListUser } from "../types/user-list.types";
-import { followUserApi, unfollowUserApi } from "../api/profileApi";
+import { followUserAction, unfollowUserAction } from "../actions/profile.actions";
 import { profileQueryKeys } from "../queries/profile.query-keys";
 
 export function useUserListFollowMutation(queryKey: readonly unknown[]) {
@@ -15,7 +15,7 @@ export function useUserListFollowMutation(queryKey: readonly unknown[]) {
   };
 
   const followMutation = useMutation({
-    mutationFn: (targetUserId: string) => followUserApi(targetUserId),
+    mutationFn: (targetUserId: string) => followUserAction(targetUserId),
     onMutate: (targetUserId) => optimisticUpdate(targetUserId, true),
     onError: (_, targetUserId) => optimisticUpdate(targetUserId, false),
     onSettled: () => {
@@ -24,7 +24,7 @@ export function useUserListFollowMutation(queryKey: readonly unknown[]) {
   });
 
   const unfollowMutation = useMutation({
-    mutationFn: (targetUserId: string) => unfollowUserApi(targetUserId),
+    mutationFn: (targetUserId: string) => unfollowUserAction(targetUserId),
     onMutate: (targetUserId) => optimisticUpdate(targetUserId, false),
     onError: (_, targetUserId) => optimisticUpdate(targetUserId, true),
     onSettled: () => {

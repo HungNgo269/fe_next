@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import {
-  deleteCurrentUserAvatar,
-  updateCurrentUserProfile,
-  uploadCurrentUserAvatar,
-} from "@/app/feature/profile/api/profileApi";
+  deleteCurrentUserAvatarAction,
+  updateCurrentUserProfileAction,
+  uploadCurrentUserAvatarAction,
+} from "@/app/feature/profile/actions/profile.actions";
 import type { UserProfile } from "@/app/feature/profile/types/profile";
 import type {
   AvatarFormValues,
@@ -158,7 +158,7 @@ export function useEditProfilePageController({
 
     setAvatarSubmitError("");
 
-    const result = await uploadCurrentUserAvatar(avatarFile);
+    const result = await uploadCurrentUserAvatarAction(avatarFile);
     if (!result.ok) {
       setAvatarSubmitError(PROFILE_SUBMIT_ERROR);
       toast.error(PROFILE_SUBMIT_ERROR);
@@ -177,7 +177,7 @@ export function useEditProfilePageController({
 
     setAvatarSubmitError("");
 
-    const result = await deleteCurrentUserAvatar();
+    const result = await deleteCurrentUserAvatarAction();
     if (!result.ok) {
       setAvatarSubmitError(PROFILE_SUBMIT_ERROR);
       toast.error(PROFILE_SUBMIT_ERROR);
@@ -198,7 +198,7 @@ export function useEditProfilePageController({
     setDetailsSubmitError("");
 
     try {
-      const result = await updateCurrentUserProfile({
+      const result = await updateCurrentUserProfileAction({
         name: values.name,
         email: values.email,
         gender: values.gender,

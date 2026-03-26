@@ -2,8 +2,8 @@
 
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import LeftSidebar from "../components/layout/LeftSidebar";
-import { useAppShellNotifications } from "../components/hooks/useAppShellNotifications";
+import LeftSidebar from "./LeftSidebar";
+import { useAppShellNotifications } from "../hooks/useAppShellNotifications";
 import { useUser } from "@/app/share/providers/UserProvider";
 
 type AppShellProps = {

@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import FormAlert from "@/app/share/components/FormAlert";
-import { login } from "../api/authApi";
+import { loginAction } from "../actions/auth.actions";
 import { loginSchema, type LoginFormValues } from "../schema/authSchema";
 
 const buildErrorTitle = (status?: number) => {
@@ -49,7 +49,7 @@ export default function LoginForm() {
     setServerErrors([]);
     setErrorTitle(undefined);
 
-    const result = await login(values);
+    const result = await loginAction(values);
     if (!result.ok) {
       setServerErrors(result.error.messages);
       setErrorTitle(buildErrorTitle(result.error.status));

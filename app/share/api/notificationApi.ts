@@ -3,7 +3,8 @@ import {
   DEFAULT_NOTIFICATION_LIMIT,
   MAX_NOTIFICATION_LIMIT,
 } from "@/app/share/constants/notification.constants";
-import { clientGetJson, clientPostJson } from "@/app/share/utils/api";
+import { markAllNotificationsAsReadAction } from "@/app/share/actions/notification.actions";
+import { clientGetJson } from "@/app/share/utils/api";
 import { formatRelativeTime } from "@/app/share/utils/format";
 
 type NotificationSummaryResponse = {
@@ -58,9 +59,6 @@ export const fetchNotificationUnreadCount = async (): Promise<number> => {
 };
 
 export const markAllNotificationsAsRead = async (): Promise<boolean> => {
-  const response = await clientPostJson<{ success: boolean }>(
-    "/notifications/mark-all-read",
-    {},
-  );
+  const response = await markAllNotificationsAsReadAction();
   return response.ok;
 };
