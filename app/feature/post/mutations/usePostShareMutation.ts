@@ -2,12 +2,19 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
+import { toast } from "sonner";
 import { useFeedCacheUpdater } from "@/app/share/hooks/useFeedCacheUpdater";
 import { useUser } from "@/app/share/providers/UserProvider";
 import { getFeedPostsFromCache } from "@/app/feature/feed/queries/feed.cache";
 import { createShareAction } from "../actions/post.actions";
 import { useRequireAuthAction } from "../hooks/useRequireAuthAction";
 import type { Post } from "../types/api.types";
+import {
+  getApiResultMessage,
+  getApiResultStatus,
+  isForbiddenStatus,
+  isUnauthenticatedStatus,
+} from "@/app/share/utils/api-result";
 
 export function usePostShareMutation(postId: string) {
   const queryClient = useQueryClient();
@@ -49,7 +56,19 @@ export function usePostShareMutation(postId: string) {
   });
 
   const handleShareToProfile = useCallback(() => {
-    runIfAuth(() => shareToProfileMutation.mutate());
+    runIfAuth(async () => {
+      const result = await shareToProfileMutation.mutateAsync();
+      if (!result.ok) {
+        const status = getApiResultStatus(result);
+        toast.error(
+          isForbiddenStatus(status)
+            ? "You do not have permission to share this post."
+            : isUnauthenticatedStatus(status)
+              ? "Your session has expired. Please sign in again."
+              : getApiResultMessage(result, "Unable to share post."),
+        );
+      }
+    });
   }, [runIfAuth, shareToProfileMutation]);
 
   const handleCopyShareLink = useCallback(async () => {

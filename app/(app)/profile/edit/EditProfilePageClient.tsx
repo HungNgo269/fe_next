@@ -2,27 +2,28 @@
 
 import Link from "next/link";
 import ProfileShell from "@/app/feature/profile/components/ProfileShell";
-import ProfileStatusCard from "@/app/feature/profile/components/ProfileStatusCard";
 import EditProfileAvatarForm from "@/app/feature/profile/components/edit-profile/EditProfileAvatarForm";
 import EditProfileDetailsForm from "@/app/feature/profile/components/edit-profile/EditProfileDetailsForm";
 import { useEditProfilePageController } from "@/app/feature/profile/controllers/useEditProfilePageController";
 import EditProfilePageSkeleton from "@/app/feature/profile/skeleton/EditProfilePageSkeleton";
+import AppPageState from "@/app/share/components/AppPageState";
+import type { AccessState } from "@/app/share/utils/access-state";
 import type { UserProfile } from "@/app/feature/profile/types/profile";
 
 type EditProfilePageClientProps = {
   initialProfile: UserProfile | null;
-  isUnauthorized: boolean;
+  accessState: AccessState;
   loadError: string;
 };
 
 export default function EditProfilePageClient({
   initialProfile,
-  isUnauthorized,
+  accessState,
   loadError,
 }: EditProfilePageClientProps) {
   const controller = useEditProfilePageController({
     initialProfile,
-    isUnauthorized,
+    initialAccessState: accessState,
     initialLoadError: loadError,
   });
   const { profile, status, avatarForm, detailsForm } = controller;
@@ -32,42 +33,106 @@ export default function EditProfilePageClient({
       ? `/profile/${profile.id}`
       : "/";
 
-  return (
-    <ProfileShell>
-      {status.isLoading ? (
-        <EditProfilePageSkeleton />
-      ) : status.isUnauthorized ? (
-        <main className="relative mx-auto w-full max-w-3xl px-4 pb-16 pt-12 sm:px-6">
-          <ProfileStatusCard
+  const renderState = () => {
+    switch (status.accessState.kind) {
+      case "unauthenticated":
+        return (
+          <AppPageState
+            title="Sign in to edit your profile"
+            message="Editing your profile requires an active session. The route guard should normally redirect before this page renders."
             action={
               <Link
-                className="ui-btn-primary rounded-full px-5 py-2 text-xs font-semibold transition"
+                className="ui-btn-primary rounded-full px-5 py-2.5 text-sm font-semibold transition-colors"
                 href="/login"
               >
                 Sign in
               </Link>
             }
-            message="Please sign in to edit your profile."
-            title="Profile is locked"
-            variant="error"
+            secondaryAction={
+              <Link
+                className="ui-btn-ghost rounded-full px-5 py-2.5 text-sm font-semibold transition-colors"
+                href="/"
+              >
+                Continue browsing
+              </Link>
+            }
+            tone="warning"
           />
-        </main>
-      ) : status.loadError ? (
-        <main className="relative mx-auto w-full max-w-3xl px-4 pb-16 pt-12 sm:px-6">
-          <ProfileStatusCard
+        );
+      case "forbidden":
+        return (
+          <AppPageState
+            title="You can't edit this profile"
+            message="This profile is not available for editing with your current account."
             action={
               <Link
-                className="ui-btn-primary rounded-full px-5 py-2 text-xs font-semibold transition"
+                className="ui-btn-primary rounded-full px-5 py-2.5 text-sm font-semibold transition-colors"
                 href={profileHref}
               >
                 Back to profile
               </Link>
             }
-            message={status.loadError}
-            title="Unable to load profile"
-            variant="error"
+            tone="error"
           />
-        </main>
+        );
+      case "payment_required":
+      case "not_found":
+        return (
+          <AppPageState
+            title="Profile not found"
+            message="The profile you were trying to edit does not exist anymore or the link is invalid."
+            action={
+              <Link
+                className="ui-btn-primary rounded-full px-5 py-2.5 text-sm font-semibold transition-colors"
+                href="/"
+              >
+                Back to home
+              </Link>
+            }
+            tone="error"
+          />
+        );
+      case "error":
+        return (
+          <AppPageState
+            title="Unable to load profile"
+            message={status.loadError}
+            action={
+              <Link
+                className="ui-btn-primary rounded-full px-5 py-2.5 text-sm font-semibold transition-colors"
+                href={profileHref}
+              >
+                Back to profile
+              </Link>
+            }
+            tone="error"
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <ProfileShell>
+      {status.isLoading ? (
+        <EditProfilePageSkeleton />
+      ) : status.accessState.kind !== "ok" ? (
+        renderState()
+      ) : status.loadError ? (
+        <AppPageState
+          title="Unable to load profile"
+          message={status.loadError}
+          action={
+            <Link
+              className="ui-btn-primary rounded-full px-5 py-2.5 text-sm font-semibold transition-colors"
+              href={profileHref}
+            >
+              Back to profile
+            </Link>
+          }
+          tone="error"
+        />
       ) : (
         <main className="relative mx-auto w-full max-w-3xl space-y-4 px-4 pb-16 pt-12 sm:px-6">
           <header className="flex items-center justify-between gap-2">

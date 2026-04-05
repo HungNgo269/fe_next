@@ -2,6 +2,7 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { useCallback } from "react";
+import { toast } from "sonner";
 import { useFeedCacheUpdater } from "@/app/share/hooks/useFeedCacheUpdater";
 import { useUser } from "@/app/share/providers/UserProvider";
 import {
@@ -13,6 +14,16 @@ import {
 import { useOwnership } from "../hooks/useOwnership";
 import { useRequireAuthAction } from "../hooks/useRequireAuthAction";
 import { usePostUIStore } from "../stores/postStore";
+import {
+  getApiResultMessage,
+  getApiResultStatus,
+  isForbiddenStatus,
+  isUnauthenticatedStatus,
+} from "@/app/share/utils/api-result";
+
+const COMMENT_PERMISSION_MESSAGE =
+  "You do not have permission to modify this comment.";
+const COMMENT_SESSION_MESSAGE = "Your session has expired. Please sign in again.";
 
 export function usePostCommentMutations(postId: string) {
   const currentUser = useUser();
@@ -96,7 +107,20 @@ export function usePostCommentMutations(postId: string) {
       if (!currentUser) return;
       const trimmed = commentDraft.trim();
       if (!trimmed) return;
-      addCommentMutation.mutate({ content: trimmed });
+      addCommentMutation.mutate({ content: trimmed }, {
+        onSuccess: (result) => {
+          if (!result.ok) {
+            const status = getApiResultStatus(result);
+            toast.error(
+              isForbiddenStatus(status)
+                ? COMMENT_PERMISSION_MESSAGE
+                : isUnauthenticatedStatus(status)
+                  ? COMMENT_SESSION_MESSAGE
+                  : getApiResultMessage(result, "Unable to add comment."),
+            );
+          }
+        },
+      });
     });
   }, [addCommentMutation, commentDraft, currentUser, runIfAuth]);
 
@@ -110,6 +134,16 @@ export function usePostCommentMutations(postId: string) {
           content: trimmed,
           parentId,
         });
+        if (!result.ok) {
+          const status = getApiResultStatus(result);
+          toast.error(
+            isForbiddenStatus(status)
+              ? COMMENT_PERMISSION_MESSAGE
+              : isUnauthenticatedStatus(status)
+                ? COMMENT_SESSION_MESSAGE
+                : getApiResultMessage(result, "Unable to reply to this comment."),
+          );
+        }
         return result.ok;
       } catch {
         return false;
@@ -123,9 +157,30 @@ export function usePostCommentMutations(postId: string) {
       if (!runIfAuth(() => true)) return false;
       const trimmed = content.trim();
       if (!trimmed) return false;
-      if (!isCommentOwner(postId, commentId)) return false;
-      editCommentMutation.mutate({ commentId, content: trimmed });
-      return true;
+      if (!isCommentOwner(postId, commentId)) {
+        toast.error(COMMENT_PERMISSION_MESSAGE);
+        return false;
+      }
+      try {
+        const result = await editCommentMutation.mutateAsync({
+          commentId,
+          content: trimmed,
+        });
+        if (!result.ok) {
+          const status = getApiResultStatus(result);
+          toast.error(
+            isForbiddenStatus(status)
+              ? COMMENT_PERMISSION_MESSAGE
+              : isUnauthenticatedStatus(status)
+                ? COMMENT_SESSION_MESSAGE
+                : getApiResultMessage(result, "Unable to update comment."),
+          );
+          return false;
+        }
+        return true;
+      } catch {
+        return false;
+      }
     },
     [editCommentMutation, isCommentOwner, postId, runIfAuth],
   );
@@ -133,11 +188,29 @@ export function usePostCommentMutations(postId: string) {
   const handleDeleteComment = useCallback(
     async (commentId: string): Promise<boolean> => {
       if (!runIfAuth(() => true)) return false;
-      if (!isPostOwner(postId)) return false;
-      deleteCommentMutation.mutate(commentId);
-      return true;
+      if (!isCommentOwner(postId, commentId) && !isPostOwner(postId)) {
+        toast.error(COMMENT_PERMISSION_MESSAGE);
+        return false;
+      }
+      try {
+        const result = await deleteCommentMutation.mutateAsync(commentId);
+        if (!result.ok) {
+          const status = getApiResultStatus(result);
+          toast.error(
+            isForbiddenStatus(status)
+              ? COMMENT_PERMISSION_MESSAGE
+              : isUnauthenticatedStatus(status)
+                ? COMMENT_SESSION_MESSAGE
+                : getApiResultMessage(result, "Unable to delete comment."),
+          );
+          return false;
+        }
+        return true;
+      } catch {
+        return false;
+      }
     },
-    [deleteCommentMutation, isPostOwner, postId, runIfAuth],
+    [deleteCommentMutation, isCommentOwner, isPostOwner, postId, runIfAuth],
   );
 
   const handleReportComment = useCallback(
@@ -148,6 +221,16 @@ export function usePostCommentMutations(postId: string) {
           commentId,
           text,
         });
+        if (!result.ok) {
+          const status = getApiResultStatus(result);
+          toast.error(
+            isForbiddenStatus(status)
+              ? "You do not have permission to report this comment."
+              : isUnauthenticatedStatus(status)
+                ? COMMENT_SESSION_MESSAGE
+                : getApiResultMessage(result, "Unable to report comment."),
+          );
+        }
         return result.ok;
       } catch {
         return false;

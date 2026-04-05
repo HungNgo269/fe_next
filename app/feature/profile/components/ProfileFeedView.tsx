@@ -3,10 +3,11 @@
 import Link from "next/link";
 import PostDetailModal from "@/app/feature/post/components/PostDetailModal";
 import { useUser } from "@/app/share/providers/UserProvider";
+import AppPageState from "@/app/share/components/AppPageState";
+import type { AccessState } from "@/app/share/utils/access-state";
 import ProfileActions from "./ProfileActions";
 import ProfileHeader from "./ProfileHeader";
 import ProfilePostFeed from "./ProfilePostFeed";
-import ProfileStatusCard from "./ProfileStatusCard";
 import FriendRequestsModal from "./FriendRequestsModal";
 import UserListModal from "./UserListModal";
 import { useProfilePageController } from "../controllers/useProfilePageController";
@@ -14,13 +15,18 @@ import ProfileFeedViewSkeleton from "../skeleton/ProfileFeedViewSkeleton";
 
 type ProfileFeedViewProps = {
   profileKey: string;
+  initialAccessState: AccessState;
 };
 
-export default function ProfileFeedView({ profileKey }: ProfileFeedViewProps) {
+export default function ProfileFeedView({
+  profileKey,
+  initialAccessState,
+}: ProfileFeedViewProps) {
   const viewer = useUser();
   const controller = useProfilePageController({
     profileKey,
     viewerId: viewer?.id ?? null,
+    initialAccessState,
   });
   const { feed, ui } = controller;
   const {
@@ -28,7 +34,7 @@ export default function ProfileFeedView({ profileKey }: ProfileFeedViewProps) {
     canEditProfile,
     posts,
     isLoading,
-    isUnauthorized,
+    accessState,
     profileError,
     hasMorePosts,
     totalPosts,
@@ -49,53 +55,122 @@ export default function ProfileFeedView({ profileKey }: ProfileFeedViewProps) {
     ? "You have not created or shared any posts yet."
     : "No posts yet.";
 
-  if (!isLoading && !isOwnProfile && (profileError || isUnauthorized)) {
+  if (!isLoading && accessState.kind !== "ok") {
+    switch (accessState.kind) {
+      case "unauthenticated":
+        return (
+          <AppPageState
+            title="Sign in to view this profile"
+            message="This profile is only available after you sign in. Other interactive actions like liking or commenting should continue using the login prompt flow."
+            action={
+              <Link
+                className="ui-btn-primary rounded-full px-5 py-2.5 text-sm font-semibold transition-colors"
+                href="/login"
+              >
+                Sign in
+              </Link>
+            }
+            secondaryAction={
+              <Link
+                className="ui-btn-ghost rounded-full px-5 py-2.5 text-sm font-semibold transition-colors"
+                href="/"
+              >
+                Back to home
+              </Link>
+            }
+            tone="warning"
+          />
+        );
+      case "forbidden":
+        return (
+          <AppPageState
+            title="Access denied"
+            message="You are signed in, but you do not have permission to view this profile."
+            action={
+              <Link
+                className="ui-btn-ghost rounded-full px-5 py-2.5 text-sm font-semibold transition-colors"
+                href={ownProfileHref}
+              >
+                My profile
+              </Link>
+            }
+            tone="error"
+          />
+        );
+      case "payment_required":
+      case "not_found":
+        return (
+          <AppPageState
+            title="Profile not found"
+            message="The URL may be incorrect, or this user may have changed their username."
+            action={
+              <Link
+                className="ui-btn-primary rounded-full px-5 py-2.5 text-sm font-semibold transition-colors"
+                href="/"
+              >
+                Back to home
+              </Link>
+            }
+            secondaryAction={
+              <Link
+                className="ui-btn-ghost rounded-full px-5 py-2.5 text-sm font-semibold transition-colors"
+                href={ownProfileHref}
+              >
+                My profile
+              </Link>
+            }
+            tone="error"
+          />
+        );
+      case "error":
+        return (
+          <AppPageState
+            title="Unable to load profile"
+            message={profileError || "Please try again in a moment."}
+            action={
+              <Link
+                className="ui-btn-primary rounded-full px-5 py-2.5 text-sm font-semibold transition-colors"
+                href="/"
+              >
+                Back to home
+              </Link>
+            }
+            tone="error"
+          />
+        );
+      default:
+        break;
+    }
+  }
+
+  if (!isLoading && !isOwnProfile && profileError) {
     return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6 px-4 text-center">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-bold text-foreground">
-            {isUnauthorized ? "Access Denied" : "User Not Found"}
-          </h1>
-          <p className="ui-text-muted max-w-md text-sm">
-            {isUnauthorized
-              ? "You don't have permission to view this profile."
-              : "This user may have changed their username or the link may be incorrect."}
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
+      <AppPageState
+        title="Unable to load profile"
+        message={profileError}
+        action={
+          <Link
+            className="ui-btn-primary rounded-full px-5 py-2.5 text-sm font-semibold transition-colors"
+            href="/"
+          >
+            Back to home
+          </Link>
+        }
+        secondaryAction={
           <Link
             className="ui-btn-ghost rounded-full px-5 py-2.5 text-sm font-semibold transition-colors"
             href={ownProfileHref}
           >
             My profile
           </Link>
-        </div>
-      </div>
+        }
+        tone="error"
+      />
     );
   }
 
   if (isLoading) {
     return <ProfileFeedViewSkeleton />;
-  }
-
-  if (isUnauthorized) {
-    return (
-      <main className="relative mx-auto w-full max-w-5xl px-4 pb-16 pt-12 sm:px-6">
-        <ProfileStatusCard
-          action={
-            <Link
-              className="ui-btn-primary rounded-full px-5 py-2 text-xs font-semibold transition"
-              href="/login"
-            >
-              Sign in
-            </Link>
-          }
-          message="You can browse the app without logging in, but your personal profile is only available after sign-in."
-          title="Profile is locked"
-          variant="error"
-        />
-      </main>
-    );
   }
 
   return (

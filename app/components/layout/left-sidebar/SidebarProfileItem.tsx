@@ -28,7 +28,10 @@ export default function SidebarProfileItem({
         }`}
       >
         <span className="shrink-0">
-          <Avatar avatar={currentUser.avatarUrl ?? undefined} initials={currentUser.name} />
+          <Avatar
+            avatar={currentUser.avatarUrl ?? undefined}
+            initials={currentUser.name}
+          />
         </span>
         <span
           className={`${labelClassName} ${
@@ -47,9 +50,9 @@ export default function SidebarProfileItem({
       onClick={onSignIn}
       className="group relative flex w-full cursor-pointer items-center rounded-xl p-2 text-sm text-foreground-muted transition hover:bg-surface-hover hover:text-foreground"
     >
-      <span className="shrink-0">
+      {/* <span className="shrink-0">
         <Avatar />
-      </span>
+      </span> */}
       <span
         className={`${labelClassName} ${expanded ? "opacity-100" : "opacity-0"}`}
       >

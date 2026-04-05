@@ -1,6 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
+import { useCallback } from "react";
 import {
   acceptFriendRequestAction,
   cancelFriendRequestAction,
@@ -13,6 +14,13 @@ import {
 import type { ProfileFeedResponse, FriendshipStatus } from "../types/api.types";
 import { useSafeOptimisticMutation } from "@/app/share/hooks/useSafeOptimisticMutation";
 import { profileQueryKeys } from "../queries/profile.query-keys";
+import { useRequireAuthAction } from "@/app/feature/post/hooks/useRequireAuthAction";
+import {
+  getApiResultMessage,
+  getApiResultStatus,
+  isForbiddenStatus,
+  isUnauthenticatedStatus,
+} from "@/app/share/utils/api-result";
 
 const updateProfileConnection = (
   queryClient: ReturnType<typeof useQueryClient>,
@@ -53,6 +61,7 @@ const updateProfileConnection = (
 
 export function useProfileConnectionMutations(userId: string, profileKey: string) {
   const queryClient = useQueryClient();
+  const { runIfAuth } = useRequireAuthAction();
   const profileQueryKey = profileQueryKeys.detail(profileKey);
 
   const invalidateFriendRequests = () => {
@@ -68,7 +77,14 @@ export function useProfileConnectionMutations(userId: string, profileKey: string
     mutationFn: async () => {
       const result = await followUserAction(userId);
       if (!result.ok && result.error.status !== 409) {
-        throw new Error(result.error.messages[0] ?? "Unable to follow user.");
+        const status = getApiResultStatus(result);
+        if (isForbiddenStatus(status)) {
+          throw new Error("You do not have permission to follow this user.");
+        }
+        if (isUnauthenticatedStatus(status)) {
+          throw new Error("Your session has expired. Please sign in again.");
+        }
+        throw new Error(getApiResultMessage(result, "Unable to follow user."));
       }
     },
     getSnapshot: () => queryClient.getQueryData<ProfileFeedResponse>(profileQueryKey),
@@ -94,7 +110,14 @@ export function useProfileConnectionMutations(userId: string, profileKey: string
     mutationFn: async () => {
       const result = await unfollowUserAction(userId);
       if (!result.ok && result.error.status !== 404) {
-        throw new Error(result.error.messages[0] ?? "Unable to unfollow user.");
+        const status = getApiResultStatus(result);
+        if (isForbiddenStatus(status)) {
+          throw new Error("You do not have permission to unfollow this user.");
+        }
+        if (isUnauthenticatedStatus(status)) {
+          throw new Error("Your session has expired. Please sign in again.");
+        }
+        throw new Error(getApiResultMessage(result, "Unable to unfollow user."));
       }
     },
     getSnapshot: () => queryClient.getQueryData<ProfileFeedResponse>(profileQueryKey),
@@ -120,7 +143,14 @@ export function useProfileConnectionMutations(userId: string, profileKey: string
     mutationFn: async () => {
       const result = await sendFriendRequestAction(userId);
       if (!result.ok && result.error.status !== 409) {
-        throw new Error(result.error.messages[0] ?? "Unable to send friend request.");
+        const status = getApiResultStatus(result);
+        if (isForbiddenStatus(status)) {
+          throw new Error("You do not have permission to send a friend request.");
+        }
+        if (isUnauthenticatedStatus(status)) {
+          throw new Error("Your session has expired. Please sign in again.");
+        }
+        throw new Error(getApiResultMessage(result, "Unable to send friend request."));
       }
     },
     getSnapshot: () => queryClient.getQueryData<ProfileFeedResponse>(profileQueryKey),
@@ -146,7 +176,14 @@ export function useProfileConnectionMutations(userId: string, profileKey: string
     mutationFn: async () => {
       const result = await cancelFriendRequestAction(userId);
       if (!result.ok && result.error.status !== 404) {
-        throw new Error(result.error.messages[0] ?? "Unable to cancel friend request.");
+        const status = getApiResultStatus(result);
+        if (isForbiddenStatus(status)) {
+          throw new Error("You do not have permission to cancel this friend request.");
+        }
+        if (isUnauthenticatedStatus(status)) {
+          throw new Error("Your session has expired. Please sign in again.");
+        }
+        throw new Error(getApiResultMessage(result, "Unable to cancel friend request."));
       }
     },
     getSnapshot: () => queryClient.getQueryData<ProfileFeedResponse>(profileQueryKey),
@@ -172,7 +209,14 @@ export function useProfileConnectionMutations(userId: string, profileKey: string
     mutationFn: async () => {
       const result = await acceptFriendRequestAction(userId);
       if (!result.ok && result.error.status !== 404 && result.error.status !== 409) {
-        throw new Error(result.error.messages[0] ?? "Unable to accept friend request.");
+        const status = getApiResultStatus(result);
+        if (isForbiddenStatus(status)) {
+          throw new Error("You do not have permission to accept this friend request.");
+        }
+        if (isUnauthenticatedStatus(status)) {
+          throw new Error("Your session has expired. Please sign in again.");
+        }
+        throw new Error(getApiResultMessage(result, "Unable to accept friend request."));
       }
     },
     getSnapshot: () => queryClient.getQueryData<ProfileFeedResponse>(profileQueryKey),
@@ -199,7 +243,14 @@ export function useProfileConnectionMutations(userId: string, profileKey: string
     mutationFn: async () => {
       const result = await declineFriendRequestAction(userId);
       if (!result.ok && result.error.status !== 404 && result.error.status !== 409) {
-        throw new Error(result.error.messages[0] ?? "Unable to decline friend request.");
+        const status = getApiResultStatus(result);
+        if (isForbiddenStatus(status)) {
+          throw new Error("You do not have permission to decline this friend request.");
+        }
+        if (isUnauthenticatedStatus(status)) {
+          throw new Error("Your session has expired. Please sign in again.");
+        }
+        throw new Error(getApiResultMessage(result, "Unable to decline friend request."));
       }
     },
     getSnapshot: () => queryClient.getQueryData<ProfileFeedResponse>(profileQueryKey),
@@ -225,7 +276,14 @@ export function useProfileConnectionMutations(userId: string, profileKey: string
     mutationFn: async () => {
       const result = await removeFriendAction(userId);
       if (!result.ok && result.error.status !== 404) {
-        throw new Error(result.error.messages[0] ?? "Unable to remove friend.");
+        const status = getApiResultStatus(result);
+        if (isForbiddenStatus(status)) {
+          throw new Error("You do not have permission to remove this friend.");
+        }
+        if (isUnauthenticatedStatus(status)) {
+          throw new Error("Your session has expired. Please sign in again.");
+        }
+        throw new Error(getApiResultMessage(result, "Unable to remove friend."));
       }
     },
     getSnapshot: () => queryClient.getQueryData<ProfileFeedResponse>(profileQueryKey),
@@ -243,14 +301,21 @@ export function useProfileConnectionMutations(userId: string, profileKey: string
     errorMessage: "Unable to remove friend.",
   });
 
+  const requireAuthMutation = useCallback(
+    (action: () => void) => {
+      runIfAuth(action);
+    },
+    [runIfAuth],
+  );
+
   return {
-    follow: followMutation.mutate,
-    unfollow: unfollowMutation.mutate,
-    sendFriendRequest: sendRequest.mutate,
-    cancelFriendRequest: cancelRequest.mutate,
-    acceptFriendRequest: acceptRequest.mutate,
-    declineFriendRequest: declineRequest.mutate,
-    removeFriend: removeFriend.mutate,
+    follow: () => requireAuthMutation(() => followMutation.mutate()),
+    unfollow: () => requireAuthMutation(() => unfollowMutation.mutate()),
+    sendFriendRequest: () => requireAuthMutation(() => sendRequest.mutate()),
+    cancelFriendRequest: () => requireAuthMutation(() => cancelRequest.mutate()),
+    acceptFriendRequest: () => requireAuthMutation(() => acceptRequest.mutate()),
+    declineFriendRequest: () => requireAuthMutation(() => declineRequest.mutate()),
+    removeFriend: () => requireAuthMutation(() => removeFriend.mutate()),
     isFollowingLoading: followMutation.isPending || unfollowMutation.isPending,
     isFriendActionLoading:
       sendRequest.isPending ||

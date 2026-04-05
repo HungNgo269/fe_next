@@ -2,10 +2,17 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef } from "react";
+import { toast } from "sonner";
 import { useRequireAuthAction } from "../hooks/useRequireAuthAction";
 import { useFeedCacheUpdater } from "@/app/share/hooks/useFeedCacheUpdater";
 import { createLikeAction, deleteLikeAction } from "../actions/post.actions";
 import { findPostInCaches } from "../utils/postCache";
+import {
+  getApiResultMessage,
+  getApiResultStatus,
+  isForbiddenStatus,
+  isUnauthenticatedStatus,
+} from "@/app/share/utils/api-result";
 
 export function usePostLikeMutation(postId: string, currentLiked?: boolean) {
   const queryClient = useQueryClient();
@@ -47,7 +54,14 @@ export function usePostLikeMutation(postId: string, currentLiked?: boolean) {
       if (!variables.nextLiked) {
         const result = await deleteLikeAction(postId);
         if (!result.ok && result.error.status !== 404) {
-          throw new Error(result.error.messages[0] ?? "Unable to unlike.");
+          const status = getApiResultStatus(result);
+          if (isForbiddenStatus(status)) {
+            throw new Error("You do not have permission to remove this like.");
+          }
+          if (isUnauthenticatedStatus(status)) {
+            throw new Error("Your session has expired. Please sign in again.");
+          }
+          throw new Error(getApiResultMessage(result, "Unable to unlike."));
         }
         return;
       }
@@ -55,16 +69,24 @@ export function usePostLikeMutation(postId: string, currentLiked?: boolean) {
       const result = await createLikeAction(postId);
       if (!result.ok) {
         if (result.error.status === 409) return;
-        throw new Error(result.error.messages[0] ?? "Unable to like.");
+        const status = getApiResultStatus(result);
+        if (isForbiddenStatus(status)) {
+          throw new Error("You do not have permission to like this post.");
+        }
+        if (isUnauthenticatedStatus(status)) {
+          throw new Error("Your session has expired. Please sign in again.");
+        }
+        throw new Error(getApiResultMessage(result, "Unable to like."));
       }
     },
     onSuccess: (_data, variables) => {
       confirmedLikedRef.current = variables.nextLiked;
     },
-    onError: () => {
+    onError: (error) => {
       optimisticLikedRef.current = confirmedLikedRef.current;
       desiredLikedRef.current = confirmedLikedRef.current;
       cache.toggleLike(postId, confirmedLikedRef.current);
+      toast.error(error.message);
     },
     onSettled: () => {
       inFlightRef.current = false;

@@ -7,6 +7,11 @@ import { getUserProfileFeed } from "../api/profileApi";
 import { mergeFeedPosts, type FeedPostsInfiniteData } from "@/app/feature/feed/queries/feed.cache";
 import { feedQueryKeys } from "@/app/feature/feed/queries/feed.query-keys";
 import { mergeUniquePosts } from "@/app/feature/post/utils/postCache";
+import {
+  OK_ACCESS_STATE,
+  getAccessStateFromStatus,
+  type AccessState,
+} from "@/app/share/utils/access-state";
 import type { ProfileFeedResponse } from "../types/api.types";
 import { profileQueryKeys } from "./profile.query-keys";
 import type { UserProfile } from "../types/profile";
@@ -18,6 +23,7 @@ type ProfileFeedState = Pick<ProfileFeedResponse, "posts" | "pagination">;
 type UseProfileFeedQueryOptions = {
   profileKey: string;
   viewerId?: string | null;
+  initialAccessState?: AccessState;
 };
 
 const EMPTY_PROFILE: UserProfile = {
@@ -49,12 +55,13 @@ const toUserProfile = (user: ProfileFeedResponse["user"]): UserProfile => ({
 export function useProfileFeedQuery({
   profileKey,
   viewerId,
+  initialAccessState = OK_ACCESS_STATE,
 }: UseProfileFeedQueryOptions) {
   const queryClient = useQueryClient();
   const currentUserId = viewerId ?? "";
   const [profileError, setProfileError] = useState("");
   const [profile, setProfile] = useState<UserProfile>(EMPTY_PROFILE);
-  const [isUnauthorized, setIsUnauthorized] = useState(false);
+  const [accessState, setAccessState] = useState<AccessState>(initialAccessState);
   const [loadedFeed, setLoadedFeed] = useState<ProfileFeedState | null>(null);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
@@ -71,11 +78,14 @@ export function useProfileFeedQuery({
     },
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
+    enabled: initialAccessState.kind === "ok",
   });
 
   useEffect(() => {
     setLoadedFeed(null);
-  }, [profileKey]);
+    setProfileError("");
+    setAccessState(initialAccessState);
+  }, [initialAccessState, profileKey]);
 
   useEffect(() => {
     if (!query.data) {
@@ -84,7 +94,7 @@ export function useProfileFeedQuery({
 
     setProfile(toUserProfile(query.data.user));
     setProfileError("");
-    setIsUnauthorized(false);
+    setAccessState(OK_ACCESS_STATE);
     queryClient.setQueryData<FeedPostsInfiniteData>(feedQueryKeys.list(), (old) =>
       old ? mergeFeedPosts(old, query.data.posts) : old,
     );
@@ -96,17 +106,18 @@ export function useProfileFeedQuery({
     }
 
     const status = (query.error as ProfileFeedQueryError).status;
-    setIsUnauthorized(status === 401 || status === 403);
-    setProfileError(query.error.message);
+    const nextAccessState = getAccessStateFromStatus(status, query.error.message);
+    setAccessState(nextAccessState);
+    setProfileError(nextAccessState.kind === "error" ? query.error.message : "");
   }, [query.error]);
 
   useEffect(() => {
-    if (!query.error || isUnauthorized) {
+    if (!query.error || accessState.kind !== "error") {
       return;
     }
 
     toast.error("Unable to load profile.");
-  }, [isUnauthorized, query.error]);
+  }, [accessState.kind, query.error]);
 
   const resolvedProfile = useMemo(
     () => (query.data ? toUserProfile(query.data.user) : profile),
@@ -177,9 +188,9 @@ export function useProfileFeedQuery({
     posts,
     currentUserId,
     canEditProfile,
-    isLoading: query.isLoading,
+    isLoading: initialAccessState.kind === "ok" ? query.isLoading : false,
     isLoadingMore,
-    isUnauthorized,
+    accessState,
     profileError,
     hasMorePosts: pagination?.hasMore ?? false,
     totalPosts: pagination?.totalPosts ?? posts.length,

@@ -9,16 +9,19 @@ import { useFriendRequestsQuery } from "../queries/useFriendRequestsQuery";
 export type UseProfilePageControllerOptions = {
   profileKey: string;
   viewerId?: string | null;
+  initialAccessState?: import("@/app/share/utils/access-state").AccessState;
 };
 
 export function useProfilePageController({
   profileKey,
   viewerId,
+  initialAccessState,
 }: UseProfilePageControllerOptions) {
   const logoutUser = useLogout();
   const feed = useProfileFeedQuery({
     profileKey,
     viewerId,
+    initialAccessState,
   });
   const { requests } = useFriendRequestsQuery(feed.canEditProfile);
 

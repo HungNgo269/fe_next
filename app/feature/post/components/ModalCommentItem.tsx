@@ -38,7 +38,7 @@ function ModalCommentItemComponent({
   const cacheUpdater = useFeedCacheUpdater();
 
   const canEditComment = isCommentOwner(postId, comment.id);
-  const canDeleteComment = isPostOwner(postId);
+  const canDeleteComment = canEditComment || isPostOwner(postId);
   const authorProfileKey = comment.author.handle || comment.author.id;
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);

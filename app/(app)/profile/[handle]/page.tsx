@@ -2,6 +2,10 @@ import ProfileFeedView from "@/app/feature/profile/components/ProfileFeedView";
 import ProfileShell from "@/app/feature/profile/components/ProfileShell";
 import { getUserProfileFeedServer } from "@/app/feature/profile/api/profileApi.server";
 import {
+  OK_ACCESS_STATE,
+  getAccessStateFromStatus,
+} from "@/app/share/utils/access-state";
+import {
   HydrationBoundary,
   QueryClient,
   dehydrate,
@@ -19,6 +23,12 @@ export default async function OtherUserProfilePage({
   const { handle } = await params;
   const queryClient = new QueryClient();
   const initialFeed = await getUserProfileFeedServer(handle, 1, 5);
+  const initialAccessState = initialFeed.ok
+    ? OK_ACCESS_STATE
+    : getAccessStateFromStatus(
+        initialFeed.error.status,
+        initialFeed.error.messages[0],
+      );
 
   if (initialFeed.ok) {
     queryClient.setQueryData<ProfileFeedResponse>(
@@ -30,7 +40,10 @@ export default async function OtherUserProfilePage({
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <ProfileShell>
-        <ProfileFeedView profileKey={handle} />
+        <ProfileFeedView
+          profileKey={handle}
+          initialAccessState={initialAccessState}
+        />
       </ProfileShell>
     </HydrationBoundary>
   );

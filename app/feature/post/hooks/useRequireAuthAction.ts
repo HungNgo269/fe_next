@@ -6,7 +6,9 @@ import { useUser } from "@/app/share/providers/UserProvider";
 
 export function useRequireAuthAction() {
   const currentUser = useUser();
-  const setShowLoginDialog = usePostUIStore((state) => state.setShowLoginDialog);
+  const setShowLoginDialog = usePostUIStore(
+    (state) => state.setShowLoginDialog,
+  );
 
   const requireAuth = useCallback(() => {
     if (!currentUser) {
@@ -17,9 +19,8 @@ export function useRequireAuthAction() {
   }, [currentUser, setShowLoginDialog]);
 
   const runIfAuth = useCallback(
-    <T,>(action: () => T): T | undefined => {
+    <T>(action: () => T): T | undefined => {
       if (!requireAuth()) return undefined;
-      return action();
     },
     [requireAuth],
   );

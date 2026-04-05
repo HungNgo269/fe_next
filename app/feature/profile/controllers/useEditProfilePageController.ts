@@ -9,6 +9,7 @@ import {
   updateCurrentUserProfileAction,
   uploadCurrentUserAvatarAction,
 } from "@/app/feature/profile/actions/profile.actions";
+import type { AccessState } from "@/app/share/utils/access-state";
 import type { UserProfile } from "@/app/feature/profile/types/profile";
 import type {
   AvatarFormValues,
@@ -47,13 +48,13 @@ const buildGenderOptions = (selectedGender: string) => {
 
 type UseEditProfilePageControllerOptions = {
   initialProfile: UserProfile | null;
-  isUnauthorized: boolean;
+  initialAccessState: AccessState;
   initialLoadError: string;
 };
 
 export function useEditProfilePageController({
   initialProfile,
-  isUnauthorized,
+  initialAccessState,
   initialLoadError,
 }: UseEditProfilePageControllerOptions) {
   const router = useRouter();
@@ -226,7 +227,7 @@ export function useEditProfilePageController({
     profile,
     status: {
       isLoading: false,
-      isUnauthorized,
+      accessState: initialAccessState,
       loadError: initialLoadError,
     },
     avatarForm: {
