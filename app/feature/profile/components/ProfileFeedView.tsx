@@ -12,6 +12,7 @@ import FriendRequestsModal from "./FriendRequestsModal";
 import UserListModal from "./UserListModal";
 import { useProfilePageController } from "../controllers/useProfilePageController";
 import ProfileFeedViewSkeleton from "../skeleton/ProfileFeedViewSkeleton";
+import AppErrorBoundary from "@/app/share/components/AppErrorBoundary";
 
 type ProfileFeedViewProps = {
   profileKey: string;
@@ -175,67 +176,102 @@ export default function ProfileFeedView({
 
   return (
     <main className="relative mx-auto w-full max-w-5xl space-y-6 px-4 pb-16 pt-12 sm:px-6">
-      <ProfileHeader
-        avatarUrl={profile.avatar}
-        name={profile.name}
-        handle={profile.handle}
-        bio={profile.bio}
-        postsCount={totalPosts ?? posts.length}
-        friendsCount={profile.friendsCount ?? 0}
-        followersCount={profile.followersCount ?? 0}
-        followingCount={profile.followingCount ?? 0}
-        onOpenList={ui.openListModal}
+      <AppErrorBoundary
+        boundaryName="profile-header"
+        title="Profile header is unavailable"
+        message="The post feed can still be used while the profile summary is retried."
+        resetKeys={[profile.id, profile.handle, canEditProfile]}
       >
-        {canEditProfile ? (
-          <>
-            <div className="flex w-full flex-col gap-3 sm:flex-row">
-              <Link
-                className="inline-flex flex-1 items-center justify-center rounded-xl bg-gray-200 px-4 py-2.5 text-sm font-semibold text-secondary-foreground transition-colors hover:brightness-95"
-                href="/profile/edit"
-              >
-                Edit profile
-              </Link>
-              <ProfileActions variant="logout" />
-            </div>
+        <ProfileHeader
+          avatarUrl={profile.avatar}
+          name={profile.name}
+          handle={profile.handle}
+          bio={profile.bio}
+          postsCount={totalPosts ?? posts.length}
+          friendsCount={profile.friendsCount ?? 0}
+          followersCount={profile.followersCount ?? 0}
+          followingCount={profile.followingCount ?? 0}
+          onOpenList={ui.openListModal}
+        >
+          {canEditProfile ? (
+            <>
+              <div className="flex w-full flex-col gap-3 sm:flex-row">
+                <Link
+                  className="inline-flex flex-1 items-center justify-center rounded-xl bg-gray-200 px-4 py-2.5 text-sm font-semibold text-secondary-foreground transition-colors hover:brightness-95"
+                  href="/profile/edit"
+                >
+                  Edit profile
+                </Link>
+                <ProfileActions variant="logout" />
+              </div>
+              <ProfileActions
+                variant="own"
+                incomingCount={ui.incomingCount}
+                onOpenFriendRequests={ui.openFriendRequestsModal}
+              />
+            </>
+          ) : (
             <ProfileActions
-              variant="own"
-              incomingCount={ui.incomingCount}
-              onOpenFriendRequests={ui.openFriendRequestsModal}
+              variant="other"
+              profileId={profile.id ?? ""}
+              isFollowing={profile.isFollowing ?? false}
+              followersCount={profile.followersCount ?? 0}
+              friendsCount={profile.friendsCount ?? 0}
+              friendshipStatus={profile.friendshipStatus ?? "NONE"}
             />
-          </>
-        ) : (
-          <ProfileActions
-            variant="other"
-            profileId={profile.id ?? ""}
-            isFollowing={profile.isFollowing ?? false}
-            followersCount={profile.followersCount ?? 0}
-            friendsCount={profile.friendsCount ?? 0}
-            friendshipStatus={profile.friendshipStatus ?? "NONE"}
-          />
-        )}
-      </ProfileHeader>
+          )}
+        </ProfileHeader>
+      </AppErrorBoundary>
 
-      <ProfilePostFeed
-        posts={posts}
-        canEditProfile={canEditProfile}
-        postsLabel="Posts"
-        emptyMessage={emptyMessage}
-        hasMorePosts={hasMorePosts}
-        isLoadingMore={isLoadingMore}
-        onLoadMore={handleLoadMore}
-      />
+      <AppErrorBoundary
+        boundaryName="profile-post-feed"
+        title="Posts are unavailable"
+        message="The rest of this profile is still usable. Retry the post feed to continue browsing."
+        resetKeys={[profile.id, posts.length, hasMorePosts, isLoadingMore]}
+      >
+        <ProfilePostFeed
+          posts={posts}
+          canEditProfile={canEditProfile}
+          postsLabel="Posts"
+          emptyMessage={emptyMessage}
+          hasMorePosts={hasMorePosts}
+          isLoadingMore={isLoadingMore}
+          onLoadMore={handleLoadMore}
+        />
+      </AppErrorBoundary>
 
-      <PostDetailModal />
-      <UserListModal
-        isOpen={ui.listModalOpen}
-        onClose={ui.closeListModal}
-        listType={ui.listModalType}
-        userId={profile.id ?? ""}
-      />
-      <FriendRequestsModal
-        isOpen={ui.friendRequestsModalOpen}
-        onClose={ui.closeFriendRequestsModal}
-      />
+      <AppErrorBoundary
+        boundaryName="profile-post-modal"
+        title="Post preview is unavailable"
+        message="The profile itself still works. Retry the post modal when you need it."
+        resetKeys={[profile.id]}
+      >
+        <PostDetailModal />
+      </AppErrorBoundary>
+      <AppErrorBoundary
+        boundaryName="profile-user-list-modal"
+        title="Connection list is unavailable"
+        message="The profile page is still available while this modal is retried."
+        resetKeys={[ui.listModalOpen, ui.listModalType, profile.id]}
+      >
+        <UserListModal
+          isOpen={ui.listModalOpen}
+          onClose={ui.closeListModal}
+          listType={ui.listModalType}
+          userId={profile.id ?? ""}
+        />
+      </AppErrorBoundary>
+      <AppErrorBoundary
+        boundaryName="profile-friend-requests-modal"
+        title="Friend requests are unavailable"
+        message="Other profile actions remain usable while this modal is retried."
+        resetKeys={[ui.friendRequestsModalOpen, profile.id]}
+      >
+        <FriendRequestsModal
+          isOpen={ui.friendRequestsModalOpen}
+          onClose={ui.closeFriendRequestsModal}
+        />
+      </AppErrorBoundary>
     </main>
   );
 }
