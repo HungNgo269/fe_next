@@ -7,6 +7,7 @@ import FeedStoriesSkeleton from "@/app/feature/feed/skeleton/FeedStoriesSkeleton
 import FeedComposerSkeleton from "@/app/feature/feed/skeleton/FeedComposerSkeleton";
 import FeedPostListSkeleton from "@/app/feature/feed/skeleton/FeedPostListSkeleton";
 import SuggestionListSkeleton from "@/app/feature/suggestion/skeleton/SuggestionListSkeleton";
+import AppErrorBoundary from "@/app/share/components/AppErrorBoundary";
 
 function FeedPostsSectionFallback() {
   return (
@@ -15,6 +16,54 @@ function FeedPostsSectionFallback() {
       <FeedPostListSkeleton count={3} />
     </div>
   );
+}
+
+function FeedServerSectionErrorState({
+  title,
+  message,
+}: {
+  title: string;
+  message: string;
+}) {
+  return (
+    <section className="rounded-[1.75rem] border border-destructive/30 bg-destructive/10 p-5 text-foreground shadow-soft">
+      <div className="space-y-2">
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-foreground-muted">
+          Section unavailable
+        </p>
+        <h2 className="text-lg font-semibold text-foreground">{title}</h2>
+        <p className="text-sm leading-6 text-foreground-muted">{message}</p>
+      </div>
+    </section>
+  );
+}
+
+async function SafeFeedStoriesSection() {
+  try {
+    return await FeedStoriesServer();
+  } catch (error) {
+    console.error("[ServerSection:feed-stories]", error);
+    return (
+      <FeedServerSectionErrorState
+        title="Stories are unavailable"
+        message="Posts and suggestions can still be used while stories recover."
+      />
+    );
+  }
+}
+
+async function SafeFeedSuggestionsSection() {
+  try {
+    return await FeedSuggestionsServer();
+  } catch (error) {
+    console.error("[ServerSection:feed-suggestions]", error);
+    return (
+      <FeedServerSectionErrorState
+        title="Suggestions are unavailable"
+        message="Your feed remains usable while this sidebar section is retried later."
+      />
+    );
+  }
 }
 
 export default async function FeedPage() {
@@ -49,24 +98,30 @@ export default async function FeedPage() {
 
           <div id="stories">
             <Suspense fallback={<FeedStoriesSkeleton count={4} />}>
-              <FeedStoriesServer />
+              <SafeFeedStoriesSection />
             </Suspense>
           </div>
 
           <div id="posts">
             <Suspense fallback={<FeedPostsSectionFallback />}>
-              <FeedPostsClient
-                initialPagination={feedPostsData.pagination}
-                initialPosts={feedPostsData.posts}
-                feedError={feedPostsData.feedError}
-              />
+              <AppErrorBoundary
+                boundaryName="feed-posts-section"
+                title="The feed is temporarily unavailable"
+                message="Stories and suggestions are still available. Retry this section to continue browsing posts."
+              >
+                <FeedPostsClient
+                  initialPagination={feedPostsData.pagination}
+                  initialPosts={feedPostsData.posts}
+                  feedError={feedPostsData.feedError}
+                />
+              </AppErrorBoundary>
             </Suspense>
           </div>
         </section>
 
         <aside className="w-full space-y-6 lg:w-[320px] lg:flex-none" id="suggestions">
           <Suspense fallback={<SuggestionListSkeleton count={3} />}>
-            <FeedSuggestionsServer />
+            <SafeFeedSuggestionsSection />
           </Suspense>
         </aside>
       </main>

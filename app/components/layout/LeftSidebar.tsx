@@ -13,6 +13,7 @@ import { Sheet, SheetContent } from "@/app/share/components/ui/sheet";
 import LoginRequiredDialog from "@/app/share/components/LoginRequiredDialog";
 import { useUser } from "@/app/share/providers/UserProvider";
 import { useLeftSidebar } from "./hooks/useLeftSidebar";
+import AppErrorBoundary from "@/app/share/components/AppErrorBoundary";
 
 type LeftSidebarProps = {
   onRequireAuth: () => void;
@@ -256,11 +257,18 @@ export default function LeftSidebar({
           closeClassName="hidden lg:inline-flex"
           className="w-[100vw] border-border/70 p-0 sm:w-[430px] lg:left-[4.5rem] lg:w-[390px]"
         >
-          <SearchPanel
-            open={showSearchPanel}
-            onBack={() => handleSearchPanelOpenChange(false)}
-            onResultSelect={() => handleSearchPanelOpenChange(false)}
-          />
+          <AppErrorBoundary
+            boundaryName="sidebar-search-panel"
+            title="Search is unavailable"
+            message="You can keep using the rest of the app while this panel is retried."
+            variant="panel"
+          >
+            <SearchPanel
+              open={showSearchPanel}
+              onBack={() => handleSearchPanelOpenChange(false)}
+              onResultSelect={() => handleSearchPanelOpenChange(false)}
+            />
+          </AppErrorBoundary>
         </SheetContent>
       </Sheet>
 
@@ -274,11 +282,18 @@ export default function LeftSidebar({
           closeClassName="hidden lg:inline-flex"
           className="w-[100vw] border-border/70 p-0 sm:w-[430px] lg:left-[4.5rem] lg:w-[390px]"
         >
-          <NotificationPanel
-            notifications={notifications}
-            loading={notificationLoading}
-            onBack={() => handleNotificationPanelOpenChange(false)}
-          />
+          <AppErrorBoundary
+            boundaryName="sidebar-notification-panel"
+            title="Notifications are unavailable"
+            message="Retry this panel while keeping the rest of the sidebar and page active."
+            variant="panel"
+          >
+            <NotificationPanel
+              notifications={notifications}
+              loading={notificationLoading}
+              onBack={() => handleNotificationPanelOpenChange(false)}
+            />
+          </AppErrorBoundary>
         </SheetContent>
       </Sheet>
 

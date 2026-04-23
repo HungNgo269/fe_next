@@ -9,6 +9,7 @@ import EditProfilePageSkeleton from "@/app/feature/profile/skeleton/EditProfileP
 import AppPageState from "@/app/share/components/AppPageState";
 import type { AccessState } from "@/app/share/utils/access-state";
 import type { UserProfile } from "@/app/feature/profile/types/profile";
+import AppErrorBoundary from "@/app/share/components/AppErrorBoundary";
 
 type EditProfilePageClientProps = {
   initialProfile: UserProfile | null;
@@ -139,30 +140,54 @@ export default function EditProfilePageClient({
             <h1 className="text-2xl font-semibold text-foreground">Edit profile</h1>
           </header>
 
-          <EditProfileAvatarForm
-            isAvatarSubmitting={avatarForm.isSubmitting}
-            hasAvatarChanges={avatarForm.hasChanges}
-            avatarSubmitError={avatarForm.submitError}
-            selectedAvatarFileName={avatarForm.selectedFileName}
-            hasCurrentAvatar={Boolean((profile.avatar ?? "").trim())}
-            avatarPreviewUrl={avatarForm.previewUrl}
-            avatarPreviewName={avatarForm.previewName}
-            registerAvatar={avatarForm.register}
-            onDeleteAvatar={avatarForm.onDelete}
-            onSubmitAvatar={avatarForm.onSubmit}
-          />
+          <AppErrorBoundary
+            boundaryName="edit-profile-avatar-form"
+            title="Avatar settings are unavailable"
+            message="You can still update the rest of the profile while this form is retried."
+            resetKeys={[
+              profile.id,
+              avatarForm.hasChanges,
+              avatarForm.isSubmitting,
+              avatarForm.selectedFileName,
+            ]}
+          >
+            <EditProfileAvatarForm
+              isAvatarSubmitting={avatarForm.isSubmitting}
+              hasAvatarChanges={avatarForm.hasChanges}
+              avatarSubmitError={avatarForm.submitError}
+              selectedAvatarFileName={avatarForm.selectedFileName}
+              hasCurrentAvatar={Boolean((profile.avatar ?? "").trim())}
+              avatarPreviewUrl={avatarForm.previewUrl}
+              avatarPreviewName={avatarForm.previewName}
+              registerAvatar={avatarForm.register}
+              onDeleteAvatar={avatarForm.onDelete}
+              onSubmitAvatar={avatarForm.onSubmit}
+            />
+          </AppErrorBoundary>
 
-          <EditProfileDetailsForm
-            isSaving={detailsForm.isSaving}
-            isDetailsSubmitting={detailsForm.isSubmitting}
-            hasDetailsChanges={detailsForm.hasChanges}
-            detailsSubmitError={detailsForm.submitError}
-            detailBio={detailsForm.bioValue}
-            genderOptions={detailsForm.genderOptions}
-            detailsControl={detailsForm.control}
-            registerDetails={detailsForm.register}
-            onSubmitDetails={detailsForm.onSubmit}
-          />
+          <AppErrorBoundary
+            boundaryName="edit-profile-details-form"
+            title="Profile details are unavailable"
+            message="Avatar updates still work while this form is retried."
+            resetKeys={[
+              profile.id,
+              detailsForm.hasChanges,
+              detailsForm.isSubmitting,
+              detailsForm.isSaving,
+            ]}
+          >
+            <EditProfileDetailsForm
+              isSaving={detailsForm.isSaving}
+              isDetailsSubmitting={detailsForm.isSubmitting}
+              hasDetailsChanges={detailsForm.hasChanges}
+              detailsSubmitError={detailsForm.submitError}
+              detailBio={detailsForm.bioValue}
+              genderOptions={detailsForm.genderOptions}
+              detailsControl={detailsForm.control}
+              registerDetails={detailsForm.register}
+              onSubmitDetails={detailsForm.onSubmit}
+            />
+          </AppErrorBoundary>
         </main>
       )}
     </ProfileShell>

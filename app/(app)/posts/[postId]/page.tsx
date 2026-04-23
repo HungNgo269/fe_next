@@ -1,6 +1,7 @@
 import { fetchPostByIdServer } from "@/app/feature/post/api/postApi.server";
 import PostPermalinkView from "@/app/feature/post/components/PostPermalinkView";
 import PostPermalinkErrorNotice from "@/app/feature/post/components/PostPermalinkErrorNotice";
+import AppErrorBoundary from "@/app/share/components/AppErrorBoundary";
 
 export default async function PostPermalinkPage({
   params,
@@ -14,5 +15,17 @@ export default async function PostPermalinkPage({
     return <PostPermalinkErrorNotice />;
   }
 
-  return <PostPermalinkView post={result.data} />;
+  return (
+    <AppErrorBoundary
+      boundaryName="post-permalink-view"
+      title="This post is temporarily unavailable"
+      message="The permalink view hit an unexpected error. Retry it without leaving the app."
+      variant="page"
+      actionHref="/"
+      actionLabel="Back to feed"
+      resetKeys={[result.data.id]}
+    >
+      <PostPermalinkView post={result.data} />
+    </AppErrorBoundary>
+  );
 }
