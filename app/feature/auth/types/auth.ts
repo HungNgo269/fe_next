@@ -13,7 +13,6 @@ export type RegisterPayload = {
   gender: Gender;
   password: string;
   emailVerificationCode: string;
-  emailVerificationToken: string;
 };
 
 export type RegisterCodeRequestPayload = {
@@ -22,7 +21,6 @@ export type RegisterCodeRequestPayload = {
 
 export type RegisterCodeRequestResponse = {
   message: string;
-  verificationToken: string;
 };
 
 export type AuthUser = {
